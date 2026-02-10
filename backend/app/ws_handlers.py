@@ -90,6 +90,8 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
     config = get_config()
     user_id = None
     try:
+        # Обязательный handshake перед получением/отправкой данных
+        await ws.accept()
         raw = await ws.receive_text()
         data = json.loads(raw)
         if data.get("type") != "auth":

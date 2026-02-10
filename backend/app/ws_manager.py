@@ -33,7 +33,6 @@ class WSManager:
         telegram_id: int,
         username: str,
     ) -> None:
-        await ws.accept()
         if user_id in self._by_user:
             old = self._by_user[user_id]
             self._all.remove(old)
