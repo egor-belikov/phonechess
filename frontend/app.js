@@ -26,6 +26,10 @@
     showMobileOnlyBlock();
     return;
   }
+  if (!MOBILE_ONLY_ENABLED) {
+    var block = document.getElementById('mobile-only-block');
+    if (block) block.style.display = 'none';
+  }
 
   const TIME_CONTROLS = ['3+0', '3+2', '5+0', '5+3', '10+0', '15+10'];
   const FILES = 'abcdefgh';
