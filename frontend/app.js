@@ -197,7 +197,15 @@
   }
 
   function renderBoard() {
-    if (!boardEl || !gameFen) return;
+    if (!boardEl || !gameFen) {
+      console.log('[PhoneChess] renderBoard skip', { boardEl: !!boardEl, gameFen: !!gameFen });
+      return;
+    }
+    if (typeof window.Chess === 'undefined') {
+      console.error('[PhoneChess] Chess (chess.js) not loaded');
+      return;
+    }
+    try {
     const orientation = myColor === 'black' ? 'black' : 'white';
     const board = parseFenPieces(gameFen);
     boardEl.innerHTML = '';
@@ -229,6 +237,9 @@
     boardEl.querySelectorAll('.square').forEach(cell => {
       cell.addEventListener('click', () => onSquareClick(cell.dataset.square));
     });
+    } catch (e) {
+      console.error('[PhoneChess] renderBoard error', e);
+    }
   }
 
   function onSquareClick(sq) {
@@ -277,6 +288,7 @@
   }
 
   function applyGameState(data) {
+    console.log('[PhoneChess] applyGameState', { hasFen: !!data.fen, moves: data.moves?.length, result: data.result });
     gameFen = data.fen || gameFen;
     whiteRemainingMs = data.white_remaining_ms != null ? data.white_remaining_ms : whiteRemainingMs;
     blackRemainingMs = data.black_remaining_ms != null ? data.black_remaining_ms : blackRemainingMs;
@@ -297,6 +309,7 @@
   }
 
   function enterGame(msg) {
+    console.log('[PhoneChess] enterGame', { game_id: msg.game_id, color: msg.color, hasFen: !!msg.fen });
     currentGameId = msg.game_id;
     myColor = msg.color;
     gameFen = msg.fen;
@@ -337,6 +350,7 @@
           currentQueue = null;
           enterGame(msg);
         } else if (msg.type === 'game_state') {
+          console.log('[PhoneChess] WS game_state received');
           applyGameState(msg);
         } else if (msg.type === 'game_update') {
           applyGameState(msg);
