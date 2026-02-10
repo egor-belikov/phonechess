@@ -322,6 +322,10 @@
     lastMove = null;
     if (gameInfo) gameInfo.textContent = (msg.white_username || 'Белые') + ' vs ' + (msg.black_username || 'Чёрные') + ' (' + (msg.time_control || '') + ')';
     showScreen('game-screen');
+    updateClocksDisplay();
+    startClockTicker();
+    renderBoard();
+    renderMoveList();
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'subscribe_game', game_id: currentGameId }));
     }
