@@ -11,6 +11,9 @@ from fastapi import WebSocket
 from .auth import validate_init_data
 from .config import get_config
 from .pairing import (
+    apply_move,
+    game_state_payload,
+    get_game_for_user,
     get_queue_counts,
     join_queue,
     leave_all_queues,
@@ -49,25 +52,19 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
             conn.username or "",
         )
         if game:
-            # Отправить обоим игрокам matched
-            white_payload = {
+            # Отправить обоим игрокам matched (с начальными часами)
+            base = {
                 "type": "matched",
                 "game_id": game.id,
-                "color": "white",
                 "time_control": game.time_control_key,
                 "fen": game.fen,
                 "white_username": game.white_username,
                 "black_username": game.black_username,
+                "white_remaining_ms": game.white_remaining_ms,
+                "black_remaining_ms": game.black_remaining_ms,
             }
-            black_payload = {
-                "type": "matched",
-                "game_id": game.id,
-                "color": "black",
-                "time_control": game.time_control_key,
-                "fen": game.fen,
-                "white_username": game.white_username,
-                "black_username": game.black_username,
-            }
+            white_payload = {**base, "color": "white"}
+            black_payload = {**base, "color": "black"}
             await manager.send_to_user(game.white_id, white_payload)
             await manager.send_to_user(game.black_id, black_payload)
         await manager.broadcast_queue_counts()
@@ -79,6 +76,35 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
         else:
             leave_all_queues(user_id)
         await manager.broadcast_queue_counts()
+        return True
+    if t == "subscribe_game":
+        game_id = data.get("game_id")
+        g = get_game_for_user(game_id, user_id) if game_id else None
+        if g:
+            await manager.send_to_user(user_id, game_state_payload(g))
+        return True
+    if t == "make_move":
+        game_id = data.get("game_id")
+        from_sq = data.get("from")
+        to_sq = data.get("to")
+        promotion = data.get("promotion")
+        g = get_game_for_user(game_id, user_id) if game_id else None
+        if g and from_sq and to_sq:
+            update = apply_move(game_id, user_id, from_sq, to_sq, promotion)
+            if update:
+                payload = {
+                    "type": "game_update",
+                    "fen": update["fen"],
+                    "white_remaining_ms": update["white_remaining_ms"],
+                    "black_remaining_ms": update["black_remaining_ms"],
+                    "san": update["san"],
+                    "move_time_ms": update["move_time_ms"],
+                    "result": update["result"],
+                    "from": update.get("from"),
+                    "to": update.get("to"),
+                }
+                await manager.send_to_user(g.white_id, payload)
+                await manager.send_to_user(g.black_id, payload)
         return True
     return True
 

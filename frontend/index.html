@@ -6,9 +6,16 @@
   <meta name="theme-color" content="#161512">
   <title>PhoneChess</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
   <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
+  <!-- Блокировщик: только мобильный телефон (не планшет, не десктоп) -->
+  <div id="mobile-only-block" class="mobile-only-block" aria-hidden="true">
+    <p class="mobile-only-title">PhoneChess</p>
+    <p class="mobile-only-text">Откройте приложение на смартфоне в Telegram.</p>
+    <p class="mobile-only-hint">Планшеты и компьютер не поддерживаются.</p>
+  </div>
   <div id="app">
     <!-- Лобби -->
     <section id="lobby-screen" class="screen active">
@@ -18,16 +25,21 @@
       <p id="ws-status" class="ws-status">Подключение…</p>
     </section>
 
-    <!-- Игра (плейсхолдер этапа 1) -->
+    <!-- Игра: часы, доска, список ходов -->
     <section id="game-screen" class="screen">
       <div class="game-header">
         <button type="button" class="btn-back" id="btn-back-game" aria-label="Назад">←</button>
         <span id="game-info">Партия</span>
       </div>
-      <div class="game-placeholder" id="game-placeholder">
-        <p>Доска и часы появятся на этапе 2</p>
-        <p id="game-meta"></p>
+      <div class="clock-bar">
+        <div id="clock-top" class="clock"></div>
+        <div id="clock-bottom" class="clock"></div>
       </div>
+      <div class="board-wrap">
+        <div id="chess-board" class="chess-board"></div>
+      </div>
+      <div class="moves-header">Ходы</div>
+      <div id="move-list" class="move-list"></div>
     </section>
 
     <!-- Ожидание в очереди -->
