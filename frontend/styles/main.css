@@ -1,0 +1,167 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #161512;
+  color: #bababa;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  min-height: 100vh;
+  padding: 0 0 env(safe-area-inset-bottom);
+}
+
+.screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  min-height: 100vh;
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* Лобби */
+#lobby-screen .title {
+  margin: 24px 0 8px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.subtitle {
+  margin: 0 0 20px;
+  color: #888;
+  font-size: 0.95rem;
+}
+
+.lobby-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.mode-btn {
+  background: #262421;
+  color: #fff;
+  border: 1px solid #404040;
+  padding: 20px 16px;
+  font-size: 1.35rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mode-btn:active {
+  background: #3d3b38;
+}
+
+.mode-btn .queue-count {
+  font-size: 0.8rem;
+  color: #888;
+  font-weight: normal;
+}
+
+.ws-status {
+  margin-top: 24px;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.ws-status.connected {
+  color: #5a9a5a;
+}
+
+.ws-status.error {
+  color: #c55;
+}
+
+/* Ожидание */
+#waiting-screen {
+  justify-content: center;
+  gap: 24px;
+}
+
+.waiting-text {
+  font-size: 1.1rem;
+  color: #bababa;
+}
+
+.btn-cancel {
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: #404040;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-cancel:active {
+  background: #505050;
+}
+
+/* Игра */
+#game-screen {
+  align-items: stretch;
+}
+
+.game-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  margin-bottom: 8px;
+}
+
+.btn-back {
+  background: #262421;
+  border: 1px solid #404040;
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.btn-back:active {
+  background: #3d3b38;
+}
+
+#game-info {
+  font-size: 1rem;
+  color: #bababa;
+}
+
+.game-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #262421;
+  border-radius: 12px;
+  padding: 24px;
+  color: #888;
+  text-align: center;
+}
+
+#game-meta {
+  font-size: 0.9rem;
+}
