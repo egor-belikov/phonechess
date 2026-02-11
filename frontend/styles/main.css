@@ -250,12 +250,28 @@ body.mobile-blocked #app {
   position: relative;
 }
 
-.square .piece-img {
+.piece-sprite {
+  position: absolute;
   width: 85%;
   height: 85%;
-  object-fit: contain;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  overflow: hidden;
   pointer-events: none;
 }
+
+.piece-sprite .piece-img {
+  position: absolute;
+  width: 600%;
+  height: 200%;
+  top: 0;
+  left: 0;
+  object-fit: none;
+  object-position: 0 0;
+  pointer-events: none;
+}
+
 
 .square.light {
   background: #f0d9b5;
@@ -304,4 +320,34 @@ body.mobile-blocked #app {
 .move-list .move-num {
   color: #666;
   margin-right: 4px;
+}
+
+.game-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-flip,
+.btn-resign {
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  border: 1px solid #404040;
+  background: #262421;
+  color: #bababa;
+  cursor: pointer;
+}
+
+.btn-flip:active,
+.btn-resign:active {
+  background: #3d3b38;
+}
+
+.btn-resign.resign-confirm {
+  background: #5a3030;
+  border-color: #c55;
+  color: #ff9999;
 }

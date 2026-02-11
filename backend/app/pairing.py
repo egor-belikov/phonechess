@@ -2,6 +2,7 @@
 Очереди пейринга и создание партий (in-memory).
 Этап 2: часы, ходы, валидация через python-chess.
 """
+import random
 import time
 import uuid
 from collections import defaultdict
@@ -77,7 +78,10 @@ def join_queue(time_control_key: str, user_id: str, telegram_id: int, username: 
     player = QueuedPlayer(user_id=user_id, telegram_id=telegram_id, username=username)
     if queue:
         opponent = queue.pop(0)
-        game = _create_game(time_control_key, opponent, player)
+        if random.random() < 0.5:
+            game = _create_game(time_control_key, player, opponent)
+        else:
+            game = _create_game(time_control_key, opponent, player)
         _games[game.id] = game
         return game
     queue.append(player)
@@ -135,6 +139,20 @@ def get_game_for_user(game_id: str, user_id: str) -> Game | None:
     if not g or (g.white_id != user_id and g.black_id != user_id):
         return None
     return g
+
+
+def resign_game(game_id: str, user_id: str) -> dict | None:
+    """Сдача партии. Возвращает payload для broadcast или None."""
+    g = get_game_for_user(game_id, user_id)
+    if not g or g.result is not None:
+        return None
+    g.result = "0-1" if user_id == g.white_id else "1-0"
+    return {
+        "fen": g.fen,
+        "white_remaining_ms": g.white_remaining_ms,
+        "black_remaining_ms": g.black_remaining_ms,
+        "result": g.result,
+    }
 
 
 def apply_move(game_id: str, user_id: str, from_sq: str, to_sq: str, promotion: str | None = None) -> dict | None:

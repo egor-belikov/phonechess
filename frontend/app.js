@@ -33,13 +33,14 @@
 
   const TIME_CONTROLS = ['3+0', '3+2', '5+0', '5+3', '10+0', '15+10'];
   const FILES = 'abcdefgh';
-  /** Фигуры как на Lichess (cburnett set) */
-  const PIECE_BASE = 'https://lichess1.org/assets/piece/cburnett/';
-  const PIECE_SUFFIX = '.svg';
-  function pieceSrc(fenLetter) {
-    if (!fenLetter) return '';
-    const color = fenLetter === fenLetter.toUpperCase() ? 'w' : 'b';
-    return PIECE_BASE + color + fenLetter.toUpperCase() + PIECE_SUFFIX;
+  /** Один спрайт: Chess_Pieces_Sprite.svg (270×90), порядок K,Q,B,N,R,P; ряд 0=белые, 1=чёрные */
+  const PIECE_SPRITE_URL = '/pieces/Chess_Pieces_Sprite.svg';
+  const SPRITE_COL = { K: 0, Q: 1, B: 2, N: 3, R: 4, P: 5 };
+  function pieceSpriteOffset(fenLetter) {
+    if (!fenLetter) return { col: 0, row: 0 };
+    const row = fenLetter === fenLetter.toUpperCase() ? 0 : 1;
+    const col = SPRITE_COL[fenLetter.toUpperCase()] ?? 0;
+    return { col: col, row: row };
   }
 
   const API_URL = (function () {
@@ -62,6 +63,11 @@
   let legalTargets = [];
   let lastMove = null;
   let clockInterval = null;
+  let boardFlipped = false;
+  let lastClockTick = 0;
+  let resignConfirming = false;
+  let resignConfirmTimeout = null;
+  let draggedSquare = null;
 
   const $ = (id) => document.getElementById(id);
   const lobbyButtons = $('lobby-buttons');
@@ -76,6 +82,8 @@
   const clockBottom = $('clock-bottom');
   const boardEl = $('chess-board');
   const moveListEl = $('move-list');
+  const btnResign = $('btn-resign');
+  const btnFlipBoard = $('btn-flip-board');
 
   function getInitData() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
@@ -162,18 +170,18 @@
     if (!fen) return;
     const turn = fen.includes(' w ') ? 'white' : 'black';
     const isOurTurn = (turn === 'white' && myColor === 'white') || (turn === 'black' && myColor === 'black');
-    if (!isOurTurn) {
-      updateClocksDisplay();
-      return;
+    if (lastClockTick > 0 && isOurTurn) {
+      const elapsed = Math.min(now - lastClockTick, 1000);
+      if (turn === 'white') whiteRemainingMs = Math.max(0, whiteRemainingMs - elapsed);
+      else blackRemainingMs = Math.max(0, blackRemainingMs - elapsed);
     }
-    const elapsed = (now % 1000) < 200 ? 100 : 0;
-    if (turn === 'white') whiteRemainingMs = Math.max(0, whiteRemainingMs - elapsed);
-    else blackRemainingMs = Math.max(0, blackRemainingMs - elapsed);
+    lastClockTick = now;
     updateClocksDisplay();
   }
 
   function startClockTicker() {
     if (clockInterval) clearInterval(clockInterval);
+    lastClockTick = Date.now();
     clockInterval = setInterval(tickClocks, 100);
   }
 
@@ -214,11 +222,12 @@
     }
     try {
     const orientation = myColor === 'black' ? 'black' : 'white';
+    const effectiveOrientation = boardFlipped ? (orientation === 'white' ? 'black' : 'white') : orientation;
     const board = parseFenPieces(gameFen);
     boardEl.innerHTML = '';
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
-        const br = getDisplayRankRow(row, orientation);
+        const br = getDisplayRankRow(row, effectiveOrientation);
         const piece = board[br] && board[br][col];
         const isLight = (row + col) % 2 === 0;
         const sq = FILES[col] + (8 - br);
@@ -226,13 +235,36 @@
         div.className = 'square ' + (isLight ? 'light' : 'dark');
         div.dataset.square = sq;
         if (piece) {
+          const wrap = document.createElement('div');
+          wrap.className = 'piece-sprite';
+          const off = pieceSpriteOffset(piece);
           const img = document.createElement('img');
-          img.src = pieceSrc(piece);
+          img.src = PIECE_SPRITE_URL;
           img.alt = piece;
           img.className = 'piece-img';
           img.draggable = false;
-          div.appendChild(img);
+          img.style.width = '600%';
+          img.style.height = '200%';
+          img.style.left = (-off.col * 100) + '%';
+          img.style.top = (-off.row * 100) + '%';
+          wrap.appendChild(img);
+          div.appendChild(wrap);
         }
+    var isOurPiece = piece && (myColor === 'white' ? /[KQRBNP]/.test(piece) : /[kqrbnp]/.test(piece));
+    if (isOurPiece) {
+      div.draggable = true;
+      div.addEventListener('dragstart', function (e) {
+        draggedSquare = sq;
+        e.dataTransfer.setData('text/plain', sq);
+        e.dataTransfer.effectAllowed = 'move';
+      });
+    }
+        div.addEventListener('dragover', function (e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+        div.addEventListener('drop', function (e) {
+          e.preventDefault();
+          if (draggedSquare && draggedSquare !== sq) doMoveFromTo(draggedSquare, sq);
+          draggedSquare = null;
+        });
         if (lastMove && (lastMove.from === sq || lastMove.to === sq)) div.classList.add('last-move');
         if (selectedSquare === sq) div.classList.add('selected');
         if (legalTargets.indexOf(sq) !== -1) div.classList.add('legal');
@@ -260,8 +292,29 @@
     }
   }
 
-  function onSquareClick(sq) {
+  function doMoveFromTo(fromSq, toSq) {
     if (!currentGameId || !gameFen || gameResult) return;
+    try {
+      var c = new Chess(gameFen);
+    } catch (e) { return; }
+    var turn = c.turn();
+    var ourTurn = (turn === 'w' && myColor === 'white') || (turn === 'b' && myColor === 'black');
+    if (!ourTurn) return;
+    var moves = c.moves({ square: fromSq, verbose: true });
+    var move = moves && moves.find(function (m) { return m.to === toSq; });
+    if (!move) return;
+    var promotion = (move.flags || '').indexOf('p') !== -1 ? 'q' : null;
+    ws.send(JSON.stringify({ type: 'make_move', game_id: currentGameId, from: fromSq, to: toSq, promotion: promotion }));
+    selectedSquare = null;
+    legalTargets = [];
+    renderBoard();
+  }
+
+  function onSquareClick(sq) {
+    if (!currentGameId || !gameFen || gameResult) {
+      console.log('[PhoneChess] onSquareClick early return: no game/fen/result');
+      return;
+    }
     try {
       var c = new Chess(gameFen);
     } catch (e) {
@@ -346,6 +399,10 @@
     selectedSquare = null;
     legalTargets = [];
     lastMove = null;
+    boardFlipped = false;
+    if (resignConfirmTimeout) clearTimeout(resignConfirmTimeout);
+    resignConfirming = false;
+    if (btnResign) { btnResign.textContent = 'Сдаться'; btnResign.classList.remove('resign-confirm'); }
     if (gameInfo) gameInfo.textContent = (msg.white_username || 'Белые') + ' vs ' + (msg.black_username || 'Чёрные') + ' (' + (msg.time_control || '') + ')';
     showScreen('game-screen');
     updateClocksDisplay();
@@ -416,6 +473,34 @@
     currentGameId = null;
     showScreen('lobby-screen');
   });
+  if (btnFlipBoard) {
+    btnFlipBoard.addEventListener('click', function () {
+      boardFlipped = !boardFlipped;
+      renderBoard();
+    });
+  }
+  if (btnResign) {
+    btnResign.addEventListener('click', function () {
+      if (!currentGameId || gameResult) return;
+      if (resignConfirming) {
+        if (resignConfirmTimeout) clearTimeout(resignConfirmTimeout);
+        resignConfirming = false;
+        btnResign.textContent = 'Сдаться';
+        btnResign.classList.remove('resign-confirm');
+        ws.send(JSON.stringify({ type: 'resign', game_id: currentGameId }));
+      } else {
+        resignConfirming = true;
+        btnResign.textContent = 'Точно сдаться?';
+        btnResign.classList.add('resign-confirm');
+        resignConfirmTimeout = setTimeout(function () {
+          resignConfirming = false;
+          btnResign.textContent = 'Сдаться';
+          btnResign.classList.remove('resign-confirm');
+          resignConfirmTimeout = null;
+        }, 3000);
+      }
+    });
+  }
 
   if (window.Telegram && window.Telegram.WebApp) {
     window.Telegram.WebApp.ready();

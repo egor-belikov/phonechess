@@ -18,6 +18,7 @@ from .pairing import (
     join_queue,
     leave_all_queues,
     leave_queue,
+    resign_game,
 )
 from .ws_manager import manager
 
@@ -102,6 +103,22 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                     "result": update["result"],
                     "from": update.get("from"),
                     "to": update.get("to"),
+                }
+                await manager.send_to_user(g.white_id, payload)
+                await manager.send_to_user(g.black_id, payload)
+        return True
+    if t == "resign":
+        game_id = data.get("game_id")
+        g = get_game_for_user(game_id, user_id) if game_id else None
+        if g:
+            update = resign_game(game_id, user_id)
+            if update:
+                payload = {
+                    "type": "game_update",
+                    "fen": update["fen"],
+                    "white_remaining_ms": update["white_remaining_ms"],
+                    "black_remaining_ms": update["black_remaining_ms"],
+                    "result": update["result"],
                 }
                 await manager.send_to_user(g.white_id, payload)
                 await manager.send_to_user(g.black_id, payload)
