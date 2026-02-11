@@ -443,6 +443,10 @@
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === 'queue_counts') {
+          if (reconnectTimer) {
+            clearInterval(reconnectTimer);
+            reconnectTimer = null;
+          }
           renderLobbyButtons(msg.counts);
           setWsStatus('Подключено', 'connected');
         } else if (msg.type === 'matched') {
@@ -464,15 +468,11 @@
       ws = null;
       var closeMsg = 'Отключено: код ' + ev.code + (ev.reason ? ' — ' + ev.reason : '');
       setWsStatus(closeMsg, 'error');
-      if (!reconnectTimer) {
-        reconnectTimer = setInterval(function () {
-          connect();
-          if (ws && ws.readyState === WebSocket.OPEN) {
-            clearInterval(reconnectTimer);
-            reconnectTimer = null;
-          }
-        }, 3000);
-      }
+      if (reconnectTimer) return;
+      if (ev.code === 4001 || ev.code === 4003) return;
+      reconnectTimer = setInterval(function () {
+        connect();
+      }, 3000);
     };
 
     ws.onerror = function (e) {
