@@ -7,6 +7,7 @@ import logging
 from typing import Any
 
 from fastapi import WebSocket
+from starlette.websockets import WebSocketDisconnect
 
 from .auth import validate_init_data
 from .config import get_config
@@ -170,6 +171,8 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
             msg = await ws.receive_text()
             if not await handle_ws_message(ws, msg, user_id):
                 break
+    except WebSocketDisconnect as e:
+        logger.info("WS: client disconnected code=%s reason=%s user_id=%s", e.code, e.reason or "", user_id)
     except Exception as e:
         logger.exception("WS: error user_id=%s: %s", user_id, e)
     finally:

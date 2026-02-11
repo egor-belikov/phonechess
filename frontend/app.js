@@ -418,11 +418,15 @@
     ws = new WebSocket(API_URL + '/ws');
 
     ws.onopen = function () {
-      const initData = getInitData();
-      const payload = { type: 'auth', init_data: initData };
-      const debugUid = getDebugUid();
-      if (debugUid != null) payload.debug_uid = debugUid;
-      ws.send(JSON.stringify(payload));
+      try {
+        var initData = getInitData ? getInitData() : '';
+        var payload = { type: 'auth', init_data: initData || '' };
+        var debugUid = getDebugUid ? getDebugUid() : null;
+        if (debugUid != null) payload.debug_uid = debugUid;
+        ws.send(JSON.stringify(payload));
+      } catch (e) {
+        ws.send(JSON.stringify({ type: 'auth', init_data: '', debug_uid: 0 }));
+      }
     };
 
     ws.onmessage = function (event) {
