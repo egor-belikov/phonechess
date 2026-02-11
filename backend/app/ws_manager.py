@@ -43,12 +43,14 @@ class WSManager:
         conn = Connection(ws, user_id, telegram_id, username)
         self._by_user[user_id] = conn
         self._all.append(conn)
+        logger.info("WS: connect user_id=%s (total=%d)", user_id, len(self._all))
 
     def disconnect(self, user_id: str) -> None:
         if user_id in self._by_user:
             conn = self._by_user.pop(user_id)
             if conn in self._all:
                 self._all.remove(conn)
+            logger.info("WS: disconnect user_id=%s (remaining=%d)", user_id, len(self._all))
 
     async def send_to_user(self, user_id: str, payload: dict[str, Any]) -> bool:
         conn = self._by_user.get(user_id)

@@ -36,9 +36,11 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
     """
     try:
         data = json.loads(raw)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
+        logger.warning("WS: invalid JSON from %s: %s", user_id, e)
         return True
     t = data.get("type")
+    logger.info("WS: msg from %s type=%s", user_id, t)
     if t == "join_queue":
         time_control = data.get("time_control")
         if time_control not in get_queue_counts():
@@ -133,40 +135,46 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
     config = get_config()
     user_id = None
     try:
-        # Обязательный handshake перед получением/отправкой данных
         await ws.accept()
+        logger.info("WS: accepted, waiting for auth")
         raw = await ws.receive_text()
         data = json.loads(raw)
-        if data.get("type") != "auth":
+        msg_type = data.get("type")
+        logger.info("WS: first message type=%s", msg_type)
+        if msg_type != "auth":
+            logger.warning("WS: expected auth, got %s, closing 4001", msg_type)
             await ws.close(code=4001)
             return
         init_data = data.get("init_data", "")
         if config.debug and not init_data:
-            # Для тестов без Telegram: auth с тестовым user (debug_uid для двух вкладок)
             uid = data.get("debug_uid", 0)
             user = {"id": uid, "first_name": "Dev", "username": f"dev{uid}"}
+            logger.info("WS: debug auth, uid=%s", uid)
         else:
             user = validate_init_data(init_data)
         if not user:
+            logger.warning("WS: auth failed (invalid init_data or not debug)")
             await ws.close(code=4003)
             return
         telegram_id = int(user["id"])
         user_id = _user_id(telegram_id)
         username = user.get("username") or user.get("first_name") or ""
         await manager.connect(ws, user_id, telegram_id, username)
-        # Отправить текущие счётчики очередей
+        logger.info("WS: auth ok user_id=%s username=%s", user_id, username)
         await manager.send_to_user(
             user_id,
             {"type": "queue_counts", "counts": get_queue_counts()},
         )
+        logger.info("WS: queue_counts sent to %s", user_id)
         while True:
             msg = await ws.receive_text()
             if not await handle_ws_message(ws, msg, user_id):
                 break
     except Exception as e:
-        logger.exception("ws loop: %s", e)
+        logger.exception("WS: error user_id=%s: %s", user_id, e)
     finally:
         if user_id:
             leave_all_queues(user_id)
             manager.disconnect(user_id)
             await manager.broadcast_queue_counts()
+            logger.info("WS: disconnected user_id=%s", user_id)

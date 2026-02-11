@@ -1,7 +1,7 @@
 """
 PhoneChess API и WebSocket.
 """
-import os
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI, WebSocket
@@ -10,6 +10,13 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import get_config
 from .ws_handlers import ws_auth_and_loop
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="PhoneChess API")
 config = get_config()
@@ -30,6 +37,7 @@ def health():
 
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
+    logger.info("WS: connection attempt from %s", ws.client)
     await ws_auth_and_loop(ws)
 
 

@@ -329,8 +329,31 @@ docker compose up -d
 
 ## 7. Логи и перезапуск
 
+Все события WebSocket и ошибки пишутся в stdout контейнера — смотреть их так:
+
 ```bash
+cd /root/my_projects/phonechess
 docker compose logs -f app
+```
+
+**Что должно быть при успешном подключении из браузера:**
+
+1. `WS: connection attempt from ...` — запрос на /ws дошёл до приложения.
+2. `WS: accepted, waiting for auth` — рукопожатие WebSocket прошло.
+3. `WS: first message type=auth` — клиент прислал auth.
+4. `WS: auth ok user_id=... username=...` — авторизация успешна (при DEBUG=1 — тестовый пользователь).
+5. `WS: queue_counts sent to ...` — клиент получил счётчики очередей, в интерфейсе появятся кнопки.
+
+**Если висит «Подключение…»:**
+
+- Нет ни одной строки `WS: connection attempt` — запросы на /ws не доходят до контейнера (проверь Nginx, туннель, что запрос идёт на правильный хост и путь `/ws`).
+- Есть `connection attempt`, но нет `accepted` — возможна ошибка при accept (смотри след. строку с ERROR).
+- Есть `accepted`, но нет `first message type=auth` — клиент не отправил auth (проверь, что фронт открыт с того же домена и что WebSocket не режется прокси; в Nginx должны быть `Upgrade` и `Connection "upgrade"`).
+- Есть `auth failed` — при DEBUG=0 нужен валидный Telegram init_data; при DEBUG=1 можно слать без init_data (поле `debug_uid` для отладки с двух вкладок).
+
+Чтобы прислать логи: выполни `docker compose logs app --tail 200` и приложи вывод (или сохрани в файл и пришли фрагмент).
+
+```bash
 docker compose restart app
 docker compose down
 docker compose up -d
