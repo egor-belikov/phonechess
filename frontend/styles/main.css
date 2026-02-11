@@ -178,23 +178,44 @@ body.mobile-blocked #app {
   white-space: nowrap;
 }
 
-/* Часы (Lichess-style) */
+/* Кто играет (над часами) */
+.game-your-side {
+  font-size: 0.9rem;
+  color: #b0b0b0;
+  margin: 0 0 8px 0;
+  text-align: center;
+}
+
+/* Часы (Lichess-style: подпись + время в ряд) */
 .clock-bar {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 8px;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.clock-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clock-label {
+  font-size: 0.85rem;
+  color: #9a9a9a;
+  min-width: 120px;
 }
 
 .clock {
   font-family: "Lucida Console", Monaco, monospace;
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 700;
-  padding: 8px 12px;
+  padding: 8px 14px;
   border-radius: 6px;
   background: #262421;
   color: #fff;
   text-align: center;
+  min-width: 5ch;
 }
 
 .clock.low-time {
@@ -203,6 +224,7 @@ body.mobile-blocked #app {
 
 .clock.our-turn {
   box-shadow: 0 0 0 2px #7fa650;
+  background: #2d3a2d;
 }
 
 /* Доска (Lichess: светлые/тёмные клетки) */
@@ -241,18 +263,7 @@ body.mobile-blocked #app {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.piece-sprite .piece-img {
-  position: absolute;
-  width: 600%;
-  height: 200%;
-  top: 0;
-  left: 0;
-  object-fit: none;
-  object-position: 0 0;
+  background-repeat: no-repeat;
   pointer-events: none;
 }
 

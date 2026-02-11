@@ -31,9 +31,16 @@
         <button type="button" class="btn-back" id="btn-back-game" aria-label="Назад">←</button>
         <span id="game-info">Партия</span>
       </div>
+      <p id="game-your-side" class="game-your-side"></p>
       <div class="clock-bar">
-        <div id="clock-top" class="clock"></div>
-        <div id="clock-bottom" class="clock"></div>
+        <div class="clock-row">
+          <span id="clock-top-label" class="clock-label"></span>
+          <div id="clock-top" class="clock"></div>
+        </div>
+        <div class="clock-row">
+          <span id="clock-bottom-label" class="clock-label"></span>
+          <div id="clock-bottom" class="clock"></div>
+        </div>
       </div>
       <div class="board-wrap">
         <div id="chess-board" class="chess-board"></div>

@@ -3,6 +3,7 @@
  * Только смартфоны: планшеты и десктоп блокируются.
  */
 (function () {
+  console.log('[PhoneChess] script start');
   /** Включить ограничение «только смартфон» (планшеты/десктоп блокируются). Пока false — для тестов с ноута. */
   const MOBILE_ONLY_ENABLED = false;
 
@@ -44,10 +45,15 @@
   }
 
   const API_URL = (function () {
-    const u = new URL(document.baseURI || window.location.href);
+    const base = document.baseURI || window.location.href;
+    if (!base || base === 'about:blank' || base.startsWith('file:')) {
+      console.warn('[PhoneChess] No valid page URL, using location.host');
+    }
+    const u = new URL(base || ('https://' + window.location.host));
     const protocol = u.protocol === 'https:' ? 'wss:' : 'ws:';
     return protocol + '//' + u.host;
   })();
+  console.log('[PhoneChess] API_URL', API_URL);
 
   let ws = null;
   let currentQueue = null;
@@ -78,6 +84,9 @@
   const gameInfo = $('game-info');
   const clockTop = $('clock-top');
   const clockBottom = $('clock-bottom');
+  const clockTopLabel = $('clock-top-label');
+  const clockBottomLabel = $('clock-bottom-label');
+  const gameYourSideEl = $('game-your-side');
   const boardEl = $('chess-board');
   const moveListEl = $('move-list');
   const btnResign = $('btn-resign');
@@ -149,6 +158,9 @@
     const topMs = isWhite ? blackRemainingMs : whiteRemainingMs;
     const bottomMs = isWhite ? whiteRemainingMs : blackRemainingMs;
     const ourTurn = (gameFen && gameFen.includes(' w ') && isWhite) || (gameFen && gameFen.includes(' b ') && !isWhite);
+    if (clockTopLabel) clockTopLabel.textContent = isWhite ? 'Соперник (чёрные)' : 'Соперник (белые)';
+    if (clockBottomLabel) clockBottomLabel.textContent = isWhite ? 'Вы (белые)' : 'Вы (чёрные)';
+    if (gameYourSideEl) gameYourSideEl.textContent = isWhite ? 'Вы играете белыми' : 'Вы играете чёрными';
     if (clockTop) {
       clockTop.textContent = formatClock(topMs);
       clockTop.classList.toggle('low-time', topMs < 20000 && topMs > 0);
@@ -233,19 +245,13 @@
         div.className = 'square ' + (isLight ? 'light' : 'dark');
         div.dataset.square = sq;
         if (piece) {
+          const off = pieceSpriteOffset(piece);
           const wrap = document.createElement('div');
           wrap.className = 'piece-sprite';
-          const off = pieceSpriteOffset(piece);
-          const img = document.createElement('img');
-          img.src = PIECE_SPRITE_URL;
-          img.alt = piece;
-          img.className = 'piece-img';
-          img.draggable = false;
-          img.style.width = '600%';
-          img.style.height = '200%';
-          img.style.left = (-off.col * 100) + '%';
-          img.style.top = (-off.row * 100) + '%';
-          wrap.appendChild(img);
+          wrap.style.backgroundImage = 'url(' + PIECE_SPRITE_URL + ')';
+          wrap.style.backgroundSize = '600% 200%';
+          wrap.style.backgroundPosition = (-off.col * 100) + '% ' + (-off.row * 100) + '%';
+          wrap.setAttribute('aria-label', piece);
           div.appendChild(wrap);
         }
     var isOurPiece = piece && (myColor === 'white' ? /[KQRBNP]/.test(piece) : /[kqrbnp]/.test(piece));
@@ -414,10 +420,13 @@
 
   function connect() {
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
-    setWsStatus('Подключение…');
-    ws = new WebSocket(API_URL + '/ws');
+    var wsUrl = API_URL + '/ws';
+    console.log('[PhoneChess] connect', wsUrl);
+    setWsStatus('Подключение к серверу…');
+    ws = new WebSocket(wsUrl);
 
     ws.onopen = function () {
+      console.log('[PhoneChess] WS onopen');
       try {
         var initData = getInitData ? getInitData() : '';
         var payload = { type: 'auth', init_data: initData || '' };
@@ -449,9 +458,11 @@
       }
     };
 
-    ws.onclose = function () {
+    ws.onclose = function (ev) {
+      console.log('[PhoneChess] WS onclose', ev.code, ev.reason || '');
       ws = null;
-      setWsStatus('Нет соединения', 'error');
+      var closeMsg = 'Отключено: код ' + ev.code + (ev.reason ? ' — ' + ev.reason : '');
+      setWsStatus(closeMsg, 'error');
       if (!reconnectTimer) {
         reconnectTimer = setInterval(function () {
           connect();
@@ -463,8 +474,9 @@
       }
     };
 
-    ws.onerror = function () {
-      setWsStatus('Ошибка соединения', 'error');
+    ws.onerror = function (e) {
+      console.warn('[PhoneChess] WS onerror', e);
+      setWsStatus('Ошибка соединения (WebSocket)', 'error');
     };
   }
 
