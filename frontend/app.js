@@ -73,9 +73,7 @@
   const lobbyButtons = $('lobby-buttons');
   const lobbyScreen = $('lobby-screen');
   const gameScreen = $('game-screen');
-  const waitingScreen = $('waiting-screen');
   const wsStatus = $('ws-status');
-  const btnCancelQueue = $('btn-cancel-queue');
   const btnBackGame = $('btn-back-game');
   const gameInfo = $('game-info');
   const clockTop = $('clock-top');
@@ -112,7 +110,10 @@
     counts = counts || {};
     lobbyButtons.innerHTML = TIME_CONTROLS.map(key => {
       const n = counts[key] != null ? counts[key] : 0;
-      return `<button type="button" class="mode-btn" data-time="${key}"><span>${key}</span><span class="queue-count">${n} в очереди</span></button>`;
+      const isYou = key === currentQueue;
+      const countText = isYou ? n + ' в очереди (и вы)' : n + ' в очереди';
+      const cls = isYou ? 'mode-btn in-queue' : 'mode-btn';
+      return `<button type="button" class="${cls}" data-time="${key}"><span>${key}</span><span class="queue-count">${countText}</span></button>`;
     }).join('');
     lobbyButtons.querySelectorAll('.mode-btn').forEach(btn => {
       btn.addEventListener('click', () => onModeClick(btn.dataset.time));
@@ -121,20 +122,17 @@
 
   function onModeClick(timeControl) {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    currentQueue = timeControl;
-    ws.send(JSON.stringify({ type: 'join_queue', time_control: timeControl }));
-    showScreen('waiting-screen');
-  }
-
-  function leaveCurrentQueue() {
-    if (!currentQueue || !ws || ws.readyState !== WebSocket.OPEN) {
-      showScreen('lobby-screen');
+    if (timeControl === currentQueue) {
+      ws.send(JSON.stringify({ type: 'leave_queue', time_control: timeControl }));
       currentQueue = null;
       return;
     }
-    ws.send(JSON.stringify({ type: 'leave_queue', time_control: currentQueue }));
-    currentQueue = null;
-    showScreen('lobby-screen');
+    if (currentQueue) {
+      ws.send(JSON.stringify({ type: 'leave_queue', time_control: currentQueue }));
+      currentQueue = null;
+    }
+    currentQueue = timeControl;
+    ws.send(JSON.stringify({ type: 'join_queue', time_control: timeControl }));
   }
 
   function formatClock(ms) {
@@ -466,7 +464,6 @@
     };
   }
 
-  btnCancelQueue.addEventListener('click', leaveCurrentQueue);
   btnBackGame.addEventListener('click', function () {
     if (clockInterval) clearInterval(clockInterval);
     clockInterval = null;

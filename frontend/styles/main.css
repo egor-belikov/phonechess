@@ -116,6 +116,15 @@ body.mobile-blocked #app {
   font-weight: normal;
 }
 
+.mode-btn.in-queue {
+  background: #2d4a2d;
+  border-color: #5a9a5a;
+}
+
+.mode-btn.in-queue .queue-count {
+  color: #8fcc8f;
+}
+
 .ws-status {
   margin-top: 24px;
   font-size: 0.85rem;
@@ -128,31 +137,6 @@ body.mobile-blocked #app {
 
 .ws-status.error {
   color: #c55;
-}
-
-/* Ожидание */
-#waiting-screen {
-  justify-content: center;
-  gap: 24px;
-}
-
-.waiting-text {
-  font-size: 1.1rem;
-  color: #bababa;
-}
-
-.btn-cancel {
-  padding: 12px 24px;
-  font-size: 1rem;
-  background: #404040;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.btn-cancel:active {
-  background: #505050;
 }
 
 /* Игра */
