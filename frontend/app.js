@@ -250,7 +250,8 @@
           wrap.className = 'piece-sprite';
           wrap.style.backgroundImage = 'url(' + PIECE_SPRITE_URL + ')';
           wrap.style.backgroundSize = '600% 200%';
-          wrap.style.backgroundPosition = (-off.col * 100) + '% ' + (-off.row * 100) + '%';
+          // background-position %: (container - image) * p = offset. 6 cols → p = col/5; 2 rows → p = row/1
+          wrap.style.backgroundPosition = (off.col * 20) + '% ' + (off.row * 100) + '%';
           wrap.setAttribute('aria-label', piece);
           div.appendChild(wrap);
         }
