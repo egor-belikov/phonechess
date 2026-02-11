@@ -244,10 +244,17 @@ body.mobile-blocked #app {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(18px, 5vw, 36px);
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
+  position: relative;
+}
+
+.square .piece-img {
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 .square.light {

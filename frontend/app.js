@@ -33,7 +33,14 @@
 
   const TIME_CONTROLS = ['3+0', '3+2', '5+0', '5+3', '10+0', '15+10'];
   const FILES = 'abcdefgh';
-  const PIECES = { K: '♔', Q: '♕', R: '♖', B: '♗', N: '♘', P: '♙', k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
+  /** Фигуры как на Lichess (cburnett set) */
+  const PIECE_BASE = 'https://lichess1.org/assets/piece/cburnett/';
+  const PIECE_SUFFIX = '.svg';
+  function pieceSrc(fenLetter) {
+    if (!fenLetter) return '';
+    const color = fenLetter === fenLetter.toUpperCase() ? 'w' : 'b';
+    return PIECE_BASE + color + fenLetter.toUpperCase() + PIECE_SUFFIX;
+  }
 
   const API_URL = (function () {
     const u = new URL(document.baseURI || window.location.href);
@@ -218,7 +225,14 @@
         const div = document.createElement('div');
         div.className = 'square ' + (isLight ? 'light' : 'dark');
         div.dataset.square = sq;
-        if (piece) div.textContent = PIECES[piece] || '';
+        if (piece) {
+          const img = document.createElement('img');
+          img.src = pieceSrc(piece);
+          img.alt = piece;
+          img.className = 'piece-img';
+          img.draggable = false;
+          div.appendChild(img);
+        }
         if (lastMove && (lastMove.from === sq || lastMove.to === sq)) div.classList.add('last-move');
         if (selectedSquare === sq) div.classList.add('selected');
         if (legalTargets.indexOf(sq) !== -1) div.classList.add('legal');
@@ -235,7 +249,11 @@
       }
     }
     boardEl.querySelectorAll('.square').forEach(cell => {
-      cell.addEventListener('click', () => onSquareClick(cell.dataset.square));
+      const sq = cell.dataset.square;
+      if (!sq) return;
+      const handler = function () { onSquareClick(sq); };
+      cell.addEventListener('click', handler);
+      cell.addEventListener('touchend', function (e) { e.preventDefault(); handler(); }, { passive: false });
     });
     } catch (e) {
       console.error('[PhoneChess] renderBoard error', e);
@@ -244,29 +262,37 @@
 
   function onSquareClick(sq) {
     if (!currentGameId || !gameFen || gameResult) return;
-    const c = new Chess(gameFen);
-    const turn = c.turn();
-    const isWhite = turn === 'w';
-    const ourTurn = (isWhite && myColor === 'white') || (!isWhite && myColor === 'black');
+    try {
+      var c = new Chess(gameFen);
+    } catch (e) {
+      console.error('[PhoneChess] onSquareClick Chess error', e);
+      return;
+    }
+    var turn = c.turn();
+    var isWhite = turn === 'w';
+    var ourTurn = (isWhite && myColor === 'white') || (!isWhite && myColor === 'black');
     if (!ourTurn) return;
-    const piece = c.get(sq);
+    var piece = c.get(sq);
+    var pieceColor = piece && typeof piece === 'object' ? piece.color : null;
     if (selectedSquare) {
       if (legalTargets.indexOf(sq) !== -1) {
-        const from = selectedSquare;
-        let promotion = null;
-        const moves = c.moves({ square: from, verbose: true });
-        const move = moves.find(m => m.to === sq);
-        if (move && move.flags.indexOf('p') !== -1) promotion = 'q';
+        var from = selectedSquare;
+        var promotion = null;
+        var moves = c.moves({ square: from, verbose: true });
+        var move = moves && moves.find(function (m) { return m.to === sq; });
+        if (move && (move.flags || '').indexOf('p') !== -1) promotion = 'q';
         ws.send(JSON.stringify({ type: 'make_move', game_id: currentGameId, from: from, to: sq, promotion: promotion }));
         selectedSquare = null;
         legalTargets = [];
+        renderBoard();
         return;
       }
       selectedSquare = null;
       legalTargets = [];
-    } else if (piece && ((isWhite && piece.color === 'w') || (!isWhite && piece.color === 'b'))) {
+    } else if (pieceColor && ((isWhite && pieceColor === 'w') || (!isWhite && pieceColor === 'b'))) {
       selectedSquare = sq;
-      legalTargets = c.moves({ square: sq, verbose: true }).map(m => m.to);
+      var movesFrom = c.moves({ square: sq, verbose: true });
+      legalTargets = movesFrom ? movesFrom.map(function (m) { return m.to; }) : [];
     }
     renderBoard();
   }
