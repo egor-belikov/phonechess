@@ -7,7 +7,12 @@
     "title": "PhoneChess",
     "subtitle": "Vaxt nəzarətini seçin",
     "queue_count_you": "{n} növbədə (siz daxil etdiniz)",
-    "queue_count": "{n} növbədədir"
+    "queue_count": "{n} növbədədir",
+    "private_game": "Private game",
+    "private_share_text": "Join my private PhoneChess game ({tc}): {link}",
+    "private_waiting": "Private invite created. Waiting for opponent…",
+    "private_invalid": "Private invite is invalid.",
+    "private_taken": "Private invite is already used."
   },
   "status": {
     "connecting": "Serverə qoşulur...",
@@ -38,7 +43,8 @@
     "draw": "çəkmək",
     "draw_offer_waiting": "Təklif göndərildi və cavab gözlənilir.",
     "draw_offer_received": "Rəqib heç-heçə təklif etdi. \"Çəkmək?\" qəbul etmək.",
-    "opp_disconnected": "Rəqibin əlaqəsi kəsildi. Yenidən qoşulma gözlənilir ({sec}s)..."
+    "opp_disconnected": "Rəqibin əlaqəsi kəsildi. Yenidən qoşulma gözlənilir ({sec}s)...",
+    "fifty_counter": "{n}/50 moves to automatic draw"
   },
   "result": {
     "title": "Oyun bitdi",
@@ -79,5 +85,10 @@
   "time": {
     "sec_short": "s",
     "ms_short": "ms"
+  },
+  "analysis": {
+    "start": "Start analysis",
+    "stop": "Stop analysis",
+    "unavailable": "Stockfish unavailable in this browser."
   }
 }

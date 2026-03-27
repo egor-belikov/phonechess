@@ -1,12 +1,29 @@
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-phonechess}
+      - POSTGRES_USER=${POSTGRES_USER:-phonechess}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-phonechess}
+    volumes:
+      - phonechess_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    depends_on:
+      - db
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME:-}
+      - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://phonechess:phonechess@db:5432/phonechess}
       - DEBUG=${DEBUG:-0}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
     restart: unless-stopped
+
+volumes:
+  phonechess_pgdata:

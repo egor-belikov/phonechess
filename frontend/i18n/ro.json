@@ -7,7 +7,12 @@
     "title": "PhoneChess",
     "subtitle": "Alegeți controlul timpului",
     "queue_count_you": "{n} în coadă (ai inclus)",
-    "queue_count": "{n} în coadă"
+    "queue_count": "{n} în coadă",
+    "private_game": "Private game",
+    "private_share_text": "Join my private PhoneChess game ({tc}): {link}",
+    "private_waiting": "Private invite created. Waiting for opponent…",
+    "private_invalid": "Private invite is invalid.",
+    "private_taken": "Private invite is already used."
   },
   "status": {
     "connecting": "Se conectează la server...",
@@ -38,7 +43,8 @@
     "draw": "Desenați",
     "draw_offer_waiting": "Trage oferta trimisă și așteaptă răspuns.",
     "draw_offer_received": "Adversarul a oferit o remiză. Atingeți „Desenați?” a accepta.",
-    "opp_disconnected": "Adversarul a fost deconectat. Se așteaptă reconectarea ({sec}s)..."
+    "opp_disconnected": "Adversarul a fost deconectat. Se așteaptă reconectarea ({sec}s)...",
+    "fifty_counter": "{n}/50 moves to automatic draw"
   },
   "result": {
     "title": "Jocul terminat",
@@ -79,5 +85,10 @@
   "time": {
     "sec_short": "s",
     "ms_short": "ms"
+  },
+  "analysis": {
+    "start": "Start analysis",
+    "stop": "Stop analysis",
+    "unavailable": "Stockfish unavailable in this browser."
   }
 }

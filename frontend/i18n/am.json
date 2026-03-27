@@ -7,7 +7,12 @@
     "title": "PhoneChess",
     "subtitle": "የጊዜ መቆጣጠሪያን ይምረጡ",
     "queue_count_you": "_PH_0__ ወረፋ ላይ (እርስዎ ተካተዋል)",
-    "queue_count": "_PH_0__ ወረፋ ላይ"
+    "queue_count": "_PH_0__ ወረፋ ላይ",
+    "private_game": "Private game",
+    "private_share_text": "Join my private PhoneChess game ({tc}): {link}",
+    "private_waiting": "Private invite created. Waiting for opponent…",
+    "private_invalid": "Private invite is invalid.",
+    "private_taken": "Private invite is already used."
   },
   "status": {
     "connecting": "ከአገልጋይ ጋር በመገናኘት ላይ…",
@@ -38,7 +43,8 @@
     "draw": "ይሳሉ",
     "draw_offer_waiting": "ቅናሹን ይሳሉ እና ምላሽ በመጠባበቅ ላይ።",
     "draw_offer_received": "ተቃዋሚው አቻ ወጥቷል። \"መሳል?\" የሚለውን ይንኩ። ለመቀበል.",
-    "opp_disconnected": "ተቃዋሚ ተቋርጧል። ዳግም ለመገናኘት በመጠበቅ ላይ ({sec}s)..."
+    "opp_disconnected": "ተቃዋሚ ተቋርጧል። ዳግም ለመገናኘት በመጠበቅ ላይ ({sec}s)...",
+    "fifty_counter": "{n}/50 moves to automatic draw"
   },
   "result": {
     "title": "ጨዋታው ተጠናቀቀ",
@@ -79,5 +85,10 @@
   "time": {
     "sec_short": "ኤስ",
     "ms_short": "ወይዘሮ"
+  },
+  "analysis": {
+    "start": "Start analysis",
+    "stop": "Stop analysis",
+    "unavailable": "Stockfish unavailable in this browser."
   }
 }

@@ -7,7 +7,12 @@
     "title": "PhoneChess",
     "subtitle": "Выберите контроль времени",
     "queue_count_you": "{n} в очереди (ваши включены)",
-    "queue_count": "{n} в очереди"
+    "queue_count": "{n} в очереди",
+    "private_game": "Приватная игра",
+    "private_share_text": "Присоединяйся к моей приватной игре PhoneChess ({tc}): {link}",
+    "private_waiting": "Приватное приглашение создано. Ожидание соперника…",
+    "private_invalid": "Приватная ссылка недействительна.",
+    "private_taken": "Эта приватная ссылка уже использована."
   },
   "status": {
     "connecting": "Подключение к серверу…",
@@ -80,5 +85,10 @@
   "time": {
     "sec_short": "с",
     "ms_short": "мс"
+  },
+  "analysis": {
+    "start": "Старт анализа",
+    "stop": "Стоп анализа",
+    "unavailable": "Stockfish недоступен в этом браузере."
   }
 }

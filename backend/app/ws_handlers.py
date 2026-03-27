@@ -29,8 +29,15 @@ from .pairing import (
     forfeit_disconnected_player,
     materialize_live_clocks,
     turn_user_id,
+    ensure_user_registered,
+    create_private_invite,
+    join_private_invite,
+    get_history_by_invite_key,
+    get_user_notification_target,
 )
 from .ws_manager import manager
+from .telegram_bot import send_webapp_message
+from .config import get_config
 
 logger = logging.getLogger(__name__)
 DISCONNECT_GRACE_SECONDS = 10
@@ -86,6 +93,103 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
             if not (sent_white and sent_black):
                 abort_game_and_requeue(game.id)
         await manager.broadcast_queue_counts()
+        return True
+    if t == "create_private_invite":
+        time_control = data.get("time_control")
+        conn = manager.get_any_connection(user_id)
+        if not conn:
+            return True
+        created = create_private_invite(time_control, user_id, conn.telegram_id, conn.username or "")
+        if not created:
+            await manager.send_to_user(user_id, {"type": "private_invite_invalid"})
+            return True
+        await manager.send_to_user(
+            user_id,
+            {
+                "type": "private_invite_created",
+                "invite_key": created["invite_key"],
+                "invite_link": created["invite_link"],
+                "time_control": created["time_control"],
+            },
+        )
+        tid, started = get_user_notification_target(user_id)
+        if started and tid:
+            send_webapp_message(
+                tid,
+                f"Вы создали приватную игру ({created['time_control']}). Ссылка:\n{created['invite_link']}",
+                created["invite_link"],
+            )
+        return True
+    if t == "open_private_link":
+        invite_key = (data.get("invite_key") or "").strip()
+        conn = manager.get_any_connection(user_id)
+        if not invite_key or not conn:
+            await manager.send_to_user(user_id, {"type": "private_invite_invalid"})
+            return True
+        opened = join_private_invite(invite_key, user_id, conn.telegram_id, conn.username or "")
+        if not opened:
+            await manager.send_to_user(user_id, {"type": "private_invite_invalid"})
+            return True
+        status = opened.get("status")
+        if status == "invalid":
+            await manager.send_to_user(user_id, {"type": "private_invite_invalid"})
+            return True
+        if status == "taken":
+            await manager.send_to_user(user_id, {"type": "private_invite_taken"})
+            return True
+        if status == "pending_wait":
+            await manager.send_to_user(user_id, {"type": "private_invite_pending"})
+            return True
+        if status == "history":
+            history = get_history_by_invite_key(invite_key)
+            if not history:
+                await manager.send_to_user(user_id, {"type": "private_invite_invalid"})
+                return True
+            await manager.send_to_user(user_id, {"type": "private_game_history", **history, "invite_key": invite_key})
+            return True
+        if status == "active":
+            g = opened.get("game")
+            if not g:
+                await manager.send_to_user(user_id, {"type": "private_invite_invalid"})
+                return True
+            color = opened.get("color") or "white"
+            await manager.send_to_user(
+                user_id,
+                {
+                    "type": "matched",
+                    "game_id": g.id,
+                    "time_control": g.time_control_key,
+                    "fen": g.fen,
+                    "white_username": g.white_username,
+                    "black_username": g.black_username,
+                    "white_remaining_ms": g.white_remaining_ms,
+                    "black_remaining_ms": g.black_remaining_ms,
+                    "color": color,
+                },
+            )
+            return True
+        g = opened.get("game")
+        if not g:
+            await manager.send_to_user(user_id, {"type": "private_invite_invalid"})
+            return True
+        base = {
+            "type": "matched",
+            "game_id": g.id,
+            "time_control": g.time_control_key,
+            "fen": g.fen,
+            "white_username": g.white_username,
+            "black_username": g.black_username,
+            "white_remaining_ms": g.white_remaining_ms,
+            "black_remaining_ms": g.black_remaining_ms,
+        }
+        await manager.send_to_user(g.white_id, {**base, "color": "white"})
+        await manager.send_to_user(g.black_id, {**base, "color": "black"})
+        cfg = get_config()
+        link = f"https://t.me/{cfg.bot_username}?startapp=private_{invite_key}" if cfg.bot_username else f"{cfg.telegram_webapp_url}?startapp=private_{invite_key}"
+        for uid in (g.white_id, g.black_id):
+            tid, started = get_user_notification_target(uid)
+            if started and tid:
+                send_webapp_message(tid, f"Приватная игра создана. Ссылка:\n{link}", link)
         return True
     if t == "leave_queue":
         time_control = data.get("time_control")
@@ -315,6 +419,7 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
         telegram_id = int(user["id"])
         user_id = _user_id(telegram_id)
         username = user.get("username") or user.get("first_name") or ""
+        ensure_user_registered(user_id, telegram_id, username)
         await manager.connect(ws, user_id, telegram_id, username)
         # Reconnect inside active game: cancel forfeit timer and notify opponent.
         active = get_active_game_for_user(user_id)

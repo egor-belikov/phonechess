@@ -22,6 +22,7 @@
       <h1 class="title">PhoneChess</h1>
       <p class="subtitle">Выберите контроль времени</p>
       <div class="lobby-grid" id="lobby-buttons"></div>
+      <button type="button" id="btn-private-game" class="btn-private-game">Приватная игра</button>
       <p id="ws-status" class="ws-status">Подключение…</p>
     </section>
 
@@ -56,10 +57,19 @@
           <div class="moves-header">Ходы</div>
           <div id="move-list" class="move-list"></div>
           <div class="game-actions">
+            <button type="button" class="btn-replay" id="btn-replay-first">|&lt;</button>
+            <button type="button" class="btn-replay" id="btn-replay-prev">&lt;</button>
+            <button type="button" class="btn-replay" id="btn-replay-next">&gt;</button>
+            <button type="button" class="btn-replay" id="btn-replay-last">&gt;|</button>
             <button type="button" class="btn-flip" id="btn-flip-board">Повернуть доску</button>
             <button type="button" class="btn-draw" id="btn-draw">Ничья?</button>
             <button type="button" class="btn-draw-claim" id="btn-claim-draw">Заявить ничью</button>
             <button type="button" class="btn-resign" id="btn-resign">Сдаться</button>
+          </div>
+          <div id="analysis-panel" class="analysis-panel">
+            <div id="analysis-score" class="analysis-score">+0.00</div>
+            <button type="button" id="btn-analysis-toggle" class="btn-analysis-toggle">Start analysis</button>
+            <div id="analysis-line" class="analysis-line">—</div>
           </div>
         </div>
       </div>

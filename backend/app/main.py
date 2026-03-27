@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config import get_config
+from .db import Base, engine
+from . import models  # noqa: F401
 from .telegram_bot import process_update
 from .ws_handlers import ws_auth_and_loop
 
@@ -21,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="PhoneChess API")
 config = get_config()
+Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,

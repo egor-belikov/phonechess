@@ -7,7 +7,12 @@
     "title": "PhoneChess",
     "subtitle": "समय नियंत्रण चुनें",
     "queue_count_you": "{n} कतार में (आपने शामिल किया)",
-    "queue_count": "{n} कतार में"
+    "queue_count": "{n} कतार में",
+    "private_game": "Private game",
+    "private_share_text": "Join my private PhoneChess game ({tc}): {link}",
+    "private_waiting": "Private invite created. Waiting for opponent…",
+    "private_invalid": "Private invite is invalid.",
+    "private_taken": "Private invite is already used."
   },
   "status": {
     "connecting": "सर्वर से कनेक्ट हो रहा है...",
@@ -38,7 +43,8 @@
     "draw": "ड्रा",
     "draw_offer_waiting": "ड्रा प्रस्ताव भेज दिया गया है और प्रतिक्रिया की प्रतीक्षा है।",
     "draw_offer_received": "प्रतिद्वंद्वी ने ड्रा की पेशकश की. \"ड्रा?\" पर टैप करें कबूल करना।",
-    "opp_disconnected": "प्रतिद्वंद्वी अलग हो गया. पुनः कनेक्ट होने की प्रतीक्षा में ({sec}s)..."
+    "opp_disconnected": "प्रतिद्वंद्वी अलग हो गया. पुनः कनेक्ट होने की प्रतीक्षा में ({sec}s)...",
+    "fifty_counter": "{n}/50 moves to automatic draw"
   },
   "result": {
     "title": "खेल ख़त्म",
@@ -79,5 +85,10 @@
   "time": {
     "sec_short": "से",
     "ms_short": "मि.से."
+  },
+  "analysis": {
+    "start": "Start analysis",
+    "stop": "Stop analysis",
+    "unavailable": "Stockfish unavailable in this browser."
   }
 }

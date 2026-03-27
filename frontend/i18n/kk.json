@@ -7,7 +7,12 @@
     "title": "PhoneChess",
     "subtitle": "Уақытты басқаруды таңдаңыз",
     "queue_count_you": "{n} кезекте (сіз қостыңыз)",
-    "queue_count": "{n} кезекте"
+    "queue_count": "{n} кезекте",
+    "private_game": "Private game",
+    "private_share_text": "Join my private PhoneChess game ({tc}): {link}",
+    "private_waiting": "Private invite created. Waiting for opponent…",
+    "private_invalid": "Private invite is invalid.",
+    "private_taken": "Private invite is already used."
   },
   "status": {
     "connecting": "Серверге қосылуда…",
@@ -38,7 +43,8 @@
     "draw": "Сурет салу",
     "draw_offer_waiting": "Ұсыныс жіберілді және жауап күтілуде.",
     "draw_offer_received": "Қарсылас тең ойынды ұсынды. «Сурет?» түймесін түртіңіз. қабылдау.",
-    "opp_disconnected": "Қарсылас ажыратылды. Қайта қосылуды күтуде ({sec}с)..."
+    "opp_disconnected": "Қарсылас ажыратылды. Қайта қосылуды күтуде ({sec}с)...",
+    "fifty_counter": "{n}/50 moves to automatic draw"
   },
   "result": {
     "title": "Ойын аяқталды",
@@ -79,5 +85,10 @@
   "time": {
     "sec_short": "с",
     "ms_short": "мс"
+  },
+  "analysis": {
+    "start": "Start analysis",
+    "stop": "Stop analysis",
+    "unavailable": "Stockfish unavailable in this browser."
   }
 }

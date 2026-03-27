@@ -7,7 +7,12 @@
     "title": "PhoneChess",
     "subtitle": "Vaqtni boshqarishni tanlang",
     "queue_count_you": "{n} navbatda (siz kiritgansiz)",
-    "queue_count": "{n} navbatda"
+    "queue_count": "{n} navbatda",
+    "private_game": "Private game",
+    "private_share_text": "Join my private PhoneChess game ({tc}): {link}",
+    "private_waiting": "Private invite created. Waiting for opponent…",
+    "private_invalid": "Private invite is invalid.",
+    "private_taken": "Private invite is already used."
   },
   "status": {
     "connecting": "Serverga ulanmoqda…",
@@ -38,7 +43,8 @@
     "draw": "Chizish",
     "draw_offer_waiting": "Taklif yuborildi va javob kutilmoqda.",
     "draw_offer_received": "Raqib durang o'ynashni taklif qildi. \"Chizish?\"ga teging. qabul qilmoq.",
-    "opp_disconnected": "Raqib uzildi. Qayta ulanish kutilmoqda ({sec}s)..."
+    "opp_disconnected": "Raqib uzildi. Qayta ulanish kutilmoqda ({sec}s)...",
+    "fifty_counter": "{n}/50 moves to automatic draw"
   },
   "result": {
     "title": "O'yin tugadi",
@@ -79,5 +85,10 @@
   "time": {
     "sec_short": "s",
     "ms_short": "ms"
+  },
+  "analysis": {
+    "start": "Start analysis",
+    "stop": "Stop analysis",
+    "unavailable": "Stockfish unavailable in this browser."
   }
 }

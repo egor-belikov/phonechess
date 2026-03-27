@@ -163,21 +163,34 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - draw-rule simplification (claim only by 50-move rule), 50-move progress indicator, and i18n scope reduction to 30 target Telegram languages.
+  - private invite flow via Telegram deep-link + persistent game/invite storage + replay/analyze mode foundation.
 - Files changed:
+  - `backend/app/db.py`
+  - `backend/app/models.py`
+  - `backend/requirements.txt`
+  - `backend/app/config.py`
+  - `backend/app/main.py`
   - `backend/app/pairing.py`
+  - `backend/app/ws_handlers.py`
+  - `backend/app/telegram_bot.py`
+  - `frontend/index.html`
+  - `frontend/styles/main.css`
   - `frontend/app.js`
   - `frontend/i18n/en.json`
   - `frontend/i18n/ru.json`
-  - `frontend/i18n/tl.json` (Tagalog locale file)
-  - `frontend/i18n/*.json` (reduced locale set: removed non-target languages, kept only 30)
+  - `frontend/i18n/*.json` (30-language set: added/backfilled keys for private invites + analysis panel)
   - `AGENTS.md`
 - Behavior changes:
-  - manual draw claim route now accepts only `fifty_move`; client no longer requests/uses threefold claim path.
-  - 75-move draw remains automatic on backend (no player claim action needed), while 50-move remains a claim flow.
-  - client now shows a visible `N/50` counter when halfmove clock reaches at least 40 (20 full moves toward 50-move draw); counter disappears automatically if chain is reset by pawn move/capture.
-  - language support narrowed to product-approved 30 locales; `fil` migration is represented by `tl` locale file and language normalization maps `fil` -> `tl`.
-  - unsupported/extra locale JSON files removed to keep translation surface aligned with current launch scope.
+  - backend now initializes SQLAlchemy + PostgreSQL models on startup (`users`, `games`, `game_moves`, `private_invites`) and persists active game snapshots/moves/results.
+  - user registration/start-state is stored in DB; `/start` webhook marks `has_started_bot=true` for Telegram notifications.
+  - new WS flow:
+    - `create_private_invite` -> generates `private_<key>` deep-link;
+    - `open_private_link` -> resolves pending/active/finished invite and returns either `matched` or `private_game_history`.
+  - private invite links are stable: pending invite becomes active game link; after finish, same key resolves to history payload.
+  - frontend lobby has `Приватная игра` action with time-control pick + Telegram share-link open.
+  - replay mode added for finished/private history with move navigation buttons (`|<`, `<`, `>`, `>|`).
+  - client-side Stockfish panel added (web worker/CDN) with start/stop, eval and PV line, using current replay position.
+  - i18n dictionaries expanded with private-invite + analysis keys and backfilled across all 30 supported locales.
 - Safety invariants preserved:
   - backend remains the source of truth for move legality;
   - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.

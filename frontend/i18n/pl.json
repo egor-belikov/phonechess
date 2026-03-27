@@ -7,7 +7,12 @@
     "title": "PhoneChess",
     "subtitle": "Wybierz kontrolę czasu",
     "queue_count_you": "{n} w kolejce (włącznie z Tobą)",
-    "queue_count": "{n} w kolejce"
+    "queue_count": "{n} w kolejce",
+    "private_game": "Private game",
+    "private_share_text": "Join my private PhoneChess game ({tc}): {link}",
+    "private_waiting": "Private invite created. Waiting for opponent…",
+    "private_invalid": "Private invite is invalid.",
+    "private_taken": "Private invite is already used."
   },
   "status": {
     "connecting": "Łączę się z serwerem…",
@@ -38,7 +43,8 @@
     "draw": "Narysuj",
     "draw_offer_waiting": "Oferta losowania wysłana i czekam na odpowiedź.",
     "draw_offer_received": "Przeciwnik zaproponował remis. Kliknij „Rysuj?” zaakceptować.",
-    "opp_disconnected": "Przeciwnik rozłączył się. Oczekiwanie na ponowne połączenie ({sec}s)..."
+    "opp_disconnected": "Przeciwnik rozłączył się. Oczekiwanie na ponowne połączenie ({sec}s)...",
+    "fifty_counter": "{n}/50 moves to automatic draw"
   },
   "result": {
     "title": "Gra zakończona",
@@ -79,5 +85,10 @@
   "time": {
     "sec_short": "s",
     "ms_short": "pani"
+  },
+  "analysis": {
+    "start": "Start analysis",
+    "stop": "Stop analysis",
+    "unavailable": "Stockfish unavailable in this browser."
   }
 }

@@ -100,6 +100,13 @@
   let lastStateSyncAt = 0;
   let currentLang = 'ru';
   let i18nMessages = {};
+  let pendingStartInviteKey = null;
+  let replayMode = false;
+  let replayFens = [];
+  let replayMoves = [];
+  let replayIndex = -1;
+  let stockfishWorker = null;
+  let analysisEnabled = false;
 
   const $ = (id) => document.getElementById(id);
   const lobbyButtons = $('lobby-buttons');
@@ -120,6 +127,7 @@
   const btnDraw = $('btn-draw');
   const btnClaimDraw = $('btn-claim-draw');
   const buildInfoEl = $('build-info');
+  const btnPrivateGame = $('btn-private-game');
   const promotionPickerEl = $('promotion-picker');
   const promotionChoicesEl = $('promotion-choices');
   const gameAlertEl = $('game-alert');
@@ -127,6 +135,14 @@
   const resultModalTitleEl = $('result-modal-title');
   const resultModalTextEl = $('result-modal-text');
   const btnResultLobby = $('btn-result-lobby');
+  const btnReplayFirst = $('btn-replay-first');
+  const btnReplayPrev = $('btn-replay-prev');
+  const btnReplayNext = $('btn-replay-next');
+  const btnReplayLast = $('btn-replay-last');
+  const analysisPanelEl = $('analysis-panel');
+  const analysisScoreEl = $('analysis-score');
+  const analysisLineEl = $('analysis-line');
+  const btnAnalysisToggle = $('btn-analysis-toggle');
 
   function deepGet(obj, path) {
     const parts = path.split('.');
@@ -155,6 +171,15 @@
     } catch (e) {}
     if (navigator.languages && navigator.languages.length) return navigator.languages[0];
     return navigator.language || 'ru';
+  }
+
+  function getStartParam() {
+    try {
+      const tg = window.Telegram && window.Telegram.WebApp;
+      const p = tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param;
+      if (typeof p === 'string' && p) return p;
+    } catch (e) {}
+    return '';
   }
 
   function normalizeLang(raw) {
@@ -205,6 +230,7 @@
     if (btnFlipBoard) btnFlipBoard.textContent = t('game.flip');
     if (btnDraw) btnDraw.textContent = t('game.draw_offer');
     if (btnClaimDraw) btnClaimDraw.textContent = t('game.claim_draw');
+    if (btnPrivateGame) btnPrivateGame.textContent = t('lobby.private_game');
     if (btnResign && !resignConfirming) btnResign.textContent = t('game.resign');
     if (resultModalTitleEl) resultModalTitleEl.textContent = t('result.title');
     if (btnResultLobby) btnResultLobby.textContent = t('result.back_to_lobby');
@@ -321,6 +347,19 @@
     }
   }
 
+  function updateReplayControls() {
+    const active = replayMode && replayFens.length > 0;
+    if (btnReplayFirst) btnReplayFirst.style.display = active ? '' : 'none';
+    if (btnReplayPrev) btnReplayPrev.style.display = active ? '' : 'none';
+    if (btnReplayNext) btnReplayNext.style.display = active ? '' : 'none';
+    if (btnReplayLast) btnReplayLast.style.display = active ? '' : 'none';
+    if (!active) return;
+    if (btnReplayFirst) btnReplayFirst.disabled = replayIndex <= 0;
+    if (btnReplayPrev) btnReplayPrev.disabled = replayIndex <= 0;
+    if (btnReplayNext) btnReplayNext.disabled = replayIndex >= replayFens.length - 1;
+    if (btnReplayLast) btnReplayLast.disabled = replayIndex >= replayFens.length - 1;
+  }
+
   function hideResultModal() {
     if (!resultModalEl) return;
     resultModalEl.classList.remove('active');
@@ -344,6 +383,12 @@
       opponentDisconnectDebounceTimer = null;
     }
     hideResultModal();
+    replayMode = false;
+    replayFens = [];
+    replayMoves = [];
+    replayIndex = -1;
+    stopAnalysis();
+    updateReplayControls();
     showScreen('lobby-screen');
   }
 
@@ -426,7 +471,7 @@
 
   function updateDrawButton() {
     if (!btnDraw) return;
-    if (!currentGameId || gameResult) {
+    if (!currentGameId || gameResult || replayMode) {
       btnDraw.style.display = 'none';
       return;
     }
@@ -459,13 +504,6 @@
   }
 
   function canClaimDrawByRules() {
-    if (!gameFen) return null;
-    const ourTurn = turnFromFen(gameFen) === myColor;
-    if (!ourTurn) return null;
-    const parts = gameFen.split(' ');
-    const halfMoveClock = parts.length >= 5 ? parseInt(parts[4], 10) : 0;
-    const fifty = Number.isFinite(halfMoveClock) && halfMoveClock >= 100;
-    if (fifty) return 'fifty_move';
     return null;
   }
 
@@ -481,22 +519,99 @@
 
   function updateClaimDrawButton() {
     if (!btnClaimDraw) return;
-    if (!currentGameId || gameResult) {
-      btnClaimDraw.style.display = 'none';
+    btnClaimDraw.style.display = 'none';
+  }
+
+  function getReplayFenAt(index) {
+    if (!replayMode || index < 0 || index >= replayFens.length) return null;
+    return replayFens[index];
+  }
+
+  function setReplayIndex(index) {
+    if (!replayMode) return;
+    const next = Math.max(0, Math.min(index, replayFens.length - 1));
+    replayIndex = next;
+    const fen = getReplayFenAt(replayIndex);
+    if (fen) {
+      gameFen = fen;
+      renderBoard();
+      updateClocksDisplay();
+      updateReplayControls();
+      if (analysisEnabled) analyzeCurrentPosition();
+    }
+  }
+
+  function enterReplayMode(history) {
+    replayMode = true;
+    currentGameId = history.game_id || null;
+    gameResult = history.result || '1/2-1/2';
+    resultReason = history.result_reason || null;
+    resultDetail = history.result_detail || null;
+    replayMoves = history.moves || [];
+    replayFens = [];
+    const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    replayFens.push(startFen);
+    for (let i = 0; i < replayMoves.length; i++) {
+      const fenAfter = replayMoves[i].fen_after;
+      if (fenAfter) replayFens.push(fenAfter);
+    }
+    if (!replayFens.length) replayFens = [history.fen || startFen];
+    replayIndex = replayFens.length - 1;
+    gameFen = replayFens[replayIndex];
+    gameMoves = replayMoves.map(function (m) { return { san: m.san, time_ms: m.time_ms || 0 }; });
+    showScreen('game-screen');
+    renderMoveList();
+    updateReplayControls();
+    updateDrawButton();
+    updateClaimDrawButton();
+    if (analysisPanelEl) analysisPanelEl.classList.add('active');
+    renderBoard();
+    updateClocksDisplay();
+  }
+
+  function ensureStockfish() {
+    if (stockfishWorker) return stockfishWorker;
+    try {
+      stockfishWorker = new Worker('https://cdn.jsdelivr.net/npm/stockfish/stockfish.js');
+      stockfishWorker.onmessage = function (ev) {
+        const line = String(ev.data || '');
+        if (line.indexOf('score cp ') !== -1) {
+          const m = /score cp (-?\d+)/.exec(line);
+          if (m && analysisScoreEl) analysisScoreEl.textContent = (parseInt(m[1], 10) / 100).toFixed(2);
+        } else if (line.indexOf('score mate ') !== -1) {
+          const m2 = /score mate (-?\d+)/.exec(line);
+          if (m2 && analysisScoreEl) analysisScoreEl.textContent = '#'+m2[1];
+        }
+        if (line.indexOf(' pv ') !== -1 && analysisLineEl) {
+          const pv = line.split(' pv ')[1] || '';
+          analysisLineEl.textContent = pv || '—';
+        }
+      };
+    } catch (e) {
+      stockfishWorker = null;
+    }
+    return stockfishWorker;
+  }
+
+  function analyzeCurrentPosition() {
+    const fen = replayMode ? getReplayFenAt(replayIndex) : gameFen;
+    if (!analysisEnabled || !fen) return;
+    const sf = ensureStockfish();
+    if (!sf) {
+      if (analysisLineEl) analysisLineEl.textContent = t('analysis.unavailable');
       return;
     }
-    const completedPlies = gameMoves.length;
-    if (completedPlies < 30) {
-      btnClaimDraw.style.display = 'none';
-      return;
+    sf.postMessage('stop');
+    sf.postMessage('position fen ' + fen);
+    sf.postMessage('go depth 16');
+  }
+
+  function stopAnalysis() {
+    analysisEnabled = false;
+    if (btnAnalysisToggle) btnAnalysisToggle.textContent = t('analysis.start');
+    if (stockfishWorker) {
+      try { stockfishWorker.postMessage('stop'); } catch (e) {}
     }
-    const claimType = canClaimDrawByRules();
-    if (!claimType) {
-      btnClaimDraw.style.display = 'none';
-      return;
-    }
-    btnClaimDraw.style.display = '';
-    btnClaimDraw.textContent = t('game.claim_fifty');
   }
 
   function tickClocks() {
@@ -1052,7 +1167,7 @@
   }
 
   function doMoveFromTo(fromSq, toSq) {
-    if (!currentGameId || !gameFen || gameResult) return;
+    if (!currentGameId || !gameFen || gameResult || replayMode) return;
     try {
       var c = new Chess(gameFen);
     } catch (e) { return; }
@@ -1093,7 +1208,7 @@
   }
 
   function onSquareClick(sq) {
-    if (!currentGameId || !gameFen || gameResult) {
+    if (!currentGameId || !gameFen || gameResult || replayMode) {
       console.log('[PhoneChess] onSquareClick early return: no game/fen/result');
       return;
     }
@@ -1149,6 +1264,7 @@
   }
 
   function applyGameState(data) {
+    if (replayMode) return;
     console.log('[PhoneChess] applyGameState', { hasFen: !!data.fen, moves: data.moves?.length, result: data.result });
     gameFen = data.fen || gameFen;
     whiteRemainingMs = data.white_remaining_ms != null ? data.white_remaining_ms : whiteRemainingMs;
@@ -1185,6 +1301,13 @@
   }
 
   function enterGame(msg) {
+    replayMode = false;
+    replayFens = [];
+    replayMoves = [];
+    replayIndex = -1;
+    stopAnalysis();
+    if (analysisPanelEl) analysisPanelEl.classList.remove('active');
+    updateReplayControls();
     console.log('[PhoneChess] enterGame', { game_id: msg.game_id, color: msg.color, hasFen: !!msg.fen });
     currentGameId = msg.game_id;
     myColor = msg.color;
@@ -1261,6 +1384,10 @@
           }
           renderLobbyButtons(msg.counts);
           setWsStatus(t('status.connected'), 'connected');
+          if (pendingStartInviteKey && ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'open_private_link', invite_key: pendingStartInviteKey }));
+            pendingStartInviteKey = null;
+          }
           if (currentGameId && ws && ws.readyState === WebSocket.OPEN) {
             requestGameStateSync(0);
           }
@@ -1279,6 +1406,23 @@
           updateDrawButton();
           updateClaimDrawButton();
           updateGameAlert();
+        } else if (msg.type === 'private_invite_created') {
+          const link = msg.invite_link || '';
+          const text = t('lobby.private_share_text', { link: link, tc: msg.time_control || '' });
+          try {
+            const share = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(text);
+            if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.openTelegramLink === 'function') {
+              window.Telegram.WebApp.openTelegramLink(share);
+            }
+          } catch (e) {}
+        } else if (msg.type === 'private_invite_pending') {
+          setWsStatus(t('lobby.private_waiting'));
+        } else if (msg.type === 'private_invite_invalid') {
+          setWsStatus(t('lobby.private_invalid'), 'error');
+        } else if (msg.type === 'private_invite_taken') {
+          setWsStatus(t('lobby.private_taken'), 'error');
+        } else if (msg.type === 'private_game_history') {
+          enterReplayMode(msg);
         } else if (msg.type === 'opponent_connection') {
           if (msg.status === 'disconnected') {
             opponentDisconnected = true;
@@ -1376,6 +1520,14 @@
       ws.send(JSON.stringify({ type: 'offer_draw', game_id: currentGameId }));
     });
   }
+  if (btnPrivateGame) {
+    btnPrivateGame.addEventListener('click', function () {
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      const choice = window.prompt('Time control: ' + TIME_CONTROLS.join(', '), TIME_CONTROLS[0]);
+      if (!choice || TIME_CONTROLS.indexOf(choice) === -1) return;
+      ws.send(JSON.stringify({ type: 'create_private_invite', time_control: choice }));
+    });
+  }
   if (btnClaimDraw) {
     btnClaimDraw.addEventListener('click', function () {
       if (!ws || ws.readyState !== WebSocket.OPEN) return;
@@ -1388,6 +1540,21 @@
   if (btnResultLobby) {
     btnResultLobby.addEventListener('click', function () {
       goToLobbyFromGame();
+    });
+  }
+  if (btnReplayFirst) btnReplayFirst.addEventListener('click', function () { setReplayIndex(0); });
+  if (btnReplayPrev) btnReplayPrev.addEventListener('click', function () { setReplayIndex(replayIndex - 1); });
+  if (btnReplayNext) btnReplayNext.addEventListener('click', function () { setReplayIndex(replayIndex + 1); });
+  if (btnReplayLast) btnReplayLast.addEventListener('click', function () { setReplayIndex(replayFens.length - 1); });
+  if (btnAnalysisToggle) {
+    btnAnalysisToggle.addEventListener('click', function () {
+      analysisEnabled = !analysisEnabled;
+      btnAnalysisToggle.textContent = analysisEnabled ? t('analysis.stop') : t('analysis.start');
+      if (!analysisEnabled) {
+        stopAnalysis();
+      } else {
+        analyzeCurrentPosition();
+      }
     });
   }
   if (promotionPickerEl) {
@@ -1422,6 +1589,8 @@
     applyStaticTexts();
     renderLobbyButtons({});
     await loadBuildInfo();
+    const sp = getStartParam();
+    if (sp && sp.indexOf('private_') === 0) pendingStartInviteKey = sp.slice('private_'.length);
     connect();
   }
 

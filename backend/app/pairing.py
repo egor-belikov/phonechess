@@ -5,6 +5,8 @@
 import random
 import time
 import uuid
+import secrets
+import datetime as dt
 from collections import defaultdict
 from dataclasses import dataclass, field
 
@@ -12,6 +14,9 @@ import chess
 from chess import Board
 
 from .constants import TIME_CONTROL_KEYS, TIME_CONTROLS, TimeControl
+from .db import SessionLocal
+from .models import GameMoveRecord, GameRecord, PrivateInviteRecord, User
+from .config import get_config
 
 
 @dataclass
@@ -68,6 +73,108 @@ class Game:
 # Глобальное состояние (in-memory)
 _queues: dict[str, list[QueuedPlayer]] = defaultdict(list)
 _games: dict[str, Game] = {}
+_private_invites_mem: dict[str, str] = {}
+
+
+def _upsert_user(user_id: str, telegram_id: int, username: str, has_started_bot: bool | None = None) -> None:
+    with SessionLocal() as db:
+        user = db.get(User, user_id)
+        now = dt.datetime.utcnow()
+        if not user:
+            user = User(
+                id=user_id,
+                telegram_id=telegram_id,
+                username=username or "",
+                has_started_bot=bool(has_started_bot),
+                created_at=now,
+                updated_at=now,
+            )
+            db.add(user)
+        else:
+            user.telegram_id = telegram_id
+            user.username = username or user.username or ""
+            if has_started_bot is not None:
+                user.has_started_bot = has_started_bot
+            user.updated_at = now
+        db.commit()
+
+
+def mark_user_started_bot(telegram_id: int, username: str = "") -> None:
+    user_id = str(telegram_id)
+    _upsert_user(user_id, telegram_id, username, has_started_bot=True)
+
+
+def ensure_user_registered(user_id: str, telegram_id: int, username: str) -> None:
+    _upsert_user(user_id, telegram_id, username)
+
+
+def _persist_game_created(g: Game) -> None:
+    with SessionLocal() as db:
+        rec = GameRecord(
+            id=g.id,
+            time_control_key=g.time_control_key,
+            white_id=g.white_id,
+            black_id=g.black_id,
+            white_username=g.white_username,
+            black_username=g.black_username,
+            fen=g.fen,
+            white_remaining_ms=g.white_remaining_ms,
+            black_remaining_ms=g.black_remaining_ms,
+            result=g.result,
+            result_reason=g.result_reason,
+            result_detail=g.result_detail,
+            created_at=dt.datetime.utcnow(),
+            finished_at=dt.datetime.utcnow() if g.result else None,
+        )
+        db.add(rec)
+        db.commit()
+
+
+def _persist_game_state(g: Game, from_sq: str | None = None, to_sq: str | None = None, promotion: str | None = None, san: str | None = None, move_time_ms: int | None = None) -> None:
+    with SessionLocal() as db:
+        rec = db.get(GameRecord, g.id)
+        if not rec:
+            rec = GameRecord(
+                id=g.id,
+                time_control_key=g.time_control_key,
+                white_id=g.white_id,
+                black_id=g.black_id,
+                white_username=g.white_username,
+                black_username=g.black_username,
+                fen=g.fen,
+                white_remaining_ms=g.white_remaining_ms,
+                black_remaining_ms=g.black_remaining_ms,
+                result=g.result,
+                result_reason=g.result_reason,
+                result_detail=g.result_detail,
+                created_at=dt.datetime.utcnow(),
+                finished_at=dt.datetime.utcnow() if g.result else None,
+            )
+            db.add(rec)
+            db.flush()
+        rec.fen = g.fen
+        rec.white_remaining_ms = g.white_remaining_ms
+        rec.black_remaining_ms = g.black_remaining_ms
+        rec.result = g.result
+        rec.result_reason = g.result_reason
+        rec.result_detail = g.result_detail
+        if g.result and rec.finished_at is None:
+            rec.finished_at = dt.datetime.utcnow()
+        if san and from_sq and to_sq and move_time_ms is not None:
+            db.add(
+                GameMoveRecord(
+                    game_id=g.id,
+                    ply=len(g.moves),
+                    san=san,
+                    uci_from=from_sq,
+                    uci_to=to_sq,
+                    promotion=promotion,
+                    move_time_ms=move_time_ms,
+                    fen_after=g.fen,
+                    created_at=dt.datetime.utcnow(),
+                )
+            )
+        db.commit()
 
 
 def get_queue_counts() -> dict[str, int]:
@@ -82,6 +189,7 @@ def join_queue(time_control_key: str, user_id: str, telegram_id: int, username: 
     """
     if time_control_key not in TIME_CONTROL_KEYS:
         return None
+    _upsert_user(user_id, telegram_id, username)
     queue = _queues[time_control_key]
     # Prevent duplicate queue entries for the same user.
     for p in queue:
@@ -100,6 +208,7 @@ def join_queue(time_control_key: str, user_id: str, telegram_id: int, username: 
         else:
             game = _create_game(time_control_key, opponent, player)
         _games[game.id] = game
+        _persist_game_created(game)
         return game
     queue.append(player)
     return None
@@ -155,6 +264,114 @@ def get_game(game_id: str) -> Game | None:
     return _games.get(game_id)
 
 
+def create_private_invite(time_control_key: str, user_id: str, telegram_id: int, username: str) -> dict | None:
+    if time_control_key not in TIME_CONTROL_KEYS:
+        return None
+    _upsert_user(user_id, telegram_id, username)
+    key = secrets.token_urlsafe(12).replace("-", "").replace("_", "")
+    key = key[:20]
+    cfg = get_config()
+    link = f"https://t.me/{cfg.bot_username}?startapp=private_{key}" if getattr(cfg, "bot_username", "") else f"{cfg.telegram_webapp_url}?startapp=private_{key}"
+    _private_invites_mem[key] = ""
+    with SessionLocal() as db:
+        db.add(
+            PrivateInviteRecord(
+                invite_key=key,
+                creator_user_id=user_id,
+                invited_user_id=None,
+                time_control_key=time_control_key,
+                game_id=None,
+                status="pending",
+                created_at=dt.datetime.utcnow(),
+                used_at=None,
+            )
+        )
+        db.commit()
+    return {"invite_key": key, "invite_link": link, "time_control": time_control_key}
+
+
+def join_private_invite(invite_key: str, user_id: str, telegram_id: int, username: str) -> dict | None:
+    _upsert_user(user_id, telegram_id, username)
+    with SessionLocal() as db:
+        inv = db.get(PrivateInviteRecord, invite_key)
+        if not inv:
+            return {"status": "invalid"}
+        if inv.status == "finished":
+            return {"status": "history", "game_id": inv.game_id}
+        if inv.status == "active" and inv.game_id:
+            g = get_game(inv.game_id)
+            if g:
+                color = "white" if g.white_id == user_id else ("black" if g.black_id == user_id else None)
+                return {"status": "active", "game": g, "color": color}
+            hist = get_history_by_invite_key(invite_key)
+            if hist:
+                return {"status": "history", "game_id": inv.game_id}
+        if inv.status != "pending":
+            return {"status": "taken"}
+        if inv.creator_user_id == user_id:
+            return {"status": "pending_wait"}
+        owner_user = db.get(User, inv.creator_user_id)
+        creator_username = owner_user.username if owner_user else ""
+        creator_tid = owner_user.telegram_id if owner_user else 0
+        opener = QueuedPlayer(user_id=user_id, telegram_id=telegram_id, username=username or "")
+        owner = QueuedPlayer(user_id=inv.creator_user_id, telegram_id=creator_tid, username=creator_username or f"user_{inv.creator_user_id[:8]}")
+        game = _create_game(inv.time_control_key, owner, opener)
+        _games[game.id] = game
+        _persist_game_created(game)
+        inv.status = "active"
+        inv.invited_user_id = user_id
+        inv.game_id = game.id
+        inv.used_at = dt.datetime.utcnow()
+        db.commit()
+        _private_invites_mem[invite_key] = game.id
+        color = "white" if game.white_id == user_id else "black"
+        return {"status": "matched", "game": game, "invite_key": invite_key, "color": color}
+
+
+def mark_invite_finished_by_game(game_id: str) -> None:
+    with SessionLocal() as db:
+        inv = db.query(PrivateInviteRecord).filter(PrivateInviteRecord.game_id == game_id).first()
+        if not inv:
+            return
+        inv.status = "finished"
+        db.commit()
+
+
+def get_history_by_invite_key(invite_key: str) -> dict | None:
+    with SessionLocal() as db:
+        inv = db.get(PrivateInviteRecord, invite_key)
+        if not inv or not inv.game_id:
+            return None
+        game = db.get(GameRecord, inv.game_id)
+        if not game:
+            return None
+        moves = (
+            db.query(GameMoveRecord)
+            .filter(GameMoveRecord.game_id == game.id)
+            .order_by(GameMoveRecord.ply.asc())
+            .all()
+        )
+        return {
+            "game_id": game.id,
+            "fen": game.fen,
+            "time_control": game.time_control_key,
+            "white_username": game.white_username,
+            "black_username": game.black_username,
+            "result": game.result,
+            "result_reason": game.result_reason,
+            "result_detail": game.result_detail,
+            "moves": [{"san": m.san, "time_ms": m.move_time_ms, "from": m.uci_from, "to": m.uci_to, "fen_after": m.fen_after} for m in moves],
+        }
+
+
+def get_user_notification_target(user_id: str) -> tuple[int, bool]:
+    with SessionLocal() as db:
+        user = db.get(User, user_id)
+        if not user:
+            return (0, False)
+        return (user.telegram_id, bool(user.has_started_bot))
+
+
 def game_state_payload(g: Game) -> dict:
     """Собрать payload game_state для отправки клиенту."""
     white_ms, black_ms = _live_remaining_ms(g)
@@ -200,6 +417,8 @@ def resign_game(game_id: str, user_id: str) -> dict | None:
     g.result_reason = "resign"
     g.result_detail = None
     g.draw_offer_by = None
+    _persist_game_state(g)
+    mark_invite_finished_by_game(g.id)
     return {
         "fen": g.fen,
         "white_remaining_ms": g.white_remaining_ms,
@@ -242,6 +461,14 @@ def _apply_result(g: Game, board: Board) -> None:
         g.result = "1/2-1/2"
         g.result_reason = "insufficient_material"
         g.result_detail = _insufficient_material_detail(board)
+    elif board.is_repetition(3):
+        g.result = "1/2-1/2"
+        g.result_reason = "draw_claim_threefold"
+        g.result_detail = "Ничья автоматически: троекратное повторение позиции."
+    elif board.halfmove_clock >= 100:
+        g.result = "1/2-1/2"
+        g.result_reason = "draw_claim_fifty_move"
+        g.result_detail = "Ничья автоматически: 50 ходов без взятия и хода пешкой."
     elif board.is_fivefold_repetition():
         g.result = "1/2-1/2"
         g.result_reason = "draw_auto_fivefold"
@@ -341,6 +568,8 @@ def accept_draw_offer(game_id: str, user_id: str) -> dict | None:
     g.result_detail = "Ничья по соглашению сторон."
     g.draw_offer_by = None
     g.draw_offer_ply = None
+    _persist_game_state(g)
+    mark_invite_finished_by_game(g.id)
     return {
         "fen": g.fen,
         "white_remaining_ms": g.white_remaining_ms,
@@ -354,31 +583,8 @@ def accept_draw_offer(game_id: str, user_id: str) -> dict | None:
 
 
 def claim_draw(game_id: str, user_id: str, claim_type: str) -> dict | None:
-    g = get_game_for_user(game_id, user_id)
-    if not g or g.result is not None:
-        return None
-    board = Board(g.fen)
-    is_white_turn = board.turn == chess.WHITE
-    if (is_white_turn and user_id != g.white_id) or ((not is_white_turn) and user_id != g.black_id):
-        return None
-    if claim_type == "fifty_move" and board.can_claim_fifty_moves():
-        g.result = "1/2-1/2"
-        g.result_reason = "draw_claim_fifty_move"
-        g.result_detail = "Ничья по заявке: 50 ходов без взятия и хода пешкой."
-    else:
-        return None
-    g.draw_offer_by = None
-    g.draw_offer_ply = None
-    return {
-        "fen": g.fen,
-        "white_remaining_ms": g.white_remaining_ms,
-        "black_remaining_ms": g.black_remaining_ms,
-        "result": g.result,
-        "result_reason": g.result_reason,
-        "result_detail": g.result_detail,
-        "draw_offer_by": g.draw_offer_by,
-        "draw_offer_color": _draw_offer_color(g),
-    }
+    # Product policy: draw claims are disabled; eligible draw states are applied automatically.
+    return None
 
 
 def forfeit_disconnected_player(game_id: str, disconnected_user_id: str) -> dict | None:
@@ -390,6 +596,8 @@ def forfeit_disconnected_player(game_id: str, disconnected_user_id: str) -> dict
     g.result_detail = "Соперник отключился и не вернулся вовремя."
     g.draw_offer_by = None
     g.draw_offer_ply = None
+    _persist_game_state(g)
+    mark_invite_finished_by_game(g.id)
     return {
         "fen": g.fen,
         "white_remaining_ms": g.white_remaining_ms,
@@ -464,6 +672,9 @@ def apply_move(
     g.fen = board.fen()
     g.moves.append(MoveRecord(san=san, time_ms=move_time_ms))
     _apply_result(g, board)
+    _persist_game_state(g, from_sq=from_sq, to_sq=to_sq, promotion=promotion, san=san, move_time_ms=move_time_ms)
+    if g.result is not None:
+        mark_invite_finished_by_game(g.id)
     uci = move.uci()
     return {
         "fen": g.fen,

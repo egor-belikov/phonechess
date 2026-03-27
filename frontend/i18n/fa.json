@@ -7,7 +7,12 @@
     "title": "PhoneChess",
     "subtitle": "کنترل زمان را انتخاب کنید",
     "queue_count_you": "{n} در صف (شما گنجانده اید)",
-    "queue_count": "{n} در صف"
+    "queue_count": "{n} در صف",
+    "private_game": "Private game",
+    "private_share_text": "Join my private PhoneChess game ({tc}): {link}",
+    "private_waiting": "Private invite created. Waiting for opponent…",
+    "private_invalid": "Private invite is invalid.",
+    "private_taken": "Private invite is already used."
   },
   "status": {
     "connecting": "در حال اتصال به سرور…",
@@ -38,7 +43,8 @@
     "draw": "قرعه کشی کنید",
     "draw_offer_waiting": "پیشنهاد قرعه کشی ارسال شد و منتظر پاسخ هستیم.",
     "draw_offer_received": "حریف پیشنهاد تساوی داد. روی \"Draw?\" ضربه بزنید. پذیرفتن",
-    "opp_disconnected": "ارتباط حریف قطع شد در انتظار اتصال مجدد ({sec}s)..."
+    "opp_disconnected": "ارتباط حریف قطع شد در انتظار اتصال مجدد ({sec}s)...",
+    "fifty_counter": "{n}/50 moves to automatic draw"
   },
   "result": {
     "title": "بازی تموم شد",
@@ -79,5 +85,10 @@
   "time": {
     "sec_short": "س",
     "ms_short": "ام‌اس"
+  },
+  "analysis": {
+    "start": "Start analysis",
+    "stop": "Stop analysis",
+    "unavailable": "Stockfish unavailable in this browser."
   }
 }

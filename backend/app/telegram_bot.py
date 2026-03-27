@@ -10,6 +10,7 @@ import urllib.request
 from typing import Any
 
 from .config import get_config
+from .pairing import mark_user_started_bot
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,28 @@ def send_start_message(chat_id: int) -> None:
     )
 
 
+def send_webapp_message(chat_id: int, text: str, webapp_url: str | None = None) -> None:
+    cfg = get_config()
+    target = webapp_url or cfg.telegram_webapp_url
+    _bot_api(
+        "sendMessage",
+        {
+            "chat_id": chat_id,
+            "text": text,
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "Открыть PhoneChess",
+                            "web_app": {"url": target},
+                        }
+                    ]
+                ]
+            },
+        },
+    )
+
+
 def process_update(update: dict[str, Any]) -> None:
     msg = update.get("message") or update.get("edited_message")
     if not isinstance(msg, dict):
@@ -73,4 +96,7 @@ def process_update(update: dict[str, Any]) -> None:
     if not chat_id:
         return
     if text.startswith("/start"):
+        user = msg.get("from") or {}
+        username = user.get("username") or user.get("first_name") or ""
+        mark_user_started_bot(int(chat_id), username=username)
         send_start_message(int(chat_id))

@@ -7,7 +7,12 @@
     "title": "PhoneChess",
     "subtitle": "اختر التحكم في الوقت",
     "queue_count_you": "{n} في قائمة الانتظار (لقد قمت بتضمينها)",
-    "queue_count": "{n} في قائمة الانتظار"
+    "queue_count": "{n} في قائمة الانتظار",
+    "private_game": "Private game",
+    "private_share_text": "Join my private PhoneChess game ({tc}): {link}",
+    "private_waiting": "Private invite created. Waiting for opponent…",
+    "private_invalid": "Private invite is invalid.",
+    "private_taken": "Private invite is already used."
   },
   "status": {
     "connecting": "جارٍ الاتصال بالخادم…",
@@ -38,7 +43,8 @@
     "draw": "يرسم",
     "draw_offer_waiting": "تم إرسال عرض السحب وفي انتظار الرد.",
     "draw_offer_received": "عرض الخصم التعادل. اضغط على \"رسم؟\" لقبول.",
-    "opp_disconnected": "تم قطع اتصال الخصم. في انتظار إعادة الاتصال ({sec}s)..."
+    "opp_disconnected": "تم قطع اتصال الخصم. في انتظار إعادة الاتصال ({sec}s)...",
+    "fifty_counter": "{n}/50 moves to automatic draw"
   },
   "result": {
     "title": "انتهت اللعبة",
@@ -79,5 +85,10 @@
   "time": {
     "sec_short": "ق",
     "ms_short": "آنسة"
+  },
+  "analysis": {
+    "start": "Start analysis",
+    "stop": "Stop analysis",
+    "unavailable": "Stockfish unavailable in this browser."
   }
 }

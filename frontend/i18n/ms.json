@@ -7,7 +7,12 @@
     "title": "PhoneChess",
     "subtitle": "Pilih kawalan masa",
     "queue_count_you": "{n} dalam baris gilir (anda termasuk)",
-    "queue_count": "{n} dalam baris gilir"
+    "queue_count": "{n} dalam baris gilir",
+    "private_game": "Private game",
+    "private_share_text": "Join my private PhoneChess game ({tc}): {link}",
+    "private_waiting": "Private invite created. Waiting for opponent…",
+    "private_invalid": "Private invite is invalid.",
+    "private_taken": "Private invite is already used."
   },
   "status": {
     "connecting": "Menyambung ke pelayan…",
@@ -38,7 +43,8 @@
     "draw": "Lukis",
     "draw_offer_waiting": "Cabutan tawaran dihantar dan menunggu jawapan.",
     "draw_offer_received": "Lawan menawarkan keputusan seri. Ketik \"Lukis?\" untuk menerima.",
-    "opp_disconnected": "Lawan terputus sambungan. Menunggu untuk menyambung semula ({sec}s)..."
+    "opp_disconnected": "Lawan terputus sambungan. Menunggu untuk menyambung semula ({sec}s)...",
+    "fifty_counter": "{n}/50 moves to automatic draw"
   },
   "result": {
     "title": "Permainan selesai",
@@ -79,5 +85,10 @@
   "time": {
     "sec_short": "s",
     "ms_short": "ms"
+  },
+  "analysis": {
+    "start": "Start analysis",
+    "stop": "Stop analysis",
+    "unavailable": "Stockfish unavailable in this browser."
   }
 }

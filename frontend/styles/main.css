@@ -152,6 +152,18 @@ body.mobile-blocked #app {
   text-align: center;
 }
 
+.btn-private-game {
+  width: 100%;
+  max-width: 420px;
+  margin: 10px auto 0;
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid #4c5f86;
+  background: #2b3a57;
+  color: #e2ecff;
+  font-size: 0.92rem;
+}
+
 .ws-status.connected {
   color: #5a9a5a;
 }
@@ -544,7 +556,8 @@ body.mobile-blocked #app {
 .btn-flip,
 .btn-draw,
 .btn-draw-claim,
-.btn-resign {
+.btn-resign,
+.btn-replay {
   flex: 1;
   min-height: 40px;
   padding: 0 10px;
@@ -573,6 +586,50 @@ body.mobile-blocked #app {
   background: #583332;
   border-color: #c55;
   color: #ff9999;
+}
+
+.btn-replay {
+  flex: 0.6;
+  min-width: 38px;
+}
+
+.analysis-panel {
+  margin-top: 8px;
+  border: 1px solid #2f3a4d;
+  border-radius: 8px;
+  padding: 8px;
+  background: #1a202c;
+  display: none;
+}
+
+.analysis-panel.active {
+  display: block;
+}
+
+.analysis-score {
+  font-family: "Roboto Mono", "Lucida Console", Monaco, monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #d7e5ff;
+}
+
+.btn-analysis-toggle {
+  margin-top: 6px;
+  min-height: 34px;
+  border-radius: 8px;
+  border: 1px solid #40587e;
+  background: #2a3f61;
+  color: #e3eeff;
+  width: 100%;
+}
+
+.analysis-line {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: #b9c8df;
+  line-height: 1.35;
+  max-height: 84px;
+  overflow: auto;
 }
 
 .result-modal {
