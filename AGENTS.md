@@ -401,7 +401,7 @@ From repo root:
 ## Production deploy (2026-03-28): origin push + VPS sync
 
 - **Problem fixed:** Commit `97a594c` (`deploy: stamp build-meta, cache-bust assets, document release (2026-03-27)`) existed only on local `main`; `git push` had not been run, so `origin/main` and the VPS checkout at `/root/my_projects/phonechess` had not received that bundle, and production Docker had not been rebuilt with it.
-- **Deploy commit (short):** `3da6820` — subject `deploy: push pending release, stamp build-meta, document VPS sync (2026-03-28)`.
+- **Deploy commit (short):** `e17183c` — subject `deploy: push pending release, stamp build-meta, document VPS sync (2026-03-28)`.
 - **Commit body:**
   - Re-run `scripts/update_build_meta.py` — `deployed_at` UTC, `asset_tag`; `index.html` `?v=` for `app.js` / `main.css` and `#build-info`.
   - `AGENTS.md`: clarify wording in the 2026-03-27 production deploy section; add this section documenting the missing push and server reconcile.
@@ -410,3 +410,4 @@ From repo root:
 - **Files changed:** `frontend/build-meta.json`, `frontend/index.html`, `AGENTS.md`.
 - **Ops:** `bash scripts/deploy.sh` — `git push origin main`; SSH `egorvps`: `git pull --ff-only`, server-side `update_build_meta.py`, `docker compose build app`, `docker compose up -d app`, local `/health` and `/build-meta.json` curls.
 - **Note:** After pull on the server, `update_build_meta.py` sets `version` to the short hash of the checked-out revision (may differ from the committed `build-meta.json` in git for the meta commit); treat `https://chess.apichatpong.online/build-meta.json` as authoritative for live `version` / `deployed_at`.
+- **Documentation follow-up:** a small `AGENTS.md` commit corrects the deploy hash line (`3da6820` → `e17183c`) after an intermediate amend left a stale short hash.
