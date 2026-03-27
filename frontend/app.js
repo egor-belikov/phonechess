@@ -74,6 +74,7 @@
   let gameResult = null;
   let selectedSquare = null;
   let legalTargets = [];
+  let legalTargetsMode = 'none'; // none | tap | drag
   let lastMove = null;
   let clockInterval = null;
   let boardFlipped = false;
@@ -1087,8 +1088,7 @@
       div.addEventListener('dragstart', function (e) {
         const pieceEl = div.querySelector('.piece-sprite');
         draggedSquare = sq;
-        selectedSquare = sq;
-        legalTargets = getTargetsForSquare(sq);
+        selectSquare(sq, 'drag');
         e.dataTransfer.setData('text/plain', sq);
         e.dataTransfer.effectAllowed = 'move';
         if (pieceEl) {
@@ -1101,8 +1101,7 @@
       div.addEventListener('dragend', function () {
         div.classList.remove('dragging-source');
         draggedSquare = null;
-        selectedSquare = null;
-        legalTargets = [];
+        clearSelection();
         applyLegalTargetsToCurrentBoard();
       });
     }
@@ -1131,7 +1130,10 @@
         }
         if (selectedSquare === sq) div.classList.add('selected');
         if (touchDragTargetSquare === sq) div.classList.add('drag-hover');
-        if (legalTargets.indexOf(sq) !== -1) div.classList.add('legal');
+        if (legalTargets.indexOf(sq) !== -1) {
+          div.classList.add('legal');
+          div.classList.add(legalTargetsMode === 'tap' ? 'legal-tap' : 'legal-drag');
+        }
         if (window.Chess && (piece === 'K' || piece === 'k')) {
           try {
             const c = new Chess(gameFen);
@@ -1159,8 +1161,7 @@
         touchDragFromSquare = sq;
         touchDragTargetSquare = sq;
         touchDragMoved = false;
-        selectedSquare = sq;
-        legalTargets = getTargetsForSquare(sq);
+        selectSquare(sq, 'drag');
         renderBoard();
       }, { passive: true });
       cell.addEventListener('touchmove', function (e) {
@@ -1179,6 +1180,7 @@
       }, { passive: false });
       cell.addEventListener('touchend', function (e) {
         e.preventDefault();
+        const touchFromSquare = touchDragFromSquare;
         if (touchDragFromSquare) {
           const fromSq = touchDragFromSquare;
           const toSq = touchDragTargetSquare;
@@ -1200,7 +1202,21 @@
         }
         lastTouchTapAt = now;
         lastTouchTapSquare = sq;
-        handler();
+        if (touchFromSquare && touchFromSquare === sq) {
+          const ctx = getInputContext();
+          const p = getPieceAtSquareFromFen(ctx.fenForPieces, sq);
+          const mine = !!p && pieceColorFromFenLetter(p) === myColor;
+          if (mine) {
+            if (selectedSquare === sq && legalTargetsMode === 'tap') {
+              clearSelection();
+            } else {
+              selectSquare(sq, 'tap');
+            }
+            renderBoard();
+            return;
+          }
+        }
+        onSquareClick(sq);
       }, { passive: false });
     });
     } catch (e) {
@@ -1250,6 +1266,18 @@
     return pseudoTargetsFromSquareForColor(ctx.fenForTargets, square, myColor);
   }
 
+  function clearSelection() {
+    selectedSquare = null;
+    legalTargets = [];
+    legalTargetsMode = 'none';
+  }
+
+  function selectSquare(square, mode) {
+    selectedSquare = square;
+    legalTargets = getTargetsForSquare(square);
+    legalTargetsMode = mode || 'tap';
+  }
+
   function shouldAskPromotion(move) {
     return !!move && (move.flags || '').indexOf('p') !== -1;
   }
@@ -1269,8 +1297,7 @@
       applyOptimisticLocalMove(fromSq, toSq, promotion);
       ws.send(JSON.stringify({ type: 'make_move', game_id: currentGameId, from: fromSq, to: toSq, promotion: promotion || null }));
     }
-    selectedSquare = null;
-    legalTargets = [];
+    clearSelection();
     renderBoard();
   }
 
@@ -1337,14 +1364,16 @@
     boardEl.querySelectorAll('.square').forEach(function (cell) {
       const sq = cell.dataset.square;
       if (!sq) return;
-      cell.classList.toggle('legal', targets.indexOf(sq) !== -1);
+      const on = targets.indexOf(sq) !== -1;
+      cell.classList.toggle('legal', on);
+      cell.classList.toggle('legal-tap', on && legalTargetsMode === 'tap');
+      cell.classList.toggle('legal-drag', on && legalTargetsMode === 'drag');
     });
   }
 
   function clearPremoves() {
     premoveQueue = [];
-    selectedSquare = null;
-    legalTargets = [];
+    clearSelection();
     hidePromotionPicker();
     updateClocksDisplay();
     renderBoard();
@@ -1373,8 +1402,7 @@
       }
       const promotion = pm.promotion || (((move.flags || '').indexOf('p') !== -1) ? 'q' : null);
       ws.send(JSON.stringify({ type: 'make_move', game_id: currentGameId, from: pm.from, to: pm.to, promotion: promotion, premove: true }));
-      selectedSquare = null;
-      legalTargets = [];
+      clearSelection();
       sent = true;
     }
     updateClocksDisplay();
@@ -1443,11 +1471,9 @@
         doMoveFromTo(selectedSquare, sq);
         return;
       }
-      selectedSquare = null;
-      legalTargets = [];
+      clearSelection();
     } else if (mine) {
-      selectedSquare = sq;
-      legalTargets = getTargetsForSquare(sq);
+      selectSquare(sq, 'tap');
     }
     renderBoard();
   }
@@ -1532,8 +1558,7 @@
     blackRemainingMs = msg.black_remaining_ms != null ? msg.black_remaining_ms : 0;
     gameMoves = [];
     gameResult = null;
-    selectedSquare = null;
-    legalTargets = [];
+    clearSelection();
     lastMove = null;
     boardFlipped = false;
     premoveQueue = [];

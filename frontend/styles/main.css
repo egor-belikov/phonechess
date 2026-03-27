@@ -573,6 +573,14 @@ body.mobile-blocked #app {
   pointer-events: none;
 }
 
+.square.legal.legal-drag::after {
+  background: rgba(82, 126, 210, 0.28);
+}
+
+.square.legal.legal-tap::after {
+  background: rgba(82, 126, 210, 0.64);
+}
+
 .square.drag-hover::after {
   content: "";
   position: absolute;

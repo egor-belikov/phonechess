@@ -225,3 +225,28 @@ From repo root:
 - Safety invariants preserved:
   - Elo update logic and game result processing are unchanged;
   - anonymous flow, login flow, and private invite flow are unchanged.
+
+## Latest UX Hotfix Details (2026-03-27: Stable Tap-Select on Mobile)
+
+- Scope:
+  - fix touch input UX in Telegram mobile webview: stable one-tap piece selection with legal target markers, while preserving drag move input.
+- Files changed:
+  - `frontend/app.js`
+  - `frontend/styles/main.css`
+  - `PROJECT_PLAN.md`
+  - `AGENTS.md`
+- Behavior changes:
+  - one-tap on own piece now pins selection (does not instantly clear), shows legal target dots, and allows:
+    - tap on target square to move;
+    - tap same selected piece to cancel selection;
+    - tap elsewhere to clear or reselect according to existing click logic.
+  - drag input is kept as-is for desktop and touch drag on mobile.
+  - legal-target dots now have two visual modes:
+    - `drag`: more transparent marker;
+    - `tap`: brighter marker.
+  - selection state management was centralized (`clearSelection` / `selectSquare`) to prevent touch flicker/race.
+  - `PROJECT_PLAN.md` roadmap section synced to current implementation state.
+- Safety invariants preserved:
+  - move legality validation and promotion flow are unchanged;
+  - premove semantics are unchanged;
+  - private invite/game lifecycle is unchanged.
