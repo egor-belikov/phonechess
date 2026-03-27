@@ -101,6 +101,10 @@ def _upsert_user(user_id: str, telegram_id: int, username: str, has_started_bot:
         else:
             user.telegram_id = telegram_id
             user.username = username or user.username or ""
+            if user.blitz_rating is None or int(user.blitz_rating) <= 0:
+                user.blitz_rating = 1500
+            if user.rapid_rating is None or int(user.rapid_rating) <= 0:
+                user.rapid_rating = 1500
             if has_started_bot is not None:
                 user.has_started_bot = has_started_bot
             user.updated_at = now

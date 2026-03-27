@@ -49,6 +49,9 @@ def _ensure_schema_updates() -> None:
             if _column_exists(table, col):
                 continue
             conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"))
+        # Backfill safety: keep initial ratings consistent for legacy rows.
+        conn.execute(text("UPDATE users SET blitz_rating = 1500 WHERE blitz_rating IS NULL OR blitz_rating <= 0"))
+        conn.execute(text("UPDATE users SET rapid_rating = 1500 WHERE rapid_rating IS NULL OR rapid_rating <= 0"))
         try:
             conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_login_name ON users (login_name)"))
         except Exception:

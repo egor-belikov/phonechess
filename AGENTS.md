@@ -207,3 +207,21 @@ From repo root:
 - Safety invariants preserved:
   - anonymous users can still play and create private invites;
   - existing real-time game flow and private invite waiting-room lifecycle remain intact.
+
+## Latest Hotfix Details (2026-03-27: Initial Ratings = 1500)
+
+- Scope:
+  - enforce stable initial ratings (`1500`) for both blitz and rapid across new and legacy users.
+- Files changed:
+  - `backend/app/main.py`
+  - `backend/app/pairing.py`
+  - `AGENTS.md`
+- Behavior changes:
+  - startup schema safety routine now backfills legacy/invalid rating values to `1500`:
+    - `blitz_rating IS NULL OR blitz_rating <= 0 -> 1500`
+    - `rapid_rating IS NULL OR rapid_rating <= 0 -> 1500`
+  - user upsert path now self-heals bad rating values for existing users on activity:
+    - if blitz/rapid rating is `NULL` or `<= 0`, value is reset to `1500`.
+- Safety invariants preserved:
+  - Elo update logic and game result processing are unchanged;
+  - anonymous flow, login flow, and private invite flow are unchanged.
