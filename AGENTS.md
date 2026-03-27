@@ -385,3 +385,15 @@ From repo root:
 - Bug: after each human move, `make_move` called `_maybe_start_disconnect_task(g, turn_user_id(g))`. On the bot’s turn that user id is `bot_user_id`; the bot never has a WebSocket, so `manager.has_user` was false and a 10s grace timer started — the bot was forfeited as if offline (`disconnect_turn_timeout`).
 - Fix: in `backend/app/ws_handlers.py`, skip starting (and completing) disconnect-forfeit logic when the “disconnected” participant is `g.bot_user_id` in a bot game.
 - Human disconnect handling during bot games is unchanged (only the real human id is timed).
+
+## Production deploy (2026-03-27): build-meta + cache-bust stamp
+
+- **Commit (subject):** `deploy: stamp build-meta, cache-bust assets, document release (2026-03-27)`.
+- **Commit body:**
+  - Build: `scripts/update_build_meta.py` output — `version` short hash, `deployed_at` UTC, `asset_tag`; `index.html` `?v=` for `app.js` / `main.css` and `#build-info`.
+  - `AGENTS.md`: this production deploy section (repo short hash is **not** embedded here; use `git log -1 --oneline` on `main` to avoid amend/hash drift).
+  - No application logic changes. Lineage: replay modal UX `9c17e54`, AGENTS note `254aef6`.
+- **Files changed:** `frontend/build-meta.json`, `frontend/index.html`, `AGENTS.md`.
+- **`build-meta.json` `version` field:** `254aef6` — short hash of `HEAD` **at the time** `update_build_meta.py` was run (before this deploy commit); `deployed_at` / `asset_tag` stamp the release bundle.
+- **Behavior:** no application logic changes; clients get fresh `deployed_at`, `asset_tag`, and cache-busted static URLs.
+- **Ops:** after `docker compose up -d`, `/health` may briefly fail (connection reset); retry after a few seconds per existing deploy notes.
