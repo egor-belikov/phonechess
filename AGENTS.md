@@ -56,6 +56,18 @@ This file is the operational guide for AI agents working in `phonechess`.
   - for both regular moves and premoves, promotion no longer auto-queens immediately;
   - when a pawn reaches last rank, a semi-transparent board-overlay picker with figure cells (`Q/R/B/N`) appears and requires an extra tap;
   - tapping outside picker cancels promotion choice without sending/queuing a move.
+- Game-end UX:
+  - end-of-game modal with reason text and `Вернуться в лобби` action.
+  - opponent disconnect banner with reconnect grace-period notice.
+- Draw handling (tournament-oriented):
+  - draw offer button appears from move 15 onward;
+  - offer frequency limit: not more than once per 5 moves per player;
+  - offer cannot be cancelled by the offering side; opponent move counts as rejection;
+  - opponent can accept by pressing the same `Ничья?` control.
+- Draw claims and automatic draw rules:
+  - player claim routes: threefold repetition and 50-move rule;
+  - automatic draw routes: fivefold repetition and 75-move rule;
+  - stalemate and insufficient-material draws include explicit reason codes/details.
 - Build info badge at bottom: `version + deployed_at`.
 - Pairing safety:
   - duplicate queue entries for same `user_id` are ignored;
@@ -151,14 +163,20 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - frontend premove logic refinement for queued-position previews plus explicit pawn-promotion selection UX.
+  - endgame and draw-rule UX/protocol upgrade across backend + frontend.
 - Files changed:
+  - `backend/app/pairing.py`
+  - `backend/app/ws_handlers.py`
   - `frontend/app.js`
+  - `frontend/index.html`
   - `frontend/styles/main.css`
+  - `AGENTS.md`
 - Behavior changes:
-  - preview FEN for premove chains now advances by pseudo-legal moves, so chained premove piece positions remain visible/selectable even when current legal chess.js moves are unavailable;
-  - duplicate/legacy helper paths were removed to keep a single source of truth for premove target generation;
-  - promotion picker layout is compact single-column and uses side-aware piece order (`Q,R,B,N` for white; mirrored for black).
+  - WS payloads now include structured game-end reason fields (`result_reason`, `result_detail`) and draw-offer metadata;
+  - draw-offer workflow implemented with product constraints (>= move 15, cooldown 5 moves, no withdraw, opponent move = reject);
+  - draw-claim workflow added for threefold/50-move claims, plus automatic 5-fold/75-move draws;
+  - disconnect grace handling added: notify opponent, allow reconnect window, then forfeit disconnected player;
+  - frontend now shows endgame modal + lobby return button, draw controls, claim button visibility by rule checks, and disconnect alert banner.
 - Safety invariants preserved:
   - backend remains the source of truth for move legality;
   - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.

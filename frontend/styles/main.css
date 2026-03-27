@@ -206,6 +206,34 @@ body.mobile-blocked #app {
   margin: 0 auto;
 }
 
+.game-alert {
+  display: none;
+  margin: 0 auto 8px;
+  max-width: 480px;
+  font-size: 0.78rem;
+  border-radius: 8px;
+  padding: 6px 8px;
+  border: 1px solid #3a3935;
+  background: #262522;
+  color: #cfcfcb;
+}
+
+.game-alert.active {
+  display: block;
+}
+
+.game-alert.warning {
+  border-color: #a1733e;
+  background: #3a2c1f;
+  color: #ffd9a9;
+}
+
+.game-alert.info {
+  border-color: #4b6aa0;
+  background: #273247;
+  color: #d8e6ff;
+}
+
 .player-row {
   display: flex;
   align-items: center;
@@ -482,6 +510,8 @@ body.mobile-blocked #app {
 }
 
 .btn-flip,
+.btn-draw,
+.btn-draw-claim,
 .btn-resign {
   flex: 1;
   min-height: 40px;
@@ -495,14 +525,69 @@ body.mobile-blocked #app {
 }
 
 .btn-flip:active,
+.btn-draw:active,
+.btn-draw-claim:active,
 .btn-resign:active {
   background: #373632;
+}
+
+.btn-draw.draw-pending {
+  background: #2f3d55;
+  border-color: #5878ad;
+  color: #d6e5ff;
 }
 
 .btn-resign.resign-confirm {
   background: #583332;
   border-color: #c55;
   color: #ff9999;
+}
+
+.result-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(12, 12, 11, 0.64);
+  padding: 16px;
+}
+
+.result-modal.active {
+  display: flex;
+}
+
+.result-modal-card {
+  width: min(360px, 100%);
+  border-radius: 12px;
+  border: 1px solid #3a3935;
+  background: #1f1e1b;
+  padding: 14px 12px;
+}
+
+.result-modal-title {
+  font-size: 1rem;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.result-modal-text {
+  font-size: 0.86rem;
+  color: #c9c8c5;
+  margin-bottom: 12px;
+  line-height: 1.35;
+}
+
+.btn-result-lobby {
+  width: 100%;
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid #507f4a;
+  background: #2e4a2b;
+  color: #e7f6e2;
+  font-size: 0.9rem;
 }
 
 @media (min-width: 520px) {

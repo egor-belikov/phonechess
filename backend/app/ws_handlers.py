@@ -4,6 +4,7 @@
 """
 import json
 import logging
+import asyncio
 from typing import Any
 
 from fastapi import WebSocket
@@ -21,10 +22,17 @@ from .pairing import (
     leave_all_queues,
     leave_queue,
     resign_game,
+    offer_draw,
+    accept_draw_offer,
+    claim_draw,
+    get_active_game_for_user,
+    forfeit_disconnected_player,
 )
 from .ws_manager import manager
 
 logger = logging.getLogger(__name__)
+DISCONNECT_GRACE_SECONDS = 45
+_disconnect_tasks: dict[str, asyncio.Task] = {}
 
 
 def _user_id(telegram_id: int) -> str:
@@ -109,6 +117,10 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                     "san": update["san"],
                     "move_time_ms": update["move_time_ms"],
                     "result": update["result"],
+                    "result_reason": update.get("result_reason"),
+                    "result_detail": update.get("result_detail"),
+                    "draw_offer_by": update.get("draw_offer_by"),
+                    "draw_offer_color": update.get("draw_offer_color"),
                     "from": update.get("from"),
                     "to": update.get("to"),
                 }
@@ -127,11 +139,104 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                     "white_remaining_ms": update["white_remaining_ms"],
                     "black_remaining_ms": update["black_remaining_ms"],
                     "result": update["result"],
+                    "result_reason": update.get("result_reason"),
+                    "result_detail": update.get("result_detail"),
+                    "draw_offer_by": update.get("draw_offer_by"),
+                    "draw_offer_color": update.get("draw_offer_color"),
+                }
+                await manager.send_to_user(g.white_id, payload)
+                await manager.send_to_user(g.black_id, payload)
+        return True
+    if t == "offer_draw":
+        game_id = data.get("game_id")
+        g = get_game_for_user(game_id, user_id) if game_id else None
+        if g:
+            offer = offer_draw(game_id, user_id)
+            if offer:
+                payload = {
+                    "type": "draw_offer_state",
+                    "game_id": game_id,
+                    "draw_offer_by": offer["draw_offer_by"],
+                    "draw_offer_ply": offer["draw_offer_ply"],
+                    "draw_offer_color": offer.get("draw_offer_color"),
+                }
+                await manager.send_to_user(g.white_id, payload)
+                await manager.send_to_user(g.black_id, payload)
+        return True
+    if t == "respond_draw":
+        game_id = data.get("game_id")
+        action = data.get("action")
+        g = get_game_for_user(game_id, user_id) if game_id else None
+        if not g:
+            return True
+        if action == "accept":
+            update = accept_draw_offer(game_id, user_id)
+            if update:
+                payload = {
+                    "type": "game_update",
+                    "fen": update["fen"],
+                    "white_remaining_ms": update["white_remaining_ms"],
+                    "black_remaining_ms": update["black_remaining_ms"],
+                    "result": update["result"],
+                    "result_reason": update.get("result_reason"),
+                    "result_detail": update.get("result_detail"),
+                    "draw_offer_by": update.get("draw_offer_by"),
+                    "draw_offer_color": update.get("draw_offer_color"),
+                }
+                await manager.send_to_user(g.white_id, payload)
+                await manager.send_to_user(g.black_id, payload)
+        return True
+    if t == "claim_draw":
+        game_id = data.get("game_id")
+        claim_type = data.get("claim_type")
+        g = get_game_for_user(game_id, user_id) if game_id else None
+        if g and claim_type in ("threefold", "fifty_move"):
+            update = claim_draw(game_id, user_id, claim_type)
+            if update:
+                payload = {
+                    "type": "game_update",
+                    "fen": update["fen"],
+                    "white_remaining_ms": update["white_remaining_ms"],
+                    "black_remaining_ms": update["black_remaining_ms"],
+                    "result": update["result"],
+                    "result_reason": update.get("result_reason"),
+                    "result_detail": update.get("result_detail"),
+                    "draw_offer_by": update.get("draw_offer_by"),
+                    "draw_offer_color": update.get("draw_offer_color"),
                 }
                 await manager.send_to_user(g.white_id, payload)
                 await manager.send_to_user(g.black_id, payload)
         return True
     return True
+
+
+async def _schedule_disconnect_forfeit(game_id: str, disconnected_user_id: str) -> None:
+    try:
+        await asyncio.sleep(DISCONNECT_GRACE_SECONDS)
+        g = get_game_for_user(game_id, disconnected_user_id)
+        if not g or g.result is not None:
+            return
+        # User returned in time.
+        if manager._by_user.get(disconnected_user_id):
+            return
+        update = forfeit_disconnected_player(game_id, disconnected_user_id)
+        if not update:
+            return
+        payload = {
+            "type": "game_update",
+            "fen": update["fen"],
+            "white_remaining_ms": update["white_remaining_ms"],
+            "black_remaining_ms": update["black_remaining_ms"],
+            "result": update["result"],
+            "result_reason": update.get("result_reason"),
+            "result_detail": update.get("result_detail"),
+            "draw_offer_by": update.get("draw_offer_by"),
+            "draw_offer_color": update.get("draw_offer_color"),
+        }
+        await manager.send_to_user(g.white_id, payload)
+        await manager.send_to_user(g.black_id, payload)
+    finally:
+        _disconnect_tasks.pop(disconnected_user_id, None)
 
 
 async def ws_auth_and_loop(ws: WebSocket) -> None:
@@ -166,6 +271,22 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
         user_id = _user_id(telegram_id)
         username = user.get("username") or user.get("first_name") or ""
         await manager.connect(ws, user_id, telegram_id, username)
+        # Reconnect inside active game: cancel forfeit timer and notify opponent.
+        active = get_active_game_for_user(user_id)
+        task = _disconnect_tasks.pop(user_id, None)
+        if task:
+            task.cancel()
+        if active and active.result is None:
+            opp_id = active.black_id if active.white_id == user_id else active.white_id
+            await manager.send_to_user(
+                opp_id,
+                {
+                    "type": "opponent_connection",
+                    "game_id": active.id,
+                    "status": "reconnected",
+                    "user_id": user_id,
+                },
+            )
         logger.info("WS: auth ok user_id=%s username=%s", user_id, username)
         await manager.send_to_user(
             user_id,
@@ -182,6 +303,29 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
         logger.exception("WS: error user_id=%s: %s", user_id, e)
     finally:
         if user_id:
+            active_conn = manager._by_user.get(user_id)
+            if active_conn is not None and active_conn.ws is not ws:
+                logger.info("WS: skip stale finalizer user_id=%s", user_id)
+                return
+            active = get_active_game_for_user(user_id)
+            if active and active.result is None:
+                opp_id = active.black_id if active.white_id == user_id else active.white_id
+                await manager.send_to_user(
+                    opp_id,
+                    {
+                        "type": "opponent_connection",
+                        "game_id": active.id,
+                        "status": "disconnected",
+                        "user_id": user_id,
+                        "grace_seconds": DISCONNECT_GRACE_SECONDS,
+                    },
+                )
+                old_task = _disconnect_tasks.get(user_id)
+                if old_task:
+                    old_task.cancel()
+                _disconnect_tasks[user_id] = asyncio.create_task(
+                    _schedule_disconnect_forfeit(active.id, user_id)
+                )
             leave_all_queues(user_id)
             manager.disconnect(user_id, ws)
             await manager.broadcast_queue_counts()

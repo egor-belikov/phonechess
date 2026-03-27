@@ -44,6 +44,12 @@ class Game:
     black_remaining_ms: int = 0
     last_clock_at: float = 0.0  # unix timestamp когда часы последний раз обновлялись
     result: str | None = None  # None | "1-0" | "0-1" | "1/2-1/2"
+    result_reason: str | None = None
+    result_detail: str | None = None
+    draw_offer_by: str | None = None
+    draw_offer_ply: int | None = None
+    white_last_draw_offer_ply: int | None = None
+    black_last_draw_offer_ply: int | None = None
 
     @property
     def time_control(self) -> TimeControl:
@@ -158,7 +164,21 @@ def game_state_payload(g: Game) -> dict:
         "black_remaining_ms": g.black_remaining_ms,
         "moves": [{"san": m.san, "time_ms": m.time_ms} for m in g.moves],
         "result": g.result,
+        "result_reason": g.result_reason,
+        "result_detail": g.result_detail,
+        "draw_offer_by": g.draw_offer_by,
+        "draw_offer_color": _draw_offer_color(g),
     }
+
+
+def _draw_offer_color(g: Game) -> str | None:
+    if not g.draw_offer_by:
+        return None
+    if g.draw_offer_by == g.white_id:
+        return "white"
+    if g.draw_offer_by == g.black_id:
+        return "black"
+    return None
 
 
 def get_game_for_user(game_id: str, user_id: str) -> Game | None:
@@ -175,11 +195,176 @@ def resign_game(game_id: str, user_id: str) -> dict | None:
     if not g or g.result is not None:
         return None
     g.result = "0-1" if user_id == g.white_id else "1-0"
+    g.result_reason = "resign"
+    g.result_detail = None
+    g.draw_offer_by = None
     return {
         "fen": g.fen,
         "white_remaining_ms": g.white_remaining_ms,
         "black_remaining_ms": g.black_remaining_ms,
         "result": g.result,
+        "result_reason": g.result_reason,
+        "result_detail": g.result_detail,
+        "draw_offer_by": g.draw_offer_by,
+    }
+
+
+def _insufficient_material_detail(board: Board) -> str:
+    pieces = board.piece_map().values()
+    white = [p for p in pieces if p.color == chess.WHITE and p.piece_type != chess.KING]
+    black = [p for p in pieces if p.color == chess.BLACK and p.piece_type != chess.KING]
+
+    def label(side: list[chess.Piece]) -> str:
+        if not side:
+            return "король"
+        t = sorted(p.piece_type for p in side)
+        if t == [chess.BISHOP]:
+            return "король и слон"
+        if t == [chess.KNIGHT]:
+            return "король и конь"
+        return "король и фигуры"
+
+    return f"Недостаточно материала: {label(white)} против {label(black)}."
+
+
+def _apply_result(g: Game, board: Board) -> None:
+    if board.is_checkmate():
+        g.result = "1-0" if board.turn == chess.BLACK else "0-1"
+        g.result_reason = "checkmate"
+        g.result_detail = None
+    elif board.is_stalemate():
+        g.result = "1/2-1/2"
+        g.result_reason = "stalemate"
+        g.result_detail = "Пат."
+    elif board.is_insufficient_material():
+        g.result = "1/2-1/2"
+        g.result_reason = "insufficient_material"
+        g.result_detail = _insufficient_material_detail(board)
+    elif board.is_fivefold_repetition():
+        g.result = "1/2-1/2"
+        g.result_reason = "draw_auto_fivefold"
+        g.result_detail = "Ничья автоматически: пятикратное повторение позиции."
+    elif board.is_seventyfive_moves():
+        g.result = "1/2-1/2"
+        g.result_reason = "draw_auto_75move"
+        g.result_detail = "Ничья автоматически: 75 ходов без взятия и хода пешкой."
+    elif g.white_remaining_ms <= 0 or g.black_remaining_ms <= 0:
+        g.result = "0-1" if g.white_remaining_ms <= 0 else "1-0"
+        g.result_reason = "timeout"
+        g.result_detail = None
+
+
+def get_active_game_for_user(user_id: str) -> Game | None:
+    for g in _games.values():
+        if g.result is not None:
+            continue
+        if g.white_id == user_id or g.black_id == user_id:
+            return g
+    return None
+
+
+def offer_draw(game_id: str, user_id: str) -> dict | None:
+    g = get_game_for_user(game_id, user_id)
+    if not g or g.result is not None:
+        return None
+    if g.draw_offer_by is not None:
+        return None
+    ply = len(g.moves)
+    # Product policy: no draw offers before move 15 and not more than once per 5 moves.
+    if ply < 30:
+        return None
+    if user_id == g.white_id:
+        last = g.white_last_draw_offer_ply
+    else:
+        last = g.black_last_draw_offer_ply
+    if last is not None and ply - last < 10:
+        return None
+    g.draw_offer_by = user_id
+    g.draw_offer_ply = ply
+    if user_id == g.white_id:
+        g.white_last_draw_offer_ply = ply
+    else:
+        g.black_last_draw_offer_ply = ply
+    return {
+        "draw_offer_by": g.draw_offer_by,
+        "draw_offer_ply": g.draw_offer_ply,
+        "draw_offer_color": _draw_offer_color(g),
+    }
+
+
+def accept_draw_offer(game_id: str, user_id: str) -> dict | None:
+    g = get_game_for_user(game_id, user_id)
+    if not g or g.result is not None or not g.draw_offer_by:
+        return None
+    if g.draw_offer_by == user_id:
+        return None
+    g.result = "1/2-1/2"
+    g.result_reason = "draw_agreement"
+    g.result_detail = "Ничья по соглашению сторон."
+    g.draw_offer_by = None
+    g.draw_offer_ply = None
+    return {
+        "fen": g.fen,
+        "white_remaining_ms": g.white_remaining_ms,
+        "black_remaining_ms": g.black_remaining_ms,
+        "result": g.result,
+        "result_reason": g.result_reason,
+        "result_detail": g.result_detail,
+        "draw_offer_by": g.draw_offer_by,
+        "draw_offer_color": _draw_offer_color(g),
+    }
+
+
+def claim_draw(game_id: str, user_id: str, claim_type: str) -> dict | None:
+    g = get_game_for_user(game_id, user_id)
+    if not g or g.result is not None:
+        return None
+    board = Board(g.fen)
+    is_white_turn = board.turn == chess.WHITE
+    if (is_white_turn and user_id != g.white_id) or ((not is_white_turn) and user_id != g.black_id):
+        return None
+    if claim_type == "threefold" and board.can_claim_threefold_repetition():
+        g.result = "1/2-1/2"
+        g.result_reason = "draw_claim_threefold"
+        g.result_detail = "Ничья по заявке: троекратное повторение позиции."
+    elif claim_type == "fifty_move" and board.can_claim_fifty_moves():
+        g.result = "1/2-1/2"
+        g.result_reason = "draw_claim_fifty_move"
+        g.result_detail = "Ничья по заявке: 50 ходов без взятия и хода пешкой."
+    else:
+        return None
+    g.draw_offer_by = None
+    g.draw_offer_ply = None
+    return {
+        "fen": g.fen,
+        "white_remaining_ms": g.white_remaining_ms,
+        "black_remaining_ms": g.black_remaining_ms,
+        "result": g.result,
+        "result_reason": g.result_reason,
+        "result_detail": g.result_detail,
+        "draw_offer_by": g.draw_offer_by,
+        "draw_offer_color": _draw_offer_color(g),
+    }
+
+
+def forfeit_disconnected_player(game_id: str, disconnected_user_id: str) -> dict | None:
+    g = get_game_for_user(game_id, disconnected_user_id)
+    if not g or g.result is not None:
+        return None
+    g.result = "0-1" if disconnected_user_id == g.white_id else "1-0"
+    g.result_reason = "disconnect_forfeit"
+    g.result_detail = "Соперник отключился и не вернулся вовремя."
+    g.draw_offer_by = None
+    g.draw_offer_ply = None
+    return {
+        "fen": g.fen,
+        "white_remaining_ms": g.white_remaining_ms,
+        "black_remaining_ms": g.black_remaining_ms,
+        "result": g.result,
+        "result_reason": g.result_reason,
+        "result_detail": g.result_detail,
+        "draw_offer_by": g.draw_offer_by,
+        "draw_offer_color": _draw_offer_color(g),
     }
 
 
@@ -207,6 +392,10 @@ def apply_move(
         return None
     if move not in board.legal_moves:
         return None
+    # Opponent move declines pending draw offer.
+    if g.draw_offer_by and g.draw_offer_by != user_id:
+        g.draw_offer_by = None
+        g.draw_offer_ply = None
     now = time.monotonic()
     elapsed_ms = 0 if is_premove else int((now - g.last_clock_at) * 1000)
     tc = g.time_control
@@ -224,12 +413,7 @@ def apply_move(
     board.push(move)
     g.fen = board.fen()
     g.moves.append(MoveRecord(san=san, time_ms=move_time_ms))
-    if board.is_checkmate():
-        g.result = "1-0" if board.turn == chess.BLACK else "0-1"
-    elif board.is_stalemate() or board.is_insufficient_material() or board.can_claim_fifty_moves() or board.can_claim_threefold_repetition():
-        g.result = "1/2-1/2"
-    elif g.white_remaining_ms <= 0 or g.black_remaining_ms <= 0:
-        g.result = "0-1" if g.white_remaining_ms <= 0 else "1-0"
+    _apply_result(g, board)
     uci = move.uci()
     return {
         "fen": g.fen,
@@ -238,6 +422,10 @@ def apply_move(
         "san": san,
         "move_time_ms": move_time_ms,
         "result": g.result,
+        "result_reason": g.result_reason,
+        "result_detail": g.result_detail,
+        "draw_offer_by": g.draw_offer_by,
+        "draw_offer_color": _draw_offer_color(g),
         "from": uci[:2],
         "to": uci[2:4],
     }

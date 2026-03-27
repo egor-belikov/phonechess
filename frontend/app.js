@@ -82,6 +82,13 @@
   let touchDragTargetSquare = null;
   let touchDragMoved = false;
   let pendingPromotionChoice = null;
+  let resultReason = null;
+  let resultDetail = null;
+  let drawOfferBy = null;
+  let drawOfferColor = null;
+  let drawOfferPly = null;
+  let opponentDisconnected = false;
+  let opponentDisconnectGraceSeconds = 0;
 
   const $ = (id) => document.getElementById(id);
   const lobbyButtons = $('lobby-buttons');
@@ -99,9 +106,15 @@
   const moveListEl = $('move-list');
   const btnResign = $('btn-resign');
   const btnFlipBoard = $('btn-flip-board');
+  const btnDraw = $('btn-draw');
+  const btnClaimDraw = $('btn-claim-draw');
   const buildInfoEl = $('build-info');
   const promotionPickerEl = $('promotion-picker');
   const promotionChoicesEl = $('promotion-choices');
+  const gameAlertEl = $('game-alert');
+  const resultModalEl = $('result-modal');
+  const resultModalTextEl = $('result-modal-text');
+  const btnResultLobby = $('btn-result-lobby');
 
   async function loadBuildInfo() {
     if (!buildInfoEl) return;
@@ -201,6 +214,152 @@
       clockBottom.classList.toggle('low-time', bottomMs < 20000 && bottomMs > 0);
       clockBottom.classList.toggle('our-turn', bottomIsActive && ourTurn && !gameResult);
     }
+  }
+
+  function hideResultModal() {
+    if (!resultModalEl) return;
+    resultModalEl.classList.remove('active');
+    resultModalEl.setAttribute('aria-hidden', 'true');
+  }
+
+  function goToLobbyFromGame() {
+    if (clockInterval) clearInterval(clockInterval);
+    clockInterval = null;
+    currentGameId = null;
+    drawOfferBy = null;
+    drawOfferColor = null;
+    drawOfferPly = null;
+    opponentDisconnected = false;
+    opponentDisconnectGraceSeconds = 0;
+    hideResultModal();
+    showScreen('lobby-screen');
+  }
+
+  function resultReasonText() {
+    if (resultDetail) return resultDetail;
+    switch (resultReason) {
+      case 'checkmate': return 'Мат.';
+      case 'timeout': return 'Время вышло.';
+      case 'stalemate': return 'Пат.';
+      case 'insufficient_material': return 'Ничья из-за недостаточности материала.';
+      case 'draw_agreement': return 'Ничья по соглашению.';
+      case 'draw_claim_threefold': return 'Ничья по заявке: троекратное повторение.';
+      case 'draw_claim_fifty_move': return 'Ничья по заявке: 50 ходов.';
+      case 'draw_auto_fivefold': return 'Ничья автоматически: 5 повторений.';
+      case 'draw_auto_75move': return 'Ничья автоматически: 75 ходов.';
+      case 'disconnect_forfeit': return 'Соперник отключился и не вернулся.';
+      case 'resign': return 'Победа: соперник сдался.';
+      default: return '';
+    }
+  }
+
+  function showResultModal() {
+    if (!resultModalEl || !resultModalTextEl || !gameResult) return;
+    let base = gameResult === '1-0' ? 'Победа белых.' : (gameResult === '0-1' ? 'Победа чёрных.' : 'Ничья.');
+    if (myColor === 'white') {
+      if (gameResult === '1-0') base = 'Вы победили.';
+      if (gameResult === '0-1') base = 'Вы проиграли.';
+    } else if (myColor === 'black') {
+      if (gameResult === '0-1') base = 'Вы победили.';
+      if (gameResult === '1-0') base = 'Вы проиграли.';
+    }
+    const reason = resultReasonText();
+    resultModalTextEl.textContent = reason ? (base + ' ' + reason) : base;
+    resultModalEl.classList.add('active');
+    resultModalEl.setAttribute('aria-hidden', 'false');
+  }
+
+  function updateGameAlert() {
+    if (!gameAlertEl) return;
+    if (opponentDisconnected && !gameResult) {
+      gameAlertEl.textContent = 'Соперник отключился. Ждём переподключение (' + opponentDisconnectGraceSeconds + 'с)...';
+      gameAlertEl.className = 'game-alert active warning';
+      return;
+    }
+    if (drawOfferBy && currentGameId && !gameResult) {
+      if (drawOfferColor === myColor) {
+        gameAlertEl.textContent = 'Предложение ничьей отправлено и ждёт ответа.';
+      } else {
+        gameAlertEl.textContent = 'Соперник предложил ничью. Нажмите "Ничья?" для согласия.';
+      }
+      gameAlertEl.className = 'game-alert active info';
+      return;
+    }
+    gameAlertEl.textContent = '';
+    gameAlertEl.className = 'game-alert';
+  }
+
+  function updateDrawButton() {
+    if (!btnDraw) return;
+    if (!currentGameId || gameResult) {
+      btnDraw.style.display = 'none';
+      return;
+    }
+    const ourCode = myColor === 'white' ? 'white' : 'black';
+    const completedPlies = gameMoves.length;
+    const showButton = completedPlies >= 30 || (drawOfferBy && drawOfferColor !== ourCode);
+    if (!showButton) {
+      btnDraw.style.display = 'none';
+      return;
+    }
+    btnDraw.style.display = '';
+    btnDraw.disabled = false;
+    btnDraw.classList.remove('draw-pending');
+    if (drawOfferBy) {
+      if (drawOfferColor === ourCode) {
+        btnDraw.textContent = 'Ничья предложена';
+        btnDraw.disabled = true;
+        btnDraw.classList.add('draw-pending');
+      } else {
+        btnDraw.textContent = 'Ничья?';
+      }
+      return;
+    }
+    if (completedPlies < 30) {
+      btnDraw.textContent = 'Ничья?';
+      btnDraw.disabled = true;
+      return;
+    }
+    btnDraw.textContent = 'Ничья?';
+  }
+
+  function canClaimDrawByRules() {
+    if (!gameFen) return null;
+    const ourTurn = turnFromFen(gameFen) === myColor;
+    if (!ourTurn) return null;
+    let threefold = false;
+    try {
+      const c = new Chess(gameFen);
+      if (typeof c.in_threefold_repetition === 'function') {
+        threefold = !!c.in_threefold_repetition();
+      }
+    } catch (e) {}
+    const parts = gameFen.split(' ');
+    const halfMoveClock = parts.length >= 5 ? parseInt(parts[4], 10) : 0;
+    const fifty = Number.isFinite(halfMoveClock) && halfMoveClock >= 100;
+    if (threefold) return 'threefold';
+    if (fifty) return 'fifty_move';
+    return null;
+  }
+
+  function updateClaimDrawButton() {
+    if (!btnClaimDraw) return;
+    if (!currentGameId || gameResult) {
+      btnClaimDraw.style.display = 'none';
+      return;
+    }
+    const completedPlies = gameMoves.length;
+    if (completedPlies < 30) {
+      btnClaimDraw.style.display = 'none';
+      return;
+    }
+    const claimType = canClaimDrawByRules();
+    if (!claimType) {
+      btnClaimDraw.style.display = 'none';
+      return;
+    }
+    btnClaimDraw.style.display = '';
+    btnClaimDraw.textContent = claimType === 'threefold' ? 'Заявить ничью (3 повтора)' : 'Заявить ничью (50 ходов)';
   }
 
   function tickClocks() {
@@ -809,6 +968,10 @@
     blackRemainingMs = data.black_remaining_ms != null ? data.black_remaining_ms : blackRemainingMs;
     if (data.moves) gameMoves = data.moves;
     if (data.result !== undefined) gameResult = data.result;
+    if (data.result_reason !== undefined) resultReason = data.result_reason;
+    if (data.result_detail !== undefined) resultDetail = data.result_detail;
+    if (data.draw_offer_by !== undefined) drawOfferBy = data.draw_offer_by;
+    if (data.draw_offer_color !== undefined) drawOfferColor = data.draw_offer_color;
     if (data.san && data.move_time_ms !== undefined) {
       gameMoves = gameMoves.concat([{ san: data.san, time_ms: data.move_time_ms }]);
     }
@@ -818,9 +981,13 @@
     renderBoard();
     renderMoveList();
     tryExecutePremoves();
+    updateDrawButton();
+    updateClaimDrawButton();
+    updateGameAlert();
     if (gameResult && gameInfo) {
       const r = gameResult === '1-0' ? 'Белые выиграли' : gameResult === '0-1' ? 'Чёрные выиграли' : 'Ничья';
       gameInfo.textContent = gameInfo.textContent + ' — ' + r;
+      showResultModal();
     }
   }
 
@@ -838,7 +1005,15 @@
     lastMove = null;
     boardFlipped = false;
     premoveQueue = [];
+    resultReason = null;
+    resultDetail = null;
+    drawOfferBy = null;
+    drawOfferColor = null;
+    drawOfferPly = null;
+    opponentDisconnected = false;
+    opponentDisconnectGraceSeconds = 0;
     hidePromotionPicker();
+    hideResultModal();
     updateClocksDisplay();
     if (resignConfirmTimeout) clearTimeout(resignConfirmTimeout);
     resignConfirming = false;
@@ -849,6 +1024,9 @@
     startClockTicker();
     renderBoard();
     renderMoveList();
+    updateDrawButton();
+    updateClaimDrawButton();
+    updateGameAlert();
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'subscribe_game', game_id: currentGameId }));
     }
@@ -892,6 +1070,22 @@
           applyGameState(msg);
         } else if (msg.type === 'game_update') {
           applyGameState(msg);
+        } else if (msg.type === 'draw_offer_state') {
+          drawOfferBy = msg.draw_offer_by || null;
+          drawOfferColor = msg.draw_offer_color || null;
+          drawOfferPly = msg.draw_offer_ply != null ? msg.draw_offer_ply : null;
+          updateDrawButton();
+          updateClaimDrawButton();
+          updateGameAlert();
+        } else if (msg.type === 'opponent_connection') {
+          if (msg.status === 'disconnected') {
+            opponentDisconnected = true;
+            opponentDisconnectGraceSeconds = msg.grace_seconds || 0;
+          } else if (msg.status === 'reconnected') {
+            opponentDisconnected = false;
+            opponentDisconnectGraceSeconds = 0;
+          }
+          updateGameAlert();
         }
       } catch (e) {
         console.warn('ws message parse', e);
@@ -925,10 +1119,7 @@
   }
 
   btnBackGame.addEventListener('click', function () {
-    if (clockInterval) clearInterval(clockInterval);
-    clockInterval = null;
-    currentGameId = null;
-    showScreen('lobby-screen');
+    goToLobbyFromGame();
   });
   if (btnFlipBoard) {
     btnFlipBoard.addEventListener('click', function () {
@@ -956,6 +1147,33 @@
           resignConfirmTimeout = null;
         }, 3000);
       }
+    });
+  }
+  if (btnDraw) {
+    btnDraw.addEventListener('click', function () {
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      if (!currentGameId || gameResult) return;
+      const ourCode = myColor === 'white' ? 'white' : 'black';
+      if (drawOfferBy && drawOfferColor === ourCode) return;
+      if (drawOfferBy && drawOfferColor !== ourCode) {
+        ws.send(JSON.stringify({ type: 'respond_draw', game_id: currentGameId, action: 'accept' }));
+        return;
+      }
+      ws.send(JSON.stringify({ type: 'offer_draw', game_id: currentGameId }));
+    });
+  }
+  if (btnClaimDraw) {
+    btnClaimDraw.addEventListener('click', function () {
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      if (!currentGameId || gameResult) return;
+      const claimType = canClaimDrawByRules();
+      if (!claimType) return;
+      ws.send(JSON.stringify({ type: 'claim_draw', game_id: currentGameId, claim_type: claimType }));
+    });
+  }
+  if (btnResultLobby) {
+    btnResultLobby.addEventListener('click', function () {
+      goToLobbyFromGame();
     });
   }
   if (promotionPickerEl) {
