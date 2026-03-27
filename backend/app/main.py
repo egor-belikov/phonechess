@@ -4,11 +4,12 @@ PhoneChess API и WebSocket.
 import logging
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config import get_config
+from .telegram_bot import process_update
 from .ws_handlers import ws_auth_and_loop
 
 logging.basicConfig(
@@ -39,6 +40,14 @@ def health():
 async def websocket_endpoint(ws: WebSocket):
     logger.info("WS: connection attempt from %s", ws.client)
     await ws_auth_and_loop(ws)
+
+
+@app.post("/telegram/webhook")
+async def telegram_webhook(request: Request):
+    data = await request.json()
+    if isinstance(data, dict):
+        process_update(data)
+    return {"ok": True}
 
 
 # Статика фронтенда (для разработки)

@@ -26,7 +26,23 @@ export TELEGRAM_BOT_TOKEN=123456:ABC...
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+Для кнопки Web App можно (опционально) указать:
+
+```bash
+export TELEGRAM_WEBAPP_URL=https://chess.apichatpong.online/
+```
+
 Фронт отдаётся с того же порта (папка `frontend/` монтируется как статика).
+
+### Webhook для Telegram-бота
+
+В приложении есть endpoint `POST /telegram/webhook`, который обрабатывает `/start` и отправляет приветствие с кнопкой открытия Web App.
+
+Установить webhook (подставь токен и свой домен):
+
+```bash
+curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook?url=https://chess.apichatpong.online/telegram/webhook"
+```
 
 ### Деплой на сервер (Docker)
 

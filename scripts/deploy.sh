@@ -9,9 +9,6 @@ REMOTE_DIR="${DEPLOY_DIR:-/root/my_projects/phonechess}"
 BRANCH="${DEPLOY_BRANCH:-main}"
 COMMIT_MSG="${1:-Deploy: update build and release latest changes}"
 
-echo "==> Updating build metadata"
-python3 scripts/update_build_meta.py
-
 echo "==> Creating commit (if needed)"
 git add -A
 if git diff --cached --quiet; then
@@ -28,6 +25,7 @@ ssh "$REMOTE_HOST" "set -euo pipefail; \
   cd '$REMOTE_DIR'; \
   git stash push -u -m 'auto-deploy-pre-sync' >/dev/null 2>&1 || true; \
   git pull --ff-only origin '$BRANCH'; \
+  if [ -f scripts/update_build_meta.py ]; then python3 scripts/update_build_meta.py; fi; \
   docker compose build app; \
   docker compose up -d app; \
   sleep 2; \
