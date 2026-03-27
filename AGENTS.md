@@ -388,12 +388,25 @@ From repo root:
 
 ## Production deploy (2026-03-27): build-meta + cache-bust stamp
 
-- **Commit (subject):** `deploy: stamp build-meta, cache-bust assets, document release (2026-03-27)`.
+- **Deploy commit (short):** `97a594c` — subject `deploy: stamp build-meta, cache-bust assets, document release (2026-03-27)`.
 - **Commit body:**
   - Build: `scripts/update_build_meta.py` output — `version` short hash, `deployed_at` UTC, `asset_tag`; `index.html` `?v=` for `app.js` / `main.css` and `#build-info`.
-  - `AGENTS.md`: this production deploy section (repo short hash is **not** embedded here; use `git log -1 --oneline` on `main` to avoid amend/hash drift).
+  - `AGENTS.md`: this production deploy section (hash line added in follow-up doc commit to avoid self-referential amend loop).
   - No application logic changes. Lineage: replay modal UX `9c17e54`, AGENTS note `254aef6`.
 - **Files changed:** `frontend/build-meta.json`, `frontend/index.html`, `AGENTS.md`.
 - **`build-meta.json` `version` field:** `254aef6` — short hash of `HEAD` **at the time** `update_build_meta.py` was run (before this deploy commit); `deployed_at` / `asset_tag` stamp the release bundle.
 - **Behavior:** no application logic changes; clients get fresh `deployed_at`, `asset_tag`, and cache-busted static URLs.
 - **Ops:** after `docker compose up -d`, `/health` may briefly fail (connection reset); retry after a few seconds per existing deploy notes.
+
+## Production deploy (2026-03-28): origin push + VPS sync
+
+- **Problem fixed:** Commit `97a594c` (`deploy: stamp build-meta, cache-bust assets, document release (2026-03-27)`) existed only on local `main`; `git push` had not been run, so `origin/main` and the VPS checkout at `/root/my_projects/phonechess` had not received that bundle, and production Docker had not been rebuilt with it.
+- **Deploy commit (short):** `3da6820` — subject `deploy: push pending release, stamp build-meta, document VPS sync (2026-03-28)`.
+- **Commit body:**
+  - Re-run `scripts/update_build_meta.py` — `deployed_at` UTC, `asset_tag`; `index.html` `?v=` for `app.js` / `main.css` and `#build-info`.
+  - `AGENTS.md`: clarify wording in the 2026-03-27 production deploy section; add this section documenting the missing push and server reconcile.
+  - **`build-meta.json` `version` field:** `97a594c` — short hash of `HEAD` at the time `update_build_meta.py` was run locally (parent of this meta-only commit); `deployed_at` / `asset_tag` stamp the release bundle.
+  - No application logic changes.
+- **Files changed:** `frontend/build-meta.json`, `frontend/index.html`, `AGENTS.md`.
+- **Ops:** `bash scripts/deploy.sh` — `git push origin main`; SSH `egorvps`: `git pull --ff-only`, server-side `update_build_meta.py`, `docker compose build app`, `docker compose up -d app`, local `/health` and `/build-meta.json` curls.
+- **Note:** After pull on the server, `update_build_meta.py` sets `version` to the short hash of the checked-out revision (may differ from the committed `build-meta.json` in git for the meta commit); treat `https://chess.apichatpong.online/build-meta.json` as authoritative for live `version` / `deployed_at`.
