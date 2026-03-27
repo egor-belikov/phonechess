@@ -217,8 +217,12 @@
     return board;
   }
 
-  function getDisplayRankRow(displayRow, orientation) {
-    return orientation === 'black' ? displayRow : 7 - displayRow;
+  function getBoardRowByDisplayRow(displayRow, orientation) {
+    return orientation === 'black' ? 7 - displayRow : displayRow;
+  }
+
+  function getBoardColByDisplayCol(displayCol, orientation) {
+    return orientation === 'black' ? 7 - displayCol : displayCol;
   }
 
   function renderBoard() {
@@ -237,10 +241,11 @@
     boardEl.innerHTML = '';
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
-        const br = getDisplayRankRow(row, effectiveOrientation);
-        const piece = board[br] && board[br][col];
+        const br = getBoardRowByDisplayRow(row, effectiveOrientation);
+        const bc = getBoardColByDisplayCol(col, effectiveOrientation);
+        const piece = board[br] && board[br][bc];
         const isLight = (row + col) % 2 === 0;
-        const sq = FILES[col] + (8 - br);
+        const sq = FILES[bc] + (8 - br);
         const div = document.createElement('div');
         div.className = 'square ' + (isLight ? 'light' : 'dark');
         div.dataset.square = sq;
@@ -259,9 +264,19 @@
     if (isOurPiece) {
       div.draggable = true;
       div.addEventListener('dragstart', function (e) {
+        const pieceEl = div.querySelector('.piece-sprite');
         draggedSquare = sq;
         e.dataTransfer.setData('text/plain', sq);
         e.dataTransfer.effectAllowed = 'move';
+        if (pieceEl) {
+          // Drag preview should be just the piece, not the whole square.
+          e.dataTransfer.setDragImage(pieceEl, pieceEl.offsetWidth / 2, pieceEl.offsetHeight / 2);
+        }
+        div.classList.add('dragging-source');
+      });
+      div.addEventListener('dragend', function () {
+        div.classList.remove('dragging-source');
+        draggedSquare = null;
       });
     }
         div.addEventListener('dragover', function (e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });

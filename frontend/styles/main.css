@@ -267,6 +267,10 @@ body.mobile-blocked #app {
   pointer-events: none;
 }
 
+.square.dragging-source .piece-sprite {
+  opacity: 0;
+}
+
 
 .square.light {
   background: #f0d9b5;
