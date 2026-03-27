@@ -163,18 +163,14 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - multilingual i18n rollout: 100 locale files, auto-detection support expansion, and automated baseline translation fill.
+  - russian locale terminology rollback/fix after machine-translation artifacts.
 - Files changed:
-  - `frontend/app.js`
-  - `frontend/i18n/en.json`
   - `frontend/i18n/ru.json`
-  - `frontend/i18n/*.json` (100 locales total)
   - `AGENTS.md`
 - Behavior changes:
-  - language detection now supports a broad top-100 language code set from Telegram/browser locale.
-  - locale loading resolves to exact/base language and falls back safely (`en`, then `ru`) if a concrete locale file is unavailable.
-  - centralized translation dictionaries introduced for UI/system strings, including short time units (`sec_short`, `ms_short`).
-  - automated translation fill generated initial content across all locale files; top-priority locales additionally received deep-pass refresh to reduce placeholder errors and preserve key structure.
+  - corrected RU UI strings for chess/tournament UX vocabulary (`Ничья?`, `Заявить ничью`, `Сдаться`, draw-reason labels).
+  - removed awkward machine-calque wording such as `претензионный розыгрыш`, `подать в отставку`, and `рисовать`.
+  - preserved existing i18n key structure and placeholders while restoring natural Russian wording.
 - Safety invariants preserved:
   - backend remains the source of truth for move legality;
   - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.
