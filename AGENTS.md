@@ -366,6 +366,7 @@ From repo root:
 
 ## Bot game: untimed for both sides (2026-03-27)
 
+- Release commit: `cb01159`.
 - Bot games use `_side_clock_runs()` in `pairing.py`: if `g.is_bot_game`, neither white nor black clock ticks — same as “infinite” for human and bot. `create_bot_game` sets `no_clock_user_id = None` (legacy single-side no-clock field is unused for bot timing).
 - Frontend: both clocks show `∞` when `isBotGame`; client tick/lag adjustments skip decrement for bot games so the UI does not fight server semantics.
 - `start_bot_game` `matched` payload sends `no_clock_user_id: null`.
