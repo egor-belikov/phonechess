@@ -183,6 +183,6 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
     finally:
         if user_id:
             leave_all_queues(user_id)
-            manager.disconnect(user_id)
+            manager.disconnect(user_id, ws)
             await manager.broadcast_queue_counts()
             logger.info("WS: disconnected user_id=%s", user_id)

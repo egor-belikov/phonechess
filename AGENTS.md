@@ -53,6 +53,10 @@ This file is the operational guide for AI agents working in `phonechess`.
   - duplicate queue entries for same `user_id` are ignored;
   - self-match for the same `user_id` is forbidden;
   - if `matched` event cannot be delivered to both players, pairing is rolled back and both are re-queued.
+  - stale WebSocket disconnect from an old replaced connection must not evict the new active connection of the same `user_id`.
+- WS reconnect UX:
+  - server may close old duplicate connection with `4000` when a new one for same user is accepted;
+  - frontend treats `4000` as reconnect state (not a hard error banner) and retries quickly.
 
 ## Core Functional Expectations
 

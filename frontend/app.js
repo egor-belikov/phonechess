@@ -668,6 +668,14 @@
     ws.onclose = function (ev) {
       console.log('[PhoneChess] WS onclose', ev.code, ev.reason || '');
       ws = null;
+      if (ev.code === 4000) {
+        setWsStatus('Переподключение…', '');
+        if (reconnectTimer) return;
+        reconnectTimer = setInterval(function () {
+          connect();
+        }, 1000);
+        return;
+      }
       var closeMsg = 'Отключено: код ' + ev.code + (ev.reason ? ' — ' + ev.reason : '');
       setWsStatus(closeMsg, 'error');
       if (reconnectTimer) return;
