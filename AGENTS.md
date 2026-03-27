@@ -38,6 +38,7 @@ This file is the operational guide for AI agents working in `phonechess`.
   - tap-select + tap-target;
   - desktop drag-and-drop;
   - touch drag on mobile.
+  - legal-move dots are shown not only on tap/touch select, but also while holding a piece during desktop drag.
 - Premove queue (unlimited):
   - can be queued while waiting for opponent move;
   - executes only if legal in resulting position;
@@ -46,6 +47,7 @@ This file is the operational guide for AI agents working in `phonechess`.
 - Premove visualization:
   - colored markers with per-step numbering;
   - preview board position reflects chained premoves.
+  - text hint with premove queue count under bottom clock is intentionally hidden (board markers stay as the source of truth).
 - Build info badge at bottom: `version + deployed_at`.
 - Pairing safety:
   - duplicate queue entries for same `user_id` are ignored;

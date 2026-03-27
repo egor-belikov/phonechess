@@ -186,9 +186,7 @@
     if (clockTopLabel) clockTopLabel.textContent = isWhite ? 'Соперник (чёрные)' : 'Соперник (белые)';
     if (clockBottomLabel) clockBottomLabel.textContent = isWhite ? 'Вы (белые)' : 'Вы (чёрные)';
     if (gameYourSideEl) {
-      gameYourSideEl.textContent = premoveQueue.length > 0
-        ? ('Премувы: ' + premoveQueue.length + ' (показан план ходов)')
-        : '';
+      gameYourSideEl.textContent = '';
     }
     if (clockTop) {
       clockTop.textContent = formatClock(topMs);
@@ -296,6 +294,9 @@
       div.addEventListener('dragstart', function (e) {
         const pieceEl = div.querySelector('.piece-sprite');
         draggedSquare = sq;
+        selectedSquare = sq;
+        var movesFrom = legalMovesFromSquareForColor(gameFen, sq, myColor);
+        legalTargets = movesFrom ? movesFrom.map(function (m) { return m.to; }) : [];
         e.dataTransfer.setData('text/plain', sq);
         e.dataTransfer.effectAllowed = 'move';
         if (pieceEl) {
@@ -303,10 +304,14 @@
           e.dataTransfer.setDragImage(pieceEl, pieceEl.offsetWidth / 2, pieceEl.offsetHeight / 2);
         }
         div.classList.add('dragging-source');
+        applyLegalTargetsToCurrentBoard();
       });
       div.addEventListener('dragend', function () {
         div.classList.remove('dragging-source');
         draggedSquare = null;
+        selectedSquare = null;
+        legalTargets = [];
+        applyLegalTargetsToCurrentBoard();
       });
     }
         div.addEventListener('dragover', function (e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
@@ -447,6 +452,16 @@
     } catch (e) {
       return [];
     }
+  }
+
+  function applyLegalTargetsToCurrentBoard() {
+    if (!boardEl) return;
+    const targets = legalTargets || [];
+    boardEl.querySelectorAll('.square').forEach(function (cell) {
+      const sq = cell.dataset.square;
+      if (!sq) return;
+      cell.classList.toggle('legal', targets.indexOf(sq) !== -1);
+    });
   }
 
   function clearPremoves() {
