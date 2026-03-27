@@ -163,14 +163,17 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - private invite share-message cleanup: remove duplicate link rendering in Telegram forward flow.
+  - private invite step-1 overhaul: bot-mediated invite handoff (`/start private_<key>` -> bot message with `Начать игру` button).
 - Files changed:
-  - `frontend/app.js`
+  - `backend/app/pairing.py`
+  - `backend/app/telegram_bot.py`
+  - `backend/app/ws_handlers.py`
   - `AGENTS.md`
 - Behavior changes:
-  - private invite share text no longer injects the deep link into `text` when building `https://t.me/share/url`;
-  - invite link is now provided exactly once via `url` query param, eliminating "link + text + same link" duplication in Telegram message composer;
-  - share text is normalized after empty link placeholder removal to avoid extra spaces/punctuation artifacts.
+  - generated private invite link now points to bot launch URL (`https://t.me/<bot>?start=private_<key>`) instead of direct `startapp` link;
+  - bot now parses `/start private_<key>` payload and sends a dedicated message with `Начать игру` WebApp button targeting `.../?startapp=private_<key>`;
+  - frontend share flow keeps sending invite link via Telegram share, but this link now consistently opens bot-first handshake;
+  - creator notification button remains a WebApp button and now targets app URL with explicit `startapp=private_<key>` parameter.
 - Safety invariants preserved:
-  - private invite key/link generation and backend invite lifecycle are unchanged;
-  - fix is frontend-only and affects message formatting, not matchmaking logic.
+  - private invite key format and backend waiting-room/match activation lifecycle are unchanged;
+  - invite consumption/validation still happens only on backend via `open_private_link`/`join_private_invite`.

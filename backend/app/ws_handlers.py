@@ -116,10 +116,13 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
         )
         tid, started = get_user_notification_target(user_id)
         if started and tid:
+            cfg = get_config()
+            sep = "&" if "?" in cfg.telegram_webapp_url else "?"
+            launch_url = f"{cfg.telegram_webapp_url}{sep}startapp=private_{created['invite_key']}"
             send_webapp_message(
                 tid,
                 f"Вы создали приватную игру ({created['time_control']}). Ссылка:\n{created['invite_link']}",
-                created["invite_link"],
+                launch_url,
             )
         return True
     if t == "open_private_link":

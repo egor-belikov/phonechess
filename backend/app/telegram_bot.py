@@ -15,6 +15,15 @@ from .pairing import mark_user_started_bot
 logger = logging.getLogger(__name__)
 
 
+def _webapp_link_for_start_param(start_param: str | None = None) -> str:
+    cfg = get_config()
+    base = (cfg.telegram_webapp_url or "").strip()
+    if not start_param:
+        return base
+    sep = "&" if "?" in base else "?"
+    return f"{base}{sep}startapp={start_param}"
+
+
 def _bot_api(method: str, payload: dict[str, Any]) -> dict[str, Any] | None:
     cfg = get_config()
     token = cfg.telegram_bot_token
@@ -39,8 +48,7 @@ def _bot_api(method: str, payload: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def send_start_message(chat_id: int) -> None:
-    cfg = get_config()
-    webapp_url = cfg.telegram_webapp_url
+    webapp_url = _webapp_link_for_start_param(None)
     text = (
         "Привет! Это PhoneChess.\n\n"
         "Нажми кнопку ниже, чтобы открыть веб-приложение и начать игру."
@@ -64,9 +72,34 @@ def send_start_message(chat_id: int) -> None:
     )
 
 
+def send_private_start_message(chat_id: int, invite_key: str) -> None:
+    start_param = f"private_{invite_key}"
+    webapp_url = _webapp_link_for_start_param(start_param)
+    text = (
+        "Вас пригласили в приватную игру PhoneChess.\n\n"
+        "Нажмите «Начать игру», чтобы открыть матч."
+    )
+    _bot_api(
+        "sendMessage",
+        {
+            "chat_id": chat_id,
+            "text": text,
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "Начать игру",
+                            "web_app": {"url": webapp_url},
+                        }
+                    ]
+                ]
+            },
+        },
+    )
+
+
 def send_webapp_message(chat_id: int, text: str, webapp_url: str | None = None) -> None:
-    cfg = get_config()
-    target = webapp_url or cfg.telegram_webapp_url
+    target = webapp_url or _webapp_link_for_start_param(None)
     _bot_api(
         "sendMessage",
         {
@@ -99,4 +132,11 @@ def process_update(update: dict[str, Any]) -> None:
         user = msg.get("from") or {}
         username = user.get("username") or user.get("first_name") or ""
         mark_user_started_bot(int(chat_id), username=username)
+        parts = text.split(maxsplit=1)
+        payload = parts[1].strip() if len(parts) > 1 else ""
+        if payload.startswith("private_"):
+            invite_key = payload[len("private_"):].strip()
+            if invite_key:
+                send_private_start_message(int(chat_id), invite_key)
+                return
         send_start_message(int(chat_id))

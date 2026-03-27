@@ -271,7 +271,7 @@ def create_private_invite(time_control_key: str, user_id: str, telegram_id: int,
     key = secrets.token_urlsafe(12).replace("-", "").replace("_", "")
     key = key[:20]
     cfg = get_config()
-    link = f"https://t.me/{cfg.bot_username}?startapp=private_{key}" if getattr(cfg, "bot_username", "") else f"{cfg.telegram_webapp_url}?startapp=private_{key}"
+    link = f"https://t.me/{cfg.bot_username}?start=private_{key}" if getattr(cfg, "bot_username", "") else f"{cfg.telegram_webapp_url}?startapp=private_{key}"
     _private_invites_mem[key] = ""
     with SessionLocal() as db:
         db.add(
