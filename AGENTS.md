@@ -342,7 +342,7 @@ From repo root:
 
 - Code release commit: `c19870d` — backend rate limit + frontend debounce for `/api/analyze`.
 - Documentation follow-up commit: `b17ffc0` — expanded release notes in this file (implementation details, ops note).
-- Production `build-meta.json` (served at `/build-meta.json`): `version` is the git short hash at deploy; `deployed_at` and `asset_tag` are stamped by `scripts/update_build_meta.py` on each VPS deploy — check the live JSON for current values (they change on every release). Commit lineage for this feature: application changes in `c19870d`; AGENTS detail commit `b17ffc0`; AGENTS production lineage note `5fb4b0b`.
+- Production `build-meta.json` (served at `/build-meta.json`): `version` is the git short hash at deploy; `deployed_at` and `asset_tag` are stamped by `scripts/update_build_meta.py` on each VPS deploy — use the live endpoint for current values (do not treat examples in this file as authoritative). Commit lineage for this feature: application changes in `c19870d`; AGENTS detail commit `b17ffc0`; AGENTS build-meta lineage documentation `5fb4b0b` and follow-up `c8eba46`.
 - Scope:
   - protect server analysis endpoint from replay-scrub bursts and abusive request rates.
 - Files changed:
