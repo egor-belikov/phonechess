@@ -45,6 +45,12 @@ class Game:
     fen: str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     moves: list[MoveRecord] = field(default_factory=list)
     is_private: bool = False
+    is_bot_game: bool = False
+    bot_user_id: str | None = None
+    human_user_id: str | None = None
+    no_clock_user_id: str | None = None
+    white_clock_started: bool = False
+    black_clock_started: bool = False
     white_remaining_ms: int = 0
     black_remaining_ms: int = 0
     last_clock_at: float = 0.0  # unix timestamp когда часы последний раз обновлялись
@@ -74,6 +80,7 @@ class Game:
 _queues: dict[str, list[QueuedPlayer]] = defaultdict(list)
 _games: dict[str, Game] = {}
 _private_invites_mem: dict[str, str] = {}
+BOT_USER_ID = "__bot_weak__"
 
 BLITZ_KEYS = {"3+0", "3+2", "5+0", "5+3"}
 RAPID_KEYS = {"10+0", "15+10"}
@@ -294,6 +301,45 @@ def _create_game(time_control_key: str, white: QueuedPlayer, black: QueuedPlayer
         black_telegram_id=black.telegram_id,
     )
     g._init_clocks()
+    g.white_clock_started = False
+    g.black_clock_started = False
+    return g
+
+
+def create_bot_game(time_control_key: str, user_id: str, telegram_id: int, username: str) -> Game | None:
+    if time_control_key not in TIME_CONTROL_KEYS:
+        return None
+    _upsert_user(user_id, telegram_id, username)
+    human = QueuedPlayer(user_id=user_id, telegram_id=telegram_id, username=username or f"user_{user_id[:8]}")
+    bot = QueuedPlayer(user_id=BOT_USER_ID, telegram_id=0, username="Weak Bot")
+    if random.random() < 0.5:
+        g = _create_game(time_control_key, human, bot)
+        g.human_user_id = human.user_id
+        g.bot_user_id = bot.user_id
+    else:
+        g = _create_game(time_control_key, bot, human)
+        g.human_user_id = human.user_id
+        g.bot_user_id = bot.user_id
+    g.is_bot_game = True
+    g.no_clock_user_id = g.human_user_id
+    _games[g.id] = g
+    return g
+
+
+def get_game_any(game_id: str) -> Game | None:
+    return _games.get(game_id)
+
+
+def create_private_rematch(game_id: str) -> Game | None:
+    prev = _games.get(game_id)
+    if not prev:
+        return None
+    white = QueuedPlayer(prev.black_id, prev.black_telegram_id, prev.black_username)
+    black = QueuedPlayer(prev.white_id, prev.white_telegram_id, prev.white_username)
+    g = _create_game(prev.time_control_key, white, black)
+    g.is_private = True
+    _games[g.id] = g
+    _persist_game_created(g)
     return g
 
 
@@ -414,6 +460,7 @@ def activate_private_invite(invite_key: str) -> dict | None:
             username=guest_username or f"user_{inv.invited_user_id[:8]}",
         )
         game = _create_game(inv.time_control_key, owner, opener)
+        game.is_private = True
         _games[game.id] = game
         _persist_game_created(game)
         inv.status = "active"
@@ -510,6 +557,8 @@ def game_state_payload(g: Game) -> dict:
         "draw_offer_by": g.draw_offer_by,
         "draw_offer_color": _draw_offer_color(g),
         "server_time_ms": int(time.time() * 1000),
+        "is_bot_game": bool(g.is_bot_game),
+        "no_clock_user_id": g.no_clock_user_id,
     }
 
 
@@ -601,7 +650,10 @@ def _apply_result(g: Game, board: Board) -> None:
         g.result = "1/2-1/2"
         g.result_reason = "draw_auto_75move"
         g.result_detail = "Ничья автоматически: 75 ходов без взятия и хода пешкой."
-    elif g.white_remaining_ms <= 0 or g.black_remaining_ms <= 0:
+    elif (
+        (g.white_id != g.no_clock_user_id and g.white_remaining_ms <= 0)
+        or (g.black_id != g.no_clock_user_id and g.black_remaining_ms <= 0)
+    ):
         g.result = "0-1" if g.white_remaining_ms <= 0 else "1-0"
         g.result_reason = "timeout"
         g.result_detail = None
@@ -616,9 +668,11 @@ def _live_remaining_ms(g: Game) -> tuple[int, int]:
     elapsed = int(max(0.0, now - g.last_clock_at) * 1000)
     board = Board(g.fen)
     if board.turn == chess.WHITE:
-        white = max(0, white - elapsed)
+        if g.white_clock_started and g.white_id != g.no_clock_user_id:
+            white = max(0, white - elapsed)
     else:
-        black = max(0, black - elapsed)
+        if g.black_clock_started and g.black_id != g.no_clock_user_id:
+            black = max(0, black - elapsed)
     return white, black
 
 
@@ -632,7 +686,7 @@ def materialize_live_clocks(g: Game) -> None:
     g.white_remaining_ms = white
     g.black_remaining_ms = black
     g.last_clock_at = time.monotonic()
-    if white <= 0 or black <= 0:
+    if ((g.white_id != g.no_clock_user_id and white <= 0) or (g.black_id != g.no_clock_user_id and black <= 0)):
         g.result = "0-1" if white <= 0 else "1-0"
         g.result_reason = "timeout"
         g.result_detail = None
@@ -655,6 +709,8 @@ def get_active_game_for_user(user_id: str) -> Game | None:
 def offer_draw(game_id: str, user_id: str) -> dict | None:
     g = get_game_for_user(game_id, user_id)
     if not g or g.result is not None:
+        return None
+    if g.is_bot_game:
         return None
     if g.draw_offer_by is not None:
         return None
@@ -784,24 +840,38 @@ def apply_move(
     elapsed_ms = 0 if is_premove else int((now - g.last_clock_at) * 1000)
     tc = g.time_control
     inc_ms = tc["increment_seconds"] * 1000
+    move_no = (len(g.moves) // 2) + 1
     if board.turn == chess.WHITE:
-        white_used = min(g.white_remaining_ms, elapsed_ms)
-        g.white_remaining_ms = max(0, g.white_remaining_ms - white_used + inc_ms)
+        if g.white_clock_started and g.white_id != g.no_clock_user_id:
+            white_used = min(g.white_remaining_ms, elapsed_ms)
+        else:
+            white_used = 0
+        white_inc = 0 if move_no == 1 else inc_ms
+        g.white_remaining_ms = max(0, g.white_remaining_ms - white_used + white_inc)
         move_time_ms = white_used
+        if not g.black_clock_started:
+            g.black_clock_started = True
     else:
-        black_used = min(g.black_remaining_ms, elapsed_ms)
+        if g.black_clock_started and g.black_id != g.no_clock_user_id:
+            black_used = min(g.black_remaining_ms, elapsed_ms)
+        else:
+            black_used = 0
         g.black_remaining_ms = max(0, g.black_remaining_ms - black_used + inc_ms)
         move_time_ms = black_used
+        if not g.white_clock_started:
+            g.white_clock_started = True
     g.last_clock_at = now
     san = board.san(move)
     board.push(move)
     g.fen = board.fen()
     g.moves.append(MoveRecord(san=san, time_ms=move_time_ms))
     _apply_result(g, board)
-    _persist_game_state(g, from_sq=from_sq, to_sq=to_sq, promotion=promotion, san=san, move_time_ms=move_time_ms)
+    if not g.is_bot_game:
+        _persist_game_state(g, from_sq=from_sq, to_sq=to_sq, promotion=promotion, san=san, move_time_ms=move_time_ms)
     if g.result is not None:
         mark_invite_finished_by_game(g.id)
-        _apply_finished_game_ratings(g)
+        if not g.is_bot_game:
+            _apply_finished_game_ratings(g)
     uci = move.uci()
     return {
         "fen": g.fen,
@@ -816,4 +886,29 @@ def apply_move(
         "draw_offer_color": _draw_offer_color(g),
         "from": uci[:2],
         "to": uci[2:4],
+    }
+
+
+def abort_unstarted_game(game_id: str) -> dict | None:
+    g = _games.get(game_id)
+    if not g or g.result is not None:
+        return None
+    if len(g.moves) >= 2:
+        return None
+    g.result = "1/2-1/2"
+    g.result_reason = "aborted_unstarted"
+    g.result_detail = "Партия не состоялась: первый ход белых и черных не был сделан за 60 секунд."
+    g.draw_offer_by = None
+    if not g.is_bot_game:
+        _persist_game_state(g)
+        mark_invite_finished_by_game(g.id)
+    return {
+        "fen": g.fen,
+        "white_remaining_ms": g.white_remaining_ms,
+        "black_remaining_ms": g.black_remaining_ms,
+        "result": g.result,
+        "result_reason": g.result_reason,
+        "result_detail": g.result_detail,
+        "draw_offer_by": g.draw_offer_by,
+        "draw_offer_color": _draw_offer_color(g),
     }

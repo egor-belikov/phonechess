@@ -91,6 +91,9 @@
   let pendingPromotionChoice = null;
   let resultReason = null;
   let resultDetail = null;
+  let isBotGame = false;
+  let noClockUserId = null;
+  let rematchAvailableGameId = null;
   let drawOfferBy = null;
   let drawOfferColor = null;
   let drawOfferPly = null;
@@ -134,6 +137,7 @@
   const btnClaimDraw = $('btn-claim-draw');
   const buildInfoEl = $('build-info');
   const btnPrivateGame = $('btn-private-game');
+  const btnBotGame = $('btn-bot-game');
   const btnProfile = $('btn-profile');
   const btnLogin = $('btn-login');
   const profileModalEl = $('profile-modal');
@@ -157,6 +161,7 @@
   const resultModalTitleEl = $('result-modal-title');
   const resultModalTextEl = $('result-modal-text');
   const btnResultLobby = $('btn-result-lobby');
+  const btnResultRematch = $('btn-result-rematch');
   const btnReplayFirst = $('btn-replay-first');
   const btnReplayPrev = $('btn-replay-prev');
   const btnReplayNext = $('btn-replay-next');
@@ -270,6 +275,7 @@
     if (btnDraw) btnDraw.textContent = t('game.draw_offer');
     if (btnClaimDraw) btnClaimDraw.textContent = t('game.claim_draw');
     if (btnPrivateGame) btnPrivateGame.textContent = t('lobby.private_game');
+    if (btnBotGame) btnBotGame.textContent = t('lobby.bot_game');
     if (btnProfile) btnProfile.textContent = t('profile.open');
     if (btnLogin) btnLogin.textContent = t('login.open');
     if (profileTitleEl) profileTitleEl.textContent = t('profile.title');
@@ -280,6 +286,7 @@
     if (btnResign && !resignConfirming) btnResign.textContent = t('game.resign');
     if (resultModalTitleEl) resultModalTitleEl.textContent = t('result.title');
     if (btnResultLobby) btnResultLobby.textContent = t('result.back_to_lobby');
+    if (btnResultRematch) btnResultRematch.textContent = t('result.rematch');
     if (gameInfo && !currentGameId) gameInfo.textContent = t('game.header');
     if (wsStatus && (!ws || ws.readyState !== WebSocket.OPEN)) setWsStatus(t('status.connecting'));
     updatePingIndicator();
@@ -541,19 +548,22 @@
     const ourTurn = turnColor === myColor;
     const topIsActive = isWhite ? turnColor === 'black' : turnColor === 'white';
     const bottomIsActive = !topIsActive;
+    const ourNoClock = !!(isBotGame && noClockUserId && myTelegramId && String(noClockUserId) === String(myTelegramId));
     if (clockTopLabel) clockTopLabel.textContent = isWhite ? t('game.opp_black') : t('game.opp_white');
     if (clockBottomLabel) clockBottomLabel.textContent = isWhite ? t('game.you_white') : t('game.you_black');
     if (gameYourSideEl) {
       gameYourSideEl.textContent = fiftyMoveCounterText();
     }
     if (clockTop) {
-      clockTop.textContent = formatClock(topMs);
+      const topNoClock = !!(isBotGame && noClockUserId && !ourNoClock);
+      clockTop.textContent = topNoClock ? '∞' : formatClock(topMs);
       clockTop.classList.toggle('low-time', topMs < 20000 && topMs > 0);
       clockTop.classList.toggle('opp-turn', topIsActive && !gameResult);
       clockTop.classList.toggle('flagged', topMs <= 0);
     }
     if (clockBottom) {
-      clockBottom.textContent = formatClock(bottomMs);
+      const bottomNoClock = ourNoClock;
+      clockBottom.textContent = bottomNoClock ? '∞' : formatClock(bottomMs);
       clockBottom.classList.toggle('low-time', bottomMs < 20000 && bottomMs > 0);
       clockBottom.classList.toggle('our-turn', bottomIsActive && ourTurn && !gameResult);
       clockBottom.classList.toggle('flagged', bottomMs <= 0);
@@ -585,6 +595,9 @@
     if (clockInterval) clearInterval(clockInterval);
     clockInterval = null;
     currentGameId = null;
+    isBotGame = false;
+    noClockUserId = null;
+    rematchAvailableGameId = null;
     drawOfferBy = null;
     drawOfferColor = null;
     drawOfferPly = null;
@@ -646,6 +659,7 @@
       case 'disconnect_forfeit': return t('reasons.disconnect_forfeit');
       case 'disconnect_turn_timeout': return t('reasons.disconnect_turn_timeout');
       case 'resign': return t('reasons.resign');
+      case 'aborted_unstarted': return t('reasons.aborted_unstarted');
       default: return '';
     }
   }
@@ -662,6 +676,9 @@
     }
     resultModalEl.classList.add('active');
     resultModalEl.setAttribute('aria-hidden', 'false');
+    if (btnResultRematch) {
+      btnResultRematch.style.display = (resultReason === 'aborted_unstarted' && currentGameId) ? '' : 'none';
+    }
   }
 
   function updateGameAlert() {
@@ -687,6 +704,10 @@
 
   function updateDrawButton() {
     if (!btnDraw) return;
+    if (isBotGame) {
+      btnDraw.style.display = 'none';
+      return;
+    }
     if (!currentGameId || gameResult || replayMode) {
       btnDraw.style.display = 'none';
       return;
@@ -1517,6 +1538,8 @@
       else blackRemainingMs = Math.max(0, blackRemainingMs - lag);
     }
     if (data.moves) gameMoves = data.moves;
+    if (data.is_bot_game !== undefined) isBotGame = !!data.is_bot_game;
+    if (data.no_clock_user_id !== undefined) noClockUserId = data.no_clock_user_id || null;
     if (data.result !== undefined) gameResult = data.result;
     if (data.result_reason !== undefined) resultReason = data.result_reason;
     if (data.result_detail !== undefined) resultDetail = data.result_detail;
@@ -1551,8 +1574,11 @@
     updateReplayControls();
     console.log('[PhoneChess] enterGame', { game_id: msg.game_id, color: msg.color, hasFen: !!msg.fen });
     currentGameId = msg.game_id;
+    rematchAvailableGameId = null;
     hidePrivateWaitingPanel();
     myColor = msg.color;
+    isBotGame = !!msg.is_bot_game;
+    noClockUserId = msg.no_clock_user_id || null;
     gameFen = msg.fen;
     whiteRemainingMs = msg.white_remaining_ms != null ? msg.white_remaining_ms : 0;
     blackRemainingMs = msg.black_remaining_ms != null ? msg.black_remaining_ms : 0;
@@ -1582,6 +1608,8 @@
     resignConfirming = false;
     if (btnResign) { btnResign.textContent = t('game.resign'); btnResign.classList.remove('resign-confirm'); }
     if (gameInfo) gameInfo.textContent = (msg.white_username || t('game.white_name')) + ' vs ' + (msg.black_username || t('game.black_name')) + ' (' + (msg.time_control || '') + ')';
+    if (btnDraw) btnDraw.style.display = isBotGame ? 'none' : '';
+    if (btnClaimDraw) btnClaimDraw.style.display = 'none';
     showScreen('game-screen');
     updatePingIndicator();
     updateClocksDisplay();
@@ -1690,6 +1718,13 @@
         } else if (msg.type === 'private_game_history') {
           hidePrivateWaitingPanel();
           enterReplayMode(msg);
+        } else if (msg.type === 'rematch_offer_available') {
+          rematchAvailableGameId = msg.game_id || currentGameId;
+          if (currentGameId && rematchAvailableGameId === currentGameId) showResultModal();
+        } else if (msg.type === 'rematch_vote_update') {
+          if (msg.ready_count === 1) {
+            setWsStatus(t('result.rematch_waiting'), 'connected');
+          }
         } else if (msg.type === 'opponent_connection') {
           if (msg.status === 'disconnected') {
             opponentDisconnected = true;
@@ -1811,6 +1846,12 @@
       openPrivateTimeModal();
     });
   }
+  if (btnBotGame) {
+    btnBotGame.addEventListener('click', function () {
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      ws.send(JSON.stringify({ type: 'start_bot_game', time_control: '3+0' }));
+    });
+  }
   if (btnPrivateTimeClose) {
     btnPrivateTimeClose.addEventListener('click', closePrivateTimeModal);
   }
@@ -1840,6 +1881,14 @@
   if (btnResultLobby) {
     btnResultLobby.addEventListener('click', function () {
       goToLobbyFromGame();
+    });
+  }
+  if (btnResultRematch) {
+    btnResultRematch.addEventListener('click', function () {
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      const gid = rematchAvailableGameId || currentGameId;
+      if (!gid) return;
+      ws.send(JSON.stringify({ type: 'rematch_request', game_id: gid }));
     });
   }
   if (btnReplayFirst) btnReplayFirst.addEventListener('click', function () { setReplayIndex(0); });

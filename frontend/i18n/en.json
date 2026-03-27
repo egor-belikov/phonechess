@@ -9,6 +9,7 @@
     "queue_count_you": "{n} in queue (you included)",
     "queue_count": "{n} in queue",
     "private_game": "Private game",
+    "bot_game": "Play vs bot",
     "private_share_text": "Join my private PhoneChess game ({tc}): {link}",
     "private_waiting": "Private invite created. Waiting for opponent…",
     "private_room_title": "Private game waiting room",
@@ -77,6 +78,8 @@
     "win_generic": "game over",
     "draw_subtitle": "by draw rule",
     "back_to_lobby": "Back to lobby",
+    "rematch": "Play again",
+    "rematch_waiting": "Waiting for opponent to confirm rematch",
     "you_win": "You won.",
     "you_lose": "You lost.",
     "white_win": "White wins.",
@@ -95,7 +98,8 @@
     "draw_auto_75move": "Automatic draw: 75-move rule.",
     "disconnect_forfeit": "Opponent disconnected and did not return.",
     "disconnect_turn_timeout": "Opponent did not return within 10 seconds on their turn.",
-    "resign": "Win by resignation."
+    "resign": "Win by resignation.",
+    "aborted_unstarted": "Game aborted (both first moves were not made within one minute)."
   },
   "build": {
     "label": "Version: {version} · Deployed: {deployedAt}",

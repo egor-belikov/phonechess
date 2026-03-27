@@ -250,3 +250,40 @@ From repo root:
   - move legality validation and promotion flow are unchanged;
   - premove semantics are unchanged;
   - private invite/game lifecycle is unchanged.
+
+## Latest Gameplay Update (2026-03-27: Bot Mode, Start-Abort, Rematch, Bot Notifications)
+
+- Scope:
+  - add non-profile bot games, fix move-time drift, add unstarted-game abort flow with private rematch voting, and restore Telegram bot game-finish notifications.
+- Files changed:
+  - `backend/app/pairing.py`
+  - `backend/app/ws_handlers.py`
+  - `backend/app/telegram_bot.py`
+  - `frontend/index.html`
+  - `frontend/app.js`
+  - `frontend/i18n/ru.json`
+  - `frontend/i18n/en.json`
+  - `PROJECT_PLAN.md`
+  - `AGENTS.md`
+- Behavior changes:
+  - **Bot mode**:
+    - new lobby action starts `start_bot_game` (default `3+0`);
+    - bot is intentionally very weak (deterministic weak move policy) and moves exactly after 1 second delay;
+    - bot games are in-memory only (not written to profile/history/rating);
+    - draw offer flow is disabled for bot games, resign flow remains.
+  - **Clock and move-time fixes**:
+    - `subscribe_game` no longer materializes/reset clocks, fixing `0ms` move-time artifacts in move list;
+    - white clock now starts only after black’s first move;
+    - white increment is applied starting from white’s second move;
+    - no-clock side support added for bot games (human can have unlimited think time).
+  - **Unstarted-game abort**:
+    - after pairing, a 60-second watchdog waits for both first moves (white and black);
+    - if either side misses first move, game auto-aborts with explicit reason (`aborted_unstarted`) and result modal text.
+  - **Private rematch flow**:
+    - after unstarted abort, both players get rematch availability;
+    - each player can vote for rematch; when both voted, a new private game is started immediately with same pair.
+  - **Telegram finish notifications**:
+    - end-of-game bot messages are sent once per game with result/reason/details and SAN move line to users who started bot.
+- Safety invariants preserved:
+  - base matchmaking, private-invite waiting room, and resign confirmation UX remain compatible with existing clients;
+  - persistent DB entities for regular games remain unchanged.
