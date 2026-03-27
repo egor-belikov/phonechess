@@ -157,17 +157,19 @@ def get_game(game_id: str) -> Game | None:
 
 def game_state_payload(g: Game) -> dict:
     """Собрать payload game_state для отправки клиенту."""
+    white_ms, black_ms = _live_remaining_ms(g)
     return {
         "type": "game_state",
         "fen": g.fen,
-        "white_remaining_ms": g.white_remaining_ms,
-        "black_remaining_ms": g.black_remaining_ms,
+        "white_remaining_ms": white_ms,
+        "black_remaining_ms": black_ms,
         "moves": [{"san": m.san, "time_ms": m.time_ms} for m in g.moves],
         "result": g.result,
         "result_reason": g.result_reason,
         "result_detail": g.result_detail,
         "draw_offer_by": g.draw_offer_by,
         "draw_offer_color": _draw_offer_color(g),
+        "server_time_ms": int(time.time() * 1000),
     }
 
 
@@ -252,6 +254,42 @@ def _apply_result(g: Game, board: Board) -> None:
         g.result = "0-1" if g.white_remaining_ms <= 0 else "1-0"
         g.result_reason = "timeout"
         g.result_detail = None
+
+
+def _live_remaining_ms(g: Game) -> tuple[int, int]:
+    white = g.white_remaining_ms
+    black = g.black_remaining_ms
+    if g.result is not None:
+        return white, black
+    now = time.monotonic()
+    elapsed = int(max(0.0, now - g.last_clock_at) * 1000)
+    board = Board(g.fen)
+    if board.turn == chess.WHITE:
+        white = max(0, white - elapsed)
+    else:
+        black = max(0, black - elapsed)
+    return white, black
+
+
+def materialize_live_clocks(g: Game) -> None:
+    """
+    Commit live clock snapshot into stored game state.
+    """
+    if g.result is not None:
+        return
+    white, black = _live_remaining_ms(g)
+    g.white_remaining_ms = white
+    g.black_remaining_ms = black
+    g.last_clock_at = time.monotonic()
+    if white <= 0 or black <= 0:
+        g.result = "0-1" if white <= 0 else "1-0"
+        g.result_reason = "timeout"
+        g.result_detail = None
+
+
+def turn_user_id(g: Game) -> str:
+    board = Board(g.fen)
+    return g.white_id if board.turn == chess.WHITE else g.black_id
 
 
 def get_active_game_for_user(user_id: str) -> Game | None:
@@ -382,6 +420,22 @@ def apply_move(
     g = get_game_for_user(game_id, user_id)
     if not g or g.result is not None:
         return None
+    materialize_live_clocks(g)
+    if g.result is not None:
+        return {
+            "fen": g.fen,
+            "white_remaining_ms": g.white_remaining_ms,
+            "black_remaining_ms": g.black_remaining_ms,
+            "san": None,
+            "move_time_ms": 0,
+            "result": g.result,
+            "result_reason": g.result_reason,
+            "result_detail": g.result_detail,
+            "draw_offer_by": g.draw_offer_by,
+            "draw_offer_color": _draw_offer_color(g),
+            "from": None,
+            "to": None,
+        }
     board = Board(g.fen)
     if board.turn != (chess.WHITE if user_id == g.white_id else chess.BLACK):
         return None

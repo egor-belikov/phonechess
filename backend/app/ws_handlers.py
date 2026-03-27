@@ -27,11 +27,13 @@ from .pairing import (
     claim_draw,
     get_active_game_for_user,
     forfeit_disconnected_player,
+    materialize_live_clocks,
+    turn_user_id,
 )
 from .ws_manager import manager
 
 logger = logging.getLogger(__name__)
-DISCONNECT_GRACE_SECONDS = 45
+DISCONNECT_GRACE_SECONDS = 10
 _disconnect_tasks: dict[str, asyncio.Task] = {}
 
 
@@ -97,6 +99,7 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
         game_id = data.get("game_id")
         g = get_game_for_user(game_id, user_id) if game_id else None
         if g:
+            materialize_live_clocks(g)
             await manager.send_to_user(user_id, game_state_payload(g))
         return True
     if t == "make_move":
@@ -126,6 +129,8 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                 }
                 await manager.send_to_user(g.white_id, payload)
                 await manager.send_to_user(g.black_id, payload)
+                if g.result is None:
+                    _maybe_start_disconnect_task(g, turn_user_id(g))
         return True
     if t == "resign":
         game_id = data.get("game_id")
@@ -216,12 +221,32 @@ async def _schedule_disconnect_forfeit(game_id: str, disconnected_user_id: str) 
         g = get_game_for_user(game_id, disconnected_user_id)
         if not g or g.result is not None:
             return
+        materialize_live_clocks(g)
+        if g.result is not None:
+            payload = {
+                "type": "game_update",
+                "fen": g.fen,
+                "white_remaining_ms": g.white_remaining_ms,
+                "black_remaining_ms": g.black_remaining_ms,
+                "result": g.result,
+                "result_reason": g.result_reason,
+                "result_detail": g.result_detail,
+                "draw_offer_by": g.draw_offer_by,
+                "draw_offer_color": None,
+            }
+            await manager.send_to_user(g.white_id, payload)
+            await manager.send_to_user(g.black_id, payload)
+            return
         # User returned in time.
         if manager.has_user(disconnected_user_id):
+            return
+        if turn_user_id(g) != disconnected_user_id:
             return
         update = forfeit_disconnected_player(game_id, disconnected_user_id)
         if not update:
             return
+        update["result_reason"] = "disconnect_turn_timeout"
+        update["result_detail"] = "Игрок не вернулся в течение 10 секунд после начала своего хода."
         payload = {
             "type": "game_update",
             "fen": update["fen"],
@@ -237,6 +262,26 @@ async def _schedule_disconnect_forfeit(game_id: str, disconnected_user_id: str) 
         await manager.send_to_user(g.black_id, payload)
     finally:
         _disconnect_tasks.pop(disconnected_user_id, None)
+
+
+def _cancel_disconnect_task(user_id: str) -> None:
+    old = _disconnect_tasks.pop(user_id, None)
+    if old:
+        old.cancel()
+
+
+def _maybe_start_disconnect_task(g, user_id: str) -> None:
+    if not g or g.result is not None:
+        return
+    if manager.has_user(user_id):
+        _cancel_disconnect_task(user_id)
+        return
+    if turn_user_id(g) != user_id:
+        _cancel_disconnect_task(user_id)
+        return
+    if _disconnect_tasks.get(user_id):
+        return
+    _disconnect_tasks[user_id] = asyncio.create_task(_schedule_disconnect_forfeit(g.id, user_id))
 
 
 async def ws_auth_and_loop(ws: WebSocket) -> None:
@@ -273,9 +318,7 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
         await manager.connect(ws, user_id, telegram_id, username)
         # Reconnect inside active game: cancel forfeit timer and notify opponent.
         active = get_active_game_for_user(user_id)
-        task = _disconnect_tasks.pop(user_id, None)
-        if task:
-            task.cancel()
+        _cancel_disconnect_task(user_id)
         if active and active.result is None:
             opp_id = active.black_id if active.white_id == user_id else active.white_id
             await manager.send_to_user(
@@ -320,12 +363,7 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
                         "grace_seconds": DISCONNECT_GRACE_SECONDS,
                     },
                 )
-                old_task = _disconnect_tasks.get(user_id)
-                if old_task:
-                    old_task.cancel()
-                _disconnect_tasks[user_id] = asyncio.create_task(
-                    _schedule_disconnect_forfeit(active.id, user_id)
-                )
+                _maybe_start_disconnect_task(active, user_id)
             leave_all_queues(user_id)
             await manager.broadcast_queue_counts()
             logger.info("WS: fully offline user_id=%s", user_id)

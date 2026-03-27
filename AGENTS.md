@@ -163,13 +163,18 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - stricter timer sync and move-input latency reduction on frontend.
+  - server-authoritative live clock snapshots + turn-based disconnect timeout.
 - Files changed:
+  - `backend/app/pairing.py`
+  - `backend/app/ws_handlers.py`
   - `frontend/app.js`
   - `AGENTS.md`
 - Behavior changes:
-  - premove marker numbering now reflects the latest queued step for repeated from/to squares (no stale early-step label reuse);
-  - fixes UI case where later premove step (e.g. #7) incorrectly displayed as earlier step (#3) on the same target square.
+  - `subscribe_game` now returns clock values computed on backend from monotonic server time and includes `server_time_ms`;
+  - frontend applies server-lag compensation to received clock snapshots for tighter cross-tab sync;
+  - disconnect timeout reduced to 10 seconds and enforced only when disconnected player is to move;
+  - if player does not return within 10 seconds on own turn, game ends with reason `disconnect_turn_timeout`;
+  - if disconnected player is not yet on move, timeout is armed automatically when their turn begins.
 - Safety invariants preserved:
   - backend remains the source of truth for move legality;
   - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.

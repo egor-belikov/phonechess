@@ -250,6 +250,7 @@
       case 'draw_auto_fivefold': return 'Ничья автоматически: 5 повторений.';
       case 'draw_auto_75move': return 'Ничья автоматически: 75 ходов.';
       case 'disconnect_forfeit': return 'Соперник отключился и не вернулся.';
+      case 'disconnect_turn_timeout': return 'Соперник не вернулся в течение 10 секунд на своём ходе.';
       case 'resign': return 'Победа: соперник сдался.';
       default: return '';
     }
@@ -1009,6 +1010,12 @@
     gameFen = data.fen || gameFen;
     whiteRemainingMs = data.white_remaining_ms != null ? data.white_remaining_ms : whiteRemainingMs;
     blackRemainingMs = data.black_remaining_ms != null ? data.black_remaining_ms : blackRemainingMs;
+    if (data.server_time_ms != null && gameFen && !gameResult) {
+      const lag = Math.max(0, Math.min(2000, Date.now() - data.server_time_ms));
+      const turnColor = gameFen.includes(' b ') ? 'black' : 'white';
+      if (turnColor === 'white') whiteRemainingMs = Math.max(0, whiteRemainingMs - lag);
+      else blackRemainingMs = Math.max(0, blackRemainingMs - lag);
+    }
     if (data.moves) gameMoves = data.moves;
     if (data.result !== undefined) gameResult = data.result;
     if (data.result_reason !== undefined) resultReason = data.result_reason;
