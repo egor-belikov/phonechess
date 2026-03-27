@@ -398,6 +398,17 @@ body.mobile-blocked #app {
   position: relative;
 }
 
+.ping-indicator {
+  margin: 2px auto 0;
+  width: 100%;
+  max-width: min(100vw - 12px, 480px);
+  text-align: right;
+  font-size: 0.7rem;
+  color: #7f7e7b;
+  line-height: 1.2;
+  min-height: 0.9rem;
+}
+
 .chess-board {
   width: 100%;
   height: 100%;

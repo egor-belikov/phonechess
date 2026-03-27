@@ -108,6 +108,8 @@
   let stockfishWorker = null;
   let analysisEnabled = false;
   let privateWaitingState = null;
+  let pingMs = null;
+  let pingInterval = null;
 
   const $ = (id) => document.getElementById(id);
   const lobbyButtons = $('lobby-buttons');
@@ -150,6 +152,7 @@
   const analysisScoreEl = $('analysis-score');
   const analysisLineEl = $('analysis-line');
   const btnAnalysisToggle = $('btn-analysis-toggle');
+  const pingIndicatorEl = $('ping-indicator');
 
   function deepGet(obj, path) {
     const parts = path.split('.');
@@ -245,6 +248,21 @@
     if (btnResultLobby) btnResultLobby.textContent = t('result.back_to_lobby');
     if (gameInfo && !currentGameId) gameInfo.textContent = t('game.header');
     if (wsStatus && (!ws || ws.readyState !== WebSocket.OPEN)) setWsStatus(t('status.connecting'));
+    updatePingIndicator();
+  }
+
+  function updatePingIndicator() {
+    if (!pingIndicatorEl) return;
+    if (pingMs == null) {
+      pingIndicatorEl.textContent = t('game.ping', { ms: '—' });
+      return;
+    }
+    pingIndicatorEl.textContent = t('game.ping', { ms: String(pingMs) });
+  }
+
+  function sendPingProbe() {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type: 'ping', client_ts: Date.now() }));
   }
 
   async function loadBuildInfo() {
@@ -442,6 +460,8 @@
     stopAnalysis();
     updateReplayControls();
     hidePrivateWaitingPanel();
+    pingMs = null;
+    updatePingIndicator();
     showScreen('lobby-screen');
   }
 
@@ -1396,6 +1416,7 @@
     if (btnResign) { btnResign.textContent = t('game.resign'); btnResign.classList.remove('resign-confirm'); }
     if (gameInfo) gameInfo.textContent = (msg.white_username || t('game.white_name')) + ' vs ' + (msg.black_username || t('game.black_name')) + ' (' + (msg.time_control || '') + ')';
     showScreen('game-screen');
+    updatePingIndicator();
     updateClocksDisplay();
     startClockTicker();
     renderBoard();
@@ -1426,6 +1447,9 @@
       } catch (e) {
         ws.send(JSON.stringify({ type: 'auth', init_data: '', debug_uid: 0 }));
       }
+      if (pingInterval) clearInterval(pingInterval);
+      sendPingProbe();
+      pingInterval = setInterval(sendPingProbe, 3000);
     };
 
     ws.onmessage = function (event) {
@@ -1516,6 +1540,14 @@
             }
           }
           updateGameAlert();
+        } else if (msg.type === 'pong') {
+          if (msg.client_ts != null) {
+            const rtt = Date.now() - Number(msg.client_ts);
+            if (Number.isFinite(rtt) && rtt >= 0) {
+              pingMs = Math.round(rtt);
+              updatePingIndicator();
+            }
+          }
         }
       } catch (e) {
         console.warn('ws message parse', e);
@@ -1525,6 +1557,12 @@
     ws.onclose = function (ev) {
       console.log('[PhoneChess] WS onclose', ev.code, ev.reason || '');
       ws = null;
+      pingMs = null;
+      updatePingIndicator();
+      if (pingInterval) {
+        clearInterval(pingInterval);
+        pingInterval = null;
+      }
       if (ev.code === 4000) {
         setWsStatus(t('status.reconnecting'), '');
         if (reconnectTimer) return;

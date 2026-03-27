@@ -163,9 +163,8 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - private invite flow fix: add explicit waiting room for creator and guest before match start.
+  - in-game latency UX: add live ping indicator under the board.
 - Files changed:
-  - `backend/app/pairing.py`
   - `backend/app/ws_handlers.py`
   - `frontend/index.html`
   - `frontend/styles/main.css`
@@ -174,13 +173,9 @@ From repo root:
   - `frontend/i18n/ru.json`
   - `AGENTS.md`
 - Behavior changes:
-  - private links no longer immediately launch game on first open while invite is pending;
-  - invite flow now has a waiting-room step (`private_invite_waiting`) for both sides:
-    - creator enters waiting room after invite creation;
-    - guest opening invite enters waiting room immediately;
-    - creator reopening own link also stays in waiting room;
-  - game starts only when waiting room contains creator + different invited user and both are online/in-room;
-  - lobby now renders an in-app waiting panel with role-specific status texts.
+  - game screen now renders a small `Ping: N ms` label directly below the chessboard;
+  - ping is measured by WebSocket round-trip (`ping` client message / `pong` server reply) every 3 seconds;
+  - indicator updates live while connected and resets to placeholder when disconnected or when leaving the game screen.
 - Safety invariants preserved:
-  - creator cannot self-start private game by opening their own link;
-  - private game still starts only through backend-validated pairing and emits regular `matched` payload to both players.
+  - ping endpoint is read-only and does not alter queue/game state;
+  - existing game protocol and move/timer authority remain unchanged.

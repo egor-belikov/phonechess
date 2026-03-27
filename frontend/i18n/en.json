@@ -49,7 +49,8 @@
     "draw": "Draw",
     "draw_offer_waiting": "Draw offer sent and waiting for response.",
     "draw_offer_received": "Opponent offered a draw. Tap \"Draw?\" to accept.",
-    "opp_disconnected": "Opponent disconnected. Waiting for reconnect ({sec}s)..."
+    "opp_disconnected": "Opponent disconnected. Waiting for reconnect ({sec}s)...",
+    "ping": "Ping: {ms} ms"
   },
   "result": {
     "title": "Game finished",

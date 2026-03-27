@@ -251,6 +251,10 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
             if started and tid:
                 send_webapp_message(tid, f"Приватная игра создана. Ссылка:\n{link}", link)
         return True
+    if t == "ping":
+        client_ts = data.get("client_ts")
+        await manager.send_to_user(user_id, {"type": "pong", "client_ts": client_ts})
+        return True
     if t == "leave_queue":
         time_control = data.get("time_control")
         if time_control:
