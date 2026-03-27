@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import threading
+import time
 
 import chess
 import chess.engine
@@ -17,6 +18,8 @@ logger = logging.getLogger(__name__)
 _engine: chess.engine.SimpleEngine | None = None
 _engine_lock = threading.Lock()
 _play_lock = asyncio.Lock()
+_analysis_cache: dict[str, tuple[float, dict[str, object]]] = {}
+_ANALYSIS_TTL_SEC = 120.0
 
 
 def _ensure_engine() -> chess.engine.SimpleEngine:
@@ -60,6 +63,41 @@ async def pick_move_weak_uci(fen: str) -> str | None:
         return await asyncio.to_thread(_pick_move_blocking, fen)
 
 
+def _analyze_fen_blocking(fen: str) -> dict[str, object]:
+    now = time.monotonic()
+    cached = _analysis_cache.get(fen)
+    if cached and (now - cached[0]) < _ANALYSIS_TTL_SEC:
+        return cached[1]
+    board = chess.Board(fen)
+    if board.is_game_over():
+        payload = {"score_type": "cp", "score": 0, "pv": []}
+        _analysis_cache[fen] = (now, payload)
+        return payload
+    engine = _ensure_engine()
+    info = engine.analyse(board, chess.engine.Limit(depth=8, time=0.05))
+    score_obj = info.get("score")
+    score_cp = 0
+    score_type = "cp"
+    if score_obj is not None:
+        rel = score_obj.white()
+        mate = rel.mate()
+        if mate is not None:
+            score_type = "mate"
+            score_cp = int(mate)
+        else:
+            score_type = "cp"
+            score_cp = int(rel.score(mate_score=100000) or 0)
+    pv = [m.uci() for m in (info.get("pv") or [])[:10]]
+    payload = {"score_type": score_type, "score": score_cp, "pv": pv}
+    _analysis_cache[fen] = (now, payload)
+    return payload
+
+
+async def analyze_fen_light(fen: str) -> dict[str, object]:
+    async with _play_lock:
+        return await asyncio.to_thread(_analyze_fen_blocking, fen)
+
+
 def shutdown_uci_bot() -> None:
     global _engine
     with _engine_lock:
@@ -70,3 +108,4 @@ def shutdown_uci_bot() -> None:
         except Exception:
             pass
         _engine = None
+    _analysis_cache.clear()

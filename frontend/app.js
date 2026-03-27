@@ -111,6 +111,7 @@
   let replayIndex = -1;
   let stockfishWorker = null;
   let analysisEnabled = false;
+  let analysisRequestId = 0;
   let privateWaitingState = null;
   let pingMs = null;
   let pingInterval = null;
@@ -833,14 +834,27 @@
   function analyzeCurrentPosition() {
     const fen = replayMode ? getReplayFenAt(replayIndex) : gameFen;
     if (!analysisEnabled || !fen) return;
-    const sf = ensureStockfish();
-    if (!sf) {
-      if (analysisLineEl) analysisLineEl.textContent = t('analysis.unavailable');
-      return;
-    }
-    sf.postMessage('stop');
-    sf.postMessage('position fen ' + fen);
-    sf.postMessage('go depth 16');
+    const reqId = ++analysisRequestId;
+    fetch('/api/analyze?fen=' + encodeURIComponent(fen), { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (!analysisEnabled || reqId !== analysisRequestId || !data) return;
+        if (analysisScoreEl) {
+          if (data.score_type === 'mate') analysisScoreEl.textContent = '#' + String(data.score || 0);
+          else analysisScoreEl.textContent = (Number(data.score || 0) / 100).toFixed(2);
+        }
+        if (analysisLineEl) analysisLineEl.textContent = (data.pv || []).join(' ') || '—';
+      })
+      .catch(function () {
+        const sf = ensureStockfish();
+        if (!sf) {
+          if (analysisLineEl) analysisLineEl.textContent = t('analysis.unavailable');
+          return;
+        }
+        sf.postMessage('stop');
+        sf.postMessage('position fen ' + fen);
+        sf.postMessage('go depth 14');
+      });
   }
 
   function stopAnalysis() {

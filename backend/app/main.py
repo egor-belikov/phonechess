@@ -14,7 +14,7 @@ from .config import get_config
 from .db import Base, SessionLocal, engine
 from . import models  # noqa: F401
 from .telegram_bot import process_update
-from .uci_bot import shutdown_uci_bot
+from .uci_bot import analyze_fen_light, shutdown_uci_bot
 from .ws_handlers import ws_auth_and_loop
 
 logging.basicConfig(
@@ -167,6 +167,18 @@ def get_history(telegram_id: int, limit: int = 30):
                 }
             )
         return {"items": out}
+
+
+@app.get("/api/analyze")
+async def analyze_position(fen: str):
+    fen = (fen or "").strip()
+    if not fen:
+        raise HTTPException(status_code=400, detail="fen_required")
+    try:
+        return await analyze_fen_light(fen)
+    except Exception as e:
+        logger.warning("analyze failed: %s", e)
+        raise HTTPException(status_code=500, detail="analyze_failed")
 
 
 # Статика фронтенда (для разработки)

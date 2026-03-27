@@ -549,7 +549,6 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                 }
                 await manager.send_to_user(g.white_id, payload)
                 await manager.send_to_user(g.black_id, payload)
-                _notify_game_finished_once(g, update.get("result_reason"), update.get("result_detail"))
         return True
     if t == "rematch_request":
         game_id = data.get("game_id")

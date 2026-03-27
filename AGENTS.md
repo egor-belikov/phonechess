@@ -314,3 +314,26 @@ From repo root:
 - Safety invariants preserved:
   - if UCI engine fails, worker falls back to first legal move (no game flow break);
   - bot games remain non-profile and non-rating.
+
+## Latest Analysis Update (2026-03-27: Server-side Replay Analysis Cache)
+
+- Scope:
+  - fix broken Stockfish-in-browser analysis in replay mode by adding lightweight server-side analysis with cache.
+- Files changed:
+  - `backend/app/uci_bot.py`
+  - `backend/app/main.py`
+  - `backend/app/ws_handlers.py`
+  - `frontend/app.js`
+  - `AGENTS.md`
+- Behavior changes:
+  - new API endpoint: `GET /api/analyze?fen=...`
+  - server performs short UCI analysis (`depth=8`, `time=0.05`) and returns:
+    - `score_type`: `cp|mate`
+    - `score`: numeric value
+    - `pv`: best line in UCI list
+  - in-memory TTL cache by FEN (120s) reduces repeated CPU load in replay scrubbing.
+  - frontend analysis now requests server analysis first; if failed, falls back to local Stockfish worker.
+  - removed erroneous finish-notify call from draw-offer branch (non-terminal event).
+- Safety invariants preserved:
+  - game flow and move validation are unchanged;
+  - analysis endpoint is read-only and does not modify game state.
