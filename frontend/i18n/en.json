@@ -78,6 +78,7 @@
     "win_generic": "game over",
     "draw_subtitle": "by draw rule",
     "back_to_lobby": "Back to lobby",
+    "analysis": "Analysis",
     "rematch": "Play again",
     "rematch_waiting": "Waiting for opponent to confirm rematch",
     "you_win": "You won.",

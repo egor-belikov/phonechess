@@ -849,6 +849,18 @@ body.mobile-blocked #app {
   text-align: center;
 }
 
+.result-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-result-analysis {
+  border-color: #4b6a8f;
+  background: #2a3540;
+  color: #dfe9f5;
+}
+
 .clock.flagged {
   background: #5a2e2e;
   color: #ffe4e4;

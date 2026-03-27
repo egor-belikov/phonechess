@@ -167,6 +167,7 @@
   const resultModalTextEl = $('result-modal-text');
   const btnResultLobby = $('btn-result-lobby');
   const btnResultRematch = $('btn-result-rematch');
+  const btnResultAnalysis = $('btn-result-analysis');
   const btnReplayFirst = $('btn-replay-first');
   const btnReplayPrev = $('btn-replay-prev');
   const btnReplayNext = $('btn-replay-next');
@@ -291,7 +292,9 @@
     if (btnResign && !resignConfirming) btnResign.textContent = t('game.resign');
     if (resultModalTitleEl) resultModalTitleEl.textContent = t('result.title');
     if (btnResultLobby) btnResultLobby.textContent = t('result.back_to_lobby');
+    if (btnResultAnalysis) btnResultAnalysis.textContent = t('result.analysis');
     if (btnResultRematch) btnResultRematch.textContent = t('result.rematch');
+    if (btnBackGame) btnBackGame.setAttribute('aria-label', t('result.back_to_lobby'));
     if (gameInfo && !currentGameId) gameInfo.textContent = t('game.header');
     if (wsStatus && (!ws || ws.readyState !== WebSocket.OPEN)) setWsStatus(t('status.connecting'));
     updatePingIndicator();
@@ -688,6 +691,9 @@
     resultModalEl.setAttribute('aria-hidden', 'false');
     if (btnResultRematch) {
       btnResultRematch.style.display = (resultReason === 'aborted_unstarted' && currentGameId) ? '' : 'none';
+    }
+    if (btnResultAnalysis) {
+      btnResultAnalysis.style.display = replayFens && replayFens.length > 1 ? '' : 'none';
     }
   }
 
@@ -1704,7 +1710,7 @@
     if (data.draw_offer_by !== undefined) drawOfferBy = data.draw_offer_by;
     if (data.draw_offer_color !== undefined) drawOfferColor = data.draw_offer_color;
     if (data.from && data.to) lastMove = { from: data.from, to: data.to };
-    if (!hadResultBefore && gameResult && isBotGame) {
+    if (!hadResultBefore && gameResult) {
       rebuildReplayFensFromGameMoves();
       replayMode = true;
       replayIndex = Math.max(0, replayFens.length - 1);
@@ -2044,6 +2050,17 @@
   if (btnResultLobby) {
     btnResultLobby.addEventListener('click', function () {
       goToLobbyFromGame();
+    });
+  }
+  if (btnResultAnalysis) {
+    btnResultAnalysis.addEventListener('click', function () {
+      hideResultModal();
+      if (analysisPanelEl) analysisPanelEl.classList.add('active');
+      if (!analysisEnabled) {
+        analysisEnabled = true;
+        if (btnAnalysisToggle) btnAnalysisToggle.textContent = t('analysis.stop');
+      }
+      scheduleAnalysis();
     });
   }
   if (btnResultRematch) {
