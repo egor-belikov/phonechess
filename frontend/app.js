@@ -1506,7 +1506,10 @@
           updateGameAlert();
         } else if (msg.type === 'private_invite_created') {
           const link = msg.invite_link || '';
-          const text = t('lobby.private_share_text', { link: link, tc: msg.time_control || '' });
+          const text = t('lobby.private_share_text', { link: '', tc: msg.time_control || '' })
+            .replace(/\s+/g, ' ')
+            .replace(/\s+([:;,.!?])/g, '$1')
+            .trim();
           if (ws && ws.readyState === WebSocket.OPEN && msg.invite_key) {
             ws.send(JSON.stringify({ type: 'open_private_link', invite_key: msg.invite_key }));
           }

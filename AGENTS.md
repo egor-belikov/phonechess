@@ -163,19 +163,14 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - private invite deep-link reliability fix + waiting-room lobby UX tightening.
+  - private invite share-message cleanup: remove duplicate link rendering in Telegram forward flow.
 - Files changed:
-  - `backend/app/ws_handlers.py`
   - `frontend/app.js`
   - `AGENTS.md`
 - Behavior changes:
-  - opening private links now resolves invite key not only from Telegram `initDataUnsafe.start_param`, but also from URL query/hash fallbacks (`tgWebAppStartParam`, `startapp`, `start_param`, `start`);
-  - this ensures guest clients that open direct `/?startapp=private_<key>` URLs are auto-routed into private waiting-room flow instead of staying in plain lobby;
-  - while user is in private waiting room, lobby matchmaking controls are hidden to avoid conflicting actions and UX confusion.
-- Debug/observability:
-  - added explicit backend logs for private link flow:
-    - `open_private_link` received (`user_id`, `invite_key`);
-    - `open_private_link` result status for easier production diagnosis.
+  - private invite share text no longer injects the deep link into `text` when building `https://t.me/share/url`;
+  - invite link is now provided exactly once via `url` query param, eliminating "link + text + same link" duplication in Telegram message composer;
+  - share text is normalized after empty link placeholder removal to avoid extra spaces/punctuation artifacts.
 - Safety invariants preserved:
-  - private-game match still starts only via backend invite status checks;
-  - additional start-param parsing is read-only and does not alter auth/queue semantics.
+  - private invite key/link generation and backend invite lifecycle are unchanged;
+  - fix is frontend-only and affects message formatting, not matchmaking logic.
