@@ -163,20 +163,16 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - endgame and draw-rule UX/protocol upgrade across backend + frontend.
+  - premove target permissiveness refinement + board coordinate labels.
 - Files changed:
-  - `backend/app/pairing.py`
-  - `backend/app/ws_handlers.py`
   - `frontend/app.js`
-  - `frontend/index.html`
   - `frontend/styles/main.css`
   - `AGENTS.md`
 - Behavior changes:
-  - WS payloads now include structured game-end reason fields (`result_reason`, `result_detail`) and draw-offer metadata;
-  - draw-offer workflow implemented with product constraints (>= move 15, cooldown 5 moves, no withdraw, opponent move = reject);
-  - draw-claim workflow added for threefold/50-move claims, plus automatic 5-fold/75-move draws;
-  - disconnect grace handling added: notify opponent, allow reconnect window, then forfeit disconnected player;
-  - frontend now shows endgame modal + lobby return button, draw controls, claim button visibility by rule checks, and disconnect alert banner.
+  - premove pseudo-target generation now allows selecting squares occupied by own pieces in preview state;
+  - this enables conditional recapture planning in premove chains (e.g. bishop recapture square currently occupied by own piece);
+  - preview pseudo-move application already replaces piece on target square, so chain board state remains coherent;
+  - board now renders subtle algebraic coordinates (`a-h`, `1-8`) directly on edge squares for move readability.
 - Safety invariants preserved:
   - backend remains the source of truth for move legality;
   - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.

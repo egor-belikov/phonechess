@@ -468,9 +468,9 @@
       if (!inBoard(row, col)) return;
       const targetPiece = board[row] && board[row][col];
       const targetColor = pieceColorFromFenLetter(targetPiece);
-      if (targetColor === color) return;
       const sq = boardCoordsToSquare(row, col);
       if (sq) targets.push(sq);
+      return targetColor !== null;
     };
     const addSlide = function (dr, dc) {
       let row = coords.row + dr;
@@ -484,10 +484,8 @@
           col += dc;
           continue;
         }
-        if (pieceColorFromFenLetter(targetPiece) === enemyColor) {
-          const sq = boardCoordsToSquare(row, col);
-          if (sq) targets.push(sq);
-        }
+        const sq = boardCoordsToSquare(row, col);
+        if (sq) targets.push(sq);
         break;
       }
     };
@@ -506,8 +504,6 @@
         }
         [coords.col - 1, coords.col + 1].forEach(function (captureCol) {
           if (!inBoard(oneRow, captureCol)) return;
-          const tp = board[oneRow] && board[oneRow][captureCol];
-          if (pieceColorFromFenLetter(tp) === color) return;
           const sq = boardCoordsToSquare(oneRow, captureCol);
           if (sq) targets.push(sq);
         });
@@ -589,6 +585,18 @@
         const div = document.createElement('div');
         div.className = 'square ' + (isLight ? 'light' : 'dark');
         div.dataset.square = sq;
+        if (row === 7) {
+          const fileLabel = document.createElement('span');
+          fileLabel.className = 'coord-file';
+          fileLabel.textContent = sq[0];
+          div.appendChild(fileLabel);
+        }
+        if (col === 0) {
+          const rankLabel = document.createElement('span');
+          rankLabel.className = 'coord-rank';
+          rankLabel.textContent = sq[1];
+          div.appendChild(rankLabel);
+        }
         if (piece) {
           const off = pieceSpriteOffset(piece);
           const wrap = document.createElement('div');

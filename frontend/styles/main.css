@@ -328,6 +328,38 @@ body.mobile-blocked #app {
   position: relative;
 }
 
+.coord-file,
+.coord-rank {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0.72;
+  z-index: 4;
+  pointer-events: none;
+  user-select: none;
+}
+
+.coord-file {
+  right: 3px;
+  bottom: 2px;
+}
+
+.coord-rank {
+  left: 3px;
+  top: 2px;
+}
+
+.square.light .coord-file,
+.square.light .coord-rank {
+  color: #7b5e3f;
+}
+
+.square.dark .coord-file,
+.square.dark .coord-rank {
+  color: #f1e0c5;
+}
+
 .piece-sprite {
   position: absolute;
   width: 88%;
