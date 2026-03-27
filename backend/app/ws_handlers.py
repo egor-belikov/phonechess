@@ -35,6 +35,7 @@ from .pairing import (
     get_history_by_invite_key,
     get_user_notification_target,
     activate_private_invite,
+    get_history_by_game_id_for_user,
 )
 from .ws_manager import manager
 from .telegram_bot import send_webapp_message
@@ -260,6 +261,17 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
     if t == "ping":
         client_ts = data.get("client_ts")
         await manager.send_to_user(user_id, {"type": "pong", "client_ts": client_ts})
+        return True
+    if t == "open_game_history":
+        game_id = (data.get("game_id") or "").strip()
+        if not game_id:
+            await manager.send_to_user(user_id, {"type": "private_invite_invalid"})
+            return True
+        history = get_history_by_game_id_for_user(game_id, user_id)
+        if not history:
+            await manager.send_to_user(user_id, {"type": "private_invite_invalid"})
+            return True
+        await manager.send_to_user(user_id, {"type": "private_game_history", **history, "invite_key": ""})
         return True
     if t == "leave_queue":
         time_control = data.get("time_control")
@@ -490,6 +502,10 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
         user_id = _user_id(telegram_id)
         username = user.get("username") or user.get("first_name") or ""
         ensure_user_registered(user_id, telegram_id, username)
+        if manager.has_user(user_id):
+            logger.info("WS: reject second active client user_id=%s", user_id)
+            await ws.close(code=4009, reason="another session is active; close previous tab")
+            return
         await manager.connect(ws, user_id, telegram_id, username)
         # Reconnect inside active game: cancel forfeit timer and notify opponent.
         active = get_active_game_for_user(user_id)

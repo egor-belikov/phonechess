@@ -75,6 +75,9 @@ _queues: dict[str, list[QueuedPlayer]] = defaultdict(list)
 _games: dict[str, Game] = {}
 _private_invites_mem: dict[str, str] = {}
 
+BLITZ_KEYS = {"3+0", "3+2", "5+0", "5+3"}
+RAPID_KEYS = {"10+0", "15+10"}
+
 
 def _upsert_user(user_id: str, telegram_id: int, username: str, has_started_bot: bool | None = None) -> None:
     with SessionLocal() as db:
@@ -85,6 +88,11 @@ def _upsert_user(user_id: str, telegram_id: int, username: str, has_started_bot:
                 id=user_id,
                 telegram_id=telegram_id,
                 username=username or "",
+                login_name=None,
+                is_anonymous=True,
+                blitz_rating=1500,
+                rapid_rating=1500,
+                games_played=0,
                 has_started_bot=bool(has_started_bot),
                 created_at=now,
                 updated_at=now,
@@ -96,6 +104,46 @@ def _upsert_user(user_id: str, telegram_id: int, username: str, has_started_bot:
             if has_started_bot is not None:
                 user.has_started_bot = has_started_bot
             user.updated_at = now
+        db.commit()
+
+
+def _expected_score(r_a: int, r_b: int) -> float:
+    return 1.0 / (1.0 + pow(10.0, (r_b - r_a) / 400.0))
+
+
+def _score_from_result(result: str, is_white: bool) -> float:
+    if result == "1-0":
+        return 1.0 if is_white else 0.0
+    if result == "0-1":
+        return 0.0 if is_white else 1.0
+    return 0.5
+
+
+def _apply_finished_game_ratings(g: Game) -> None:
+    if not g.result:
+        return
+    if g.time_control_key in BLITZ_KEYS:
+        field = "blitz_rating"
+    elif g.time_control_key in RAPID_KEYS:
+        field = "rapid_rating"
+    else:
+        return
+    with SessionLocal() as db:
+        w = db.get(User, g.white_id)
+        b = db.get(User, g.black_id)
+        if not w or not b:
+            return
+        r_w = int(getattr(w, field) or 1500)
+        r_b = int(getattr(b, field) or 1500)
+        e_w = _expected_score(r_w, r_b)
+        e_b = _expected_score(r_b, r_w)
+        s_w = _score_from_result(g.result, True)
+        s_b = _score_from_result(g.result, False)
+        k = 20
+        setattr(w, field, max(100, int(round(r_w + k * (s_w - e_w)))))
+        setattr(b, field, max(100, int(round(r_b + k * (s_b - e_b)))))
+        w.games_played = int(w.games_played or 0) + 1
+        b.games_played = int(b.games_played or 0) + 1
         db.commit()
 
 
@@ -382,6 +430,32 @@ def mark_invite_finished_by_game(game_id: str) -> None:
         db.commit()
 
 
+def get_history_by_game_id_for_user(game_id: str, user_id: str) -> dict | None:
+    with SessionLocal() as db:
+        game = db.get(GameRecord, game_id)
+        if not game:
+            return None
+        if game.white_id != user_id and game.black_id != user_id:
+            return None
+        moves = (
+            db.query(GameMoveRecord)
+            .filter(GameMoveRecord.game_id == game.id)
+            .order_by(GameMoveRecord.ply.asc())
+            .all()
+        )
+        return {
+            "game_id": game.id,
+            "fen": game.fen,
+            "time_control": game.time_control_key,
+            "white_username": game.white_username,
+            "black_username": game.black_username,
+            "result": game.result,
+            "result_reason": game.result_reason,
+            "result_detail": game.result_detail,
+            "moves": [{"san": m.san, "time_ms": m.move_time_ms, "from": m.uci_from, "to": m.uci_to, "fen_after": m.fen_after} for m in moves],
+        }
+
+
 def get_history_by_invite_key(invite_key: str) -> dict | None:
     with SessionLocal() as db:
         inv = db.get(PrivateInviteRecord, invite_key)
@@ -464,6 +538,7 @@ def resign_game(game_id: str, user_id: str) -> dict | None:
     g.draw_offer_by = None
     _persist_game_state(g)
     mark_invite_finished_by_game(g.id)
+    _apply_finished_game_ratings(g)
     return {
         "fen": g.fen,
         "white_remaining_ms": g.white_remaining_ms,
@@ -615,6 +690,7 @@ def accept_draw_offer(game_id: str, user_id: str) -> dict | None:
     g.draw_offer_ply = None
     _persist_game_state(g)
     mark_invite_finished_by_game(g.id)
+    _apply_finished_game_ratings(g)
     return {
         "fen": g.fen,
         "white_remaining_ms": g.white_remaining_ms,
@@ -643,6 +719,7 @@ def forfeit_disconnected_player(game_id: str, disconnected_user_id: str) -> dict
     g.draw_offer_ply = None
     _persist_game_state(g)
     mark_invite_finished_by_game(g.id)
+    _apply_finished_game_ratings(g)
     return {
         "fen": g.fen,
         "white_remaining_ms": g.white_remaining_ms,
@@ -720,6 +797,7 @@ def apply_move(
     _persist_game_state(g, from_sq=from_sq, to_sq=to_sq, promotion=promotion, san=san, move_time_ms=move_time_ms)
     if g.result is not None:
         mark_invite_finished_by_game(g.id)
+        _apply_finished_game_ratings(g)
     uci = move.uci()
     return {
         "fen": g.fen,

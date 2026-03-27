@@ -26,6 +26,19 @@
     "disconnected_code": "Disconnected: code {code}{reasonPart}",
     "ws_error": "Connection error (WebSocket)"
   },
+  "login": {
+    "open": "Login",
+    "submit": "Save login",
+    "error": "Login registration error",
+    "second_session_denied": "Second concurrent login is blocked. Close your previous tab."
+  },
+  "profile": {
+    "open": "Profile",
+    "title": "Profile",
+    "anonymous": "Anonymous",
+    "summary": "User: {name} | Blitz: {blitz} | Rapid: {rapid} | Games: {games}",
+    "history_empty": "No games in history yet."
+  },
   "game": {
     "header": "Game",
     "moves": "Moves",
@@ -98,6 +111,7 @@
     "unavailable": "Stockfish unavailable in this browser."
   },
   "common": {
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "close": "Close"
   }
 }

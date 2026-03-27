@@ -110,6 +110,8 @@
   let privateWaitingState = null;
   let pingMs = null;
   let pingInterval = null;
+  let myTelegramId = 0;
+  let profileData = null;
 
   const $ = (id) => document.getElementById(id);
   const lobbyButtons = $('lobby-buttons');
@@ -131,6 +133,16 @@
   const btnClaimDraw = $('btn-claim-draw');
   const buildInfoEl = $('build-info');
   const btnPrivateGame = $('btn-private-game');
+  const btnProfile = $('btn-profile');
+  const btnLogin = $('btn-login');
+  const profileModalEl = $('profile-modal');
+  const profileTitleEl = $('profile-title');
+  const profileSummaryEl = $('profile-summary');
+  const profileHistoryEl = $('profile-history');
+  const loginFormWrapEl = $('login-form-wrap');
+  const loginInputEl = $('login-input');
+  const btnLoginSubmit = $('btn-login-submit');
+  const btnProfileClose = $('btn-profile-close');
   const privateWaitingPanelEl = $('private-waiting-panel');
   const privateWaitingTitleEl = $('private-waiting-title');
   const privateWaitingTextEl = $('private-waiting-text');
@@ -257,6 +269,11 @@
     if (btnDraw) btnDraw.textContent = t('game.draw_offer');
     if (btnClaimDraw) btnClaimDraw.textContent = t('game.claim_draw');
     if (btnPrivateGame) btnPrivateGame.textContent = t('lobby.private_game');
+    if (btnProfile) btnProfile.textContent = t('profile.open');
+    if (btnLogin) btnLogin.textContent = t('login.open');
+    if (profileTitleEl) profileTitleEl.textContent = t('profile.title');
+    if (btnLoginSubmit) btnLoginSubmit.textContent = t('login.submit');
+    if (btnProfileClose) btnProfileClose.textContent = t('common.close');
     if (privateWaitingTitleEl) privateWaitingTitleEl.textContent = t('lobby.private_room_title');
     if (btnPrivateTimeClose) btnPrivateTimeClose.textContent = t('common.cancel');
     if (btnResign && !resignConfirming) btnResign.textContent = t('game.resign');
@@ -295,6 +312,101 @@
     }
   }
 
+  function resolveTelegramId() {
+    try {
+      const tg = window.Telegram && window.Telegram.WebApp;
+      const uid = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
+      if (uid) return Number(uid) || 0;
+    } catch (e) {}
+    return 0;
+  }
+
+  async function loadProfile() {
+    const uid = myTelegramId || resolveTelegramId();
+    if (!uid) return null;
+    try {
+      const res = await fetch('/api/profile?telegram_id=' + encodeURIComponent(uid), { cache: 'no-store' });
+      if (!res.ok) return null;
+      profileData = await res.json();
+      if (btnLogin) btnLogin.style.display = profileData.is_anonymous ? '' : 'none';
+      return profileData;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function loadHistory() {
+    const uid = myTelegramId || resolveTelegramId();
+    if (!uid) return [];
+    try {
+      const res = await fetch('/api/history?telegram_id=' + encodeURIComponent(uid), { cache: 'no-store' });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.items || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function closeProfileModal() {
+    if (!profileModalEl) return;
+    profileModalEl.classList.remove('active');
+    profileModalEl.setAttribute('aria-hidden', 'true');
+  }
+
+  function openProfileModal() {
+    if (!profileModalEl) return;
+    const name = profileData && profileData.login_name ? profileData.login_name : t('profile.anonymous');
+    const blitz = profileData && profileData.blitz_rating != null ? profileData.blitz_rating : 1500;
+    const rapid = profileData && profileData.rapid_rating != null ? profileData.rapid_rating : 1500;
+    const games = profileData && profileData.games_played != null ? profileData.games_played : 0;
+    if (profileSummaryEl) profileSummaryEl.textContent = t('profile.summary', { name: name, blitz: blitz, rapid: rapid, games: games });
+    if (loginFormWrapEl) loginFormWrapEl.style.display = (profileData && !profileData.is_anonymous) ? 'none' : '';
+    if (profileHistoryEl) profileHistoryEl.textContent = '...';
+    profileModalEl.classList.add('active');
+    profileModalEl.setAttribute('aria-hidden', 'false');
+    loadHistory().then(function (items) {
+      if (!profileHistoryEl) return;
+      if (!items.length) {
+        profileHistoryEl.textContent = t('profile.history_empty');
+        return;
+      }
+      profileHistoryEl.innerHTML = items.map(function (it) {
+        const when = (it.created_at || '').slice(0, 19).replace('T', ' ');
+        return '<button type="button" class="mode-btn" data-history-game="' + it.game_id + '"><span>' +
+          (it.time_control || '') + ' · ' + (it.opponent || '') + '</span><span class="queue-count">' +
+          when + ' · ' + (it.result || '-') + '</span></button>';
+      }).join('');
+      profileHistoryEl.querySelectorAll('[data-history-game]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          const gameId = btn.getAttribute('data-history-game');
+          if (!gameId || !ws || ws.readyState !== WebSocket.OPEN) return;
+          ws.send(JSON.stringify({ type: 'open_game_history', game_id: gameId }));
+          closeProfileModal();
+        });
+      });
+    });
+  }
+
+  async function submitLoginName() {
+    if (!loginInputEl) return;
+    const loginName = (loginInputEl.value || '').trim();
+    if (!loginName) return;
+    const uid = myTelegramId || resolveTelegramId();
+    if (!uid) return;
+    const res = await fetch('/api/login/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telegram_id: uid, login_name: loginName }),
+    });
+    if (!res.ok) {
+      setWsStatus(t('login.error'), 'error');
+      return;
+    }
+    await loadProfile();
+    openProfileModal();
+  }
+
   function getInitData() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
       return window.Telegram.WebApp.initData;
@@ -304,7 +416,17 @@
 
   function getDebugUid() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) return undefined;
-    return Math.floor(Math.random() * 1e9);
+    try {
+      const key = 'phonechess_debug_uid';
+      let v = localStorage.getItem(key);
+      if (!v) {
+        v = String(Math.floor(Math.random() * 1e9));
+        localStorage.setItem(key, v);
+      }
+      return Number(v) || 1;
+    } catch (e) {
+      return 1;
+    }
   }
 
   function showScreen(id) {
@@ -1482,6 +1604,7 @@
           }
           renderLobbyButtons(msg.counts);
           setWsStatus(t('status.connected'), 'connected');
+          loadProfile();
           if (pendingStartInviteKey && ws && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: 'open_private_link', invite_key: pendingStartInviteKey }));
             pendingStartInviteKey = null;
@@ -1594,6 +1717,10 @@
         }, 1000);
         return;
       }
+      if (ev.code === 4009) {
+        setWsStatus(t('login.second_session_denied'), 'error');
+        return;
+      }
       var closeMsg = t('status.disconnected_code', { code: ev.code, reasonPart: ev.reason ? ' — ' + ev.reason : '' });
       setWsStatus(closeMsg, 'error');
       if (reconnectTimer) return;
@@ -1662,9 +1789,18 @@
   if (btnPrivateTimeClose) {
     btnPrivateTimeClose.addEventListener('click', closePrivateTimeModal);
   }
+  if (btnProfile) btnProfile.addEventListener('click', function () { openProfileModal(); });
+  if (btnLogin) btnLogin.addEventListener('click', function () { openProfileModal(); });
+  if (btnLoginSubmit) btnLoginSubmit.addEventListener('click', function () { submitLoginName(); });
+  if (btnProfileClose) btnProfileClose.addEventListener('click', function () { closeProfileModal(); });
   if (privateTimeModalEl) {
     privateTimeModalEl.addEventListener('click', function (e) {
       if (e.target === privateTimeModalEl) closePrivateTimeModal();
+    });
+  }
+  if (profileModalEl) {
+    profileModalEl.addEventListener('click', function (e) {
+      if (e.target === profileModalEl) closeProfileModal();
     });
   }
   if (btnClaimDraw) {
@@ -1723,11 +1859,13 @@
   });
 
   async function initApp() {
+    myTelegramId = resolveTelegramId();
     await loadI18n();
     document.documentElement.lang = currentLang;
     applyStaticTexts();
     renderLobbyButtons({});
     await loadBuildInfo();
+    await loadProfile();
     const sp = getStartParam();
     if (sp && sp.indexOf('private_') === 0) pendingStartInviteKey = sp.slice('private_'.length);
     connect();

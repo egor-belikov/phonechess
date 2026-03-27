@@ -177,3 +177,33 @@ From repo root:
 - Safety invariants preserved:
   - private invite key format and backend waiting-room/match activation lifecycle are unchanged;
   - invite consumption/validation still happens only on backend via `open_private_link`/`join_private_invite`.
+
+## Latest Iteration Details (2026-03-27: Logins & Profiles)
+
+- Scope:
+  - optional login/profile foundation with history and strict single active client policy.
+- Files changed:
+  - `backend/app/models.py`
+  - `backend/app/main.py`
+  - `backend/app/pairing.py`
+  - `backend/app/ws_handlers.py`
+  - `frontend/index.html`
+  - `frontend/styles/main.css`
+  - `frontend/app.js`
+  - `frontend/i18n/ru.json`
+  - `frontend/i18n/en.json`
+  - `AGENTS.md`
+- Behavior changes:
+  - added user profile fields: `is_anonymous`, `login_name`, `blitz_rating`, `rapid_rating`, `games_played`;
+  - added safe runtime schema update path for existing `users` table columns/defaults;
+  - added API endpoints:
+    - `GET /api/profile?telegram_id=...`
+    - `POST /api/login/register` (`telegram_id`, `login_name`, regexp validation + unique check)
+    - `GET /api/history?telegram_id=...`
+  - ratings and games played are updated automatically on game finish for blitz/rapid pools (Elo-like update);
+  - WS now rejects second concurrent active client for same `user_id` with explicit close reason (`4009`);
+  - frontend now has profile modal, optional login registration form, history list, and replay open from history;
+  - i18n keys added for login/profile UX and second-session denial message.
+- Safety invariants preserved:
+  - anonymous users can still play and create private invites;
+  - existing real-time game flow and private invite waiting-room lifecycle remain intact.

@@ -22,6 +22,10 @@
       <h1 class="title">PhoneChess</h1>
       <p class="subtitle">Выберите контроль времени</p>
       <div class="lobby-grid" id="lobby-buttons"></div>
+      <div class="lobby-tools">
+        <button type="button" id="btn-profile" class="btn-private-game">Профиль</button>
+        <button type="button" id="btn-login" class="btn-private-game">Войти</button>
+      </div>
       <button type="button" id="btn-private-game" class="btn-private-game">Приватная игра</button>
       <div id="private-waiting-panel" class="private-waiting-panel">
         <div id="private-waiting-title" class="private-waiting-title">Ожидание приватной игры</div>
@@ -34,6 +38,18 @@
         <div class="private-time-title">Приватная игра</div>
         <div id="private-time-grid" class="private-time-grid"></div>
         <button type="button" id="btn-private-time-close" class="btn-private-time-close">Cancel</button>
+      </div>
+    </div>
+    <div id="profile-modal" class="private-time-modal" aria-hidden="true">
+      <div class="private-time-card">
+        <div id="profile-title" class="private-time-title">Профиль</div>
+        <div id="profile-summary" class="private-waiting-text"></div>
+        <div id="login-form-wrap">
+          <input id="login-input" type="text" maxlength="20" placeholder="login_name" />
+          <button type="button" id="btn-login-submit" class="btn-private-time-close">Сохранить логин</button>
+        </div>
+        <div id="profile-history" class="move-list"></div>
+        <button type="button" id="btn-profile-close" class="btn-private-time-close">Закрыть</button>
       </div>
     </div>
 

@@ -26,6 +26,19 @@
     "disconnected_code": "Отключено: код {code}{reasonPart}",
     "ws_error": "Ошибка подключения (WebSocket)"
   },
+  "login": {
+    "open": "Войти",
+    "submit": "Сохранить логин",
+    "error": "Ошибка регистрации логина",
+    "second_session_denied": "Второй одновременный вход запрещен. Закройте прошлую вкладку."
+  },
+  "profile": {
+    "open": "Профиль",
+    "title": "Профиль",
+    "anonymous": "Аноним",
+    "summary": "Пользователь: {name} | Blitz: {blitz} | Rapid: {rapid} | Игр: {games}",
+    "history_empty": "История игр пуста."
+  },
   "game": {
     "header": "Игра",
     "moves": "Ходы",
@@ -98,6 +111,7 @@
     "unavailable": "Stockfish недоступен в этом браузере."
   },
   "common": {
-    "cancel": "Отмена"
+    "cancel": "Отмена",
+    "close": "Закрыть"
   }
 }
