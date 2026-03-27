@@ -649,8 +649,13 @@
           draggedSquare = null;
         });
         if (lastMove && (lastMove.from === sq || lastMove.to === sq)) div.classList.add('last-move');
-        const premoveFromIndex = premoveQueue.findIndex(function (pm) { return pm.from === sq; });
-        const premoveToIndex = premoveQueue.findIndex(function (pm) { return pm.to === sq; });
+        let premoveFromIndex = -1;
+        let premoveToIndex = -1;
+        for (let pmi = 0; pmi < premoveQueue.length; pmi++) {
+          const pm = premoveQueue[pmi];
+          if (pm.from === sq) premoveFromIndex = pmi;
+          if (pm.to === sq) premoveToIndex = pmi;
+        }
         if (premoveFromIndex !== -1) {
           div.classList.add('premove-from');
           div.style.setProperty('--premove-color', PREMOVE_COLORS[premoveFromIndex % PREMOVE_COLORS.length]);

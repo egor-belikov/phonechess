@@ -168,9 +168,8 @@ From repo root:
   - `frontend/app.js`
   - `AGENTS.md`
 - Behavior changes:
-  - frontend game-state resync cadence tightened to ~1s to keep clocks closely aligned across tabs/reconnect scenarios;
-  - additional forced resync on tab focus/visibility return to rapidly correct post-background drift;
-  - normal (in-turn) moves are now applied optimistically on client before server echo, reducing visible delay after piece drop while keeping backend as source of truth.
+  - premove marker numbering now reflects the latest queued step for repeated from/to squares (no stale early-step label reuse);
+  - fixes UI case where later premove step (e.g. #7) incorrectly displayed as earlier step (#3) on the same target square.
 - Safety invariants preserved:
   - backend remains the source of truth for move legality;
   - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.
