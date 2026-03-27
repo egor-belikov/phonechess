@@ -3,7 +3,9 @@ PhoneChess API и WebSocket.
 """
 import logging
 import re
+import time
 from pathlib import Path
+from collections import deque
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -95,6 +97,19 @@ def _shutdown_workers():
 
 
 LOGIN_RE = re.compile(r"^[A-Za-z0-9_.-]{1,20}$")
+_analysis_rate_window_sec = 5.0
+_analysis_rate_limit = 20
+_analysis_rate_by_client: dict[str, deque[float]] = {}
+
+
+def _check_analyze_rate_limit(client_key: str) -> None:
+    now = time.monotonic()
+    q = _analysis_rate_by_client.setdefault(client_key, deque())
+    while q and (now - q[0]) > _analysis_rate_window_sec:
+        q.popleft()
+    if len(q) >= _analysis_rate_limit:
+        raise HTTPException(status_code=429, detail="analyze_rate_limited")
+    q.append(now)
 
 
 @app.get("/api/profile")
@@ -170,10 +185,12 @@ def get_history(telegram_id: int, limit: int = 30):
 
 
 @app.get("/api/analyze")
-async def analyze_position(fen: str):
+async def analyze_position(request: Request, fen: str):
     fen = (fen or "").strip()
     if not fen:
         raise HTTPException(status_code=400, detail="fen_required")
+    client_host = request.client.host if request.client and request.client.host else "unknown"
+    _check_analyze_rate_limit(client_host)
     try:
         return await analyze_fen_light(fen)
     except Exception as e:

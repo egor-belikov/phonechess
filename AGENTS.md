@@ -337,3 +337,22 @@ From repo root:
 - Safety invariants preserved:
   - game flow and move validation are unchanged;
   - analysis endpoint is read-only and does not modify game state.
+
+## Latest Protection Update (2026-03-27: Analyze Rate Limit + Client Debounce)
+
+- Scope:
+  - protect server analysis endpoint from replay-scrub bursts and abusive request rates.
+- Files changed:
+  - `backend/app/main.py`
+  - `frontend/app.js`
+  - `AGENTS.md`
+- Behavior changes:
+  - `/api/analyze` now applies in-memory per-client rate limiting:
+    - window: 5 seconds
+    - limit: 20 requests per client host in window
+    - on exceed: HTTP `429` (`analyze_rate_limited`)
+  - frontend analysis requests are debounced (`~180ms`) while replay index changes quickly.
+  - analysis toggle-on now uses debounced scheduling path.
+- Safety invariants preserved:
+  - no changes to move validation, game state transitions, or rating logic;
+  - analysis remains read-only.

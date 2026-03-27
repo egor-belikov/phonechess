@@ -112,6 +112,7 @@
   let stockfishWorker = null;
   let analysisEnabled = false;
   let analysisRequestId = 0;
+  let analysisDebounceTimer = null;
   let privateWaitingState = null;
   let pingMs = null;
   let pingInterval = null;
@@ -775,7 +776,7 @@
       renderBoard();
       updateClocksDisplay();
       updateReplayControls();
-      if (analysisEnabled) analyzeCurrentPosition();
+      if (analysisEnabled) scheduleAnalysis();
     }
   }
 
@@ -857,9 +858,25 @@
       });
   }
 
+  function scheduleAnalysis() {
+    if (analysisDebounceTimer) {
+      clearTimeout(analysisDebounceTimer);
+      analysisDebounceTimer = null;
+    }
+    // Debounce replay scrubbing bursts to protect backend analysis endpoint.
+    analysisDebounceTimer = setTimeout(function () {
+      analysisDebounceTimer = null;
+      analyzeCurrentPosition();
+    }, 180);
+  }
+
   function stopAnalysis() {
     analysisEnabled = false;
     if (btnAnalysisToggle) btnAnalysisToggle.textContent = t('analysis.start');
+    if (analysisDebounceTimer) {
+      clearTimeout(analysisDebounceTimer);
+      analysisDebounceTimer = null;
+    }
     if (stockfishWorker) {
       try { stockfishWorker.postMessage('stop'); } catch (e) {}
     }
@@ -1916,7 +1933,7 @@
       if (!analysisEnabled) {
         stopAnalysis();
       } else {
-        analyzeCurrentPosition();
+        scheduleAnalysis();
       }
     });
   }
