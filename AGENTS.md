@@ -163,20 +163,24 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - private invite UX hotfix: replace native prompt with in-app time-control modal.
+  - private invite flow fix: add explicit waiting room for creator and guest before match start.
 - Files changed:
+  - `backend/app/pairing.py`
+  - `backend/app/ws_handlers.py`
   - `frontend/index.html`
   - `frontend/styles/main.css`
   - `frontend/app.js`
   - `frontend/i18n/en.json`
   - `frontend/i18n/ru.json`
-  - `frontend/i18n/*.json` (30-language set backfilled with `common.cancel`)
   - `AGENTS.md`
 - Behavior changes:
-  - clicking `Приватная игра` now opens an in-app overlay modal with the same time-control buttons as lobby grid;
-  - selecting a time control in modal immediately triggers private invite generation + Telegram share flow;
-  - modal supports explicit close button and backdrop click dismissal (no browser-native text input dialog);
-  - localized cancel label wired through shared i18n key `common.cancel`.
+  - private links no longer immediately launch game on first open while invite is pending;
+  - invite flow now has a waiting-room step (`private_invite_waiting`) for both sides:
+    - creator enters waiting room after invite creation;
+    - guest opening invite enters waiting room immediately;
+    - creator reopening own link also stays in waiting room;
+  - game starts only when waiting room contains creator + different invited user and both are online/in-room;
+  - lobby now renders an in-app waiting panel with role-specific status texts.
 - Safety invariants preserved:
-  - backend remains the source of truth for move legality;
-  - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.
+  - creator cannot self-start private game by opening their own link;
+  - private game still starts only through backend-validated pairing and emits regular `matched` payload to both players.

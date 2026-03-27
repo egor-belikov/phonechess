@@ -11,6 +11,11 @@
     "private_game": "Private game",
     "private_share_text": "Join my private PhoneChess game ({tc}): {link}",
     "private_waiting": "Private invite created. Waiting for opponent…",
+    "private_room_title": "Private game waiting room",
+    "private_room_creator_wait": "Room created. Share the link and wait for another player to join.",
+    "private_room_creator_ready": "Opponent opened the link. Waiting until both of you are in the room.",
+    "private_room_guest_wait": "You are in the waiting room. Waiting for the game creator.",
+    "private_room_guest_ready": "You are in the waiting room. Game starts when creator enters too.",
     "private_invalid": "Private invite is invalid.",
     "private_taken": "Private invite is already used."
   },

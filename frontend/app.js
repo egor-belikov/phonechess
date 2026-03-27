@@ -107,6 +107,7 @@
   let replayIndex = -1;
   let stockfishWorker = null;
   let analysisEnabled = false;
+  let privateWaitingState = null;
 
   const $ = (id) => document.getElementById(id);
   const lobbyButtons = $('lobby-buttons');
@@ -128,6 +129,9 @@
   const btnClaimDraw = $('btn-claim-draw');
   const buildInfoEl = $('build-info');
   const btnPrivateGame = $('btn-private-game');
+  const privateWaitingPanelEl = $('private-waiting-panel');
+  const privateWaitingTitleEl = $('private-waiting-title');
+  const privateWaitingTextEl = $('private-waiting-text');
   const privateTimeModalEl = $('private-time-modal');
   const privateTimeGridEl = $('private-time-grid');
   const btnPrivateTimeClose = $('btn-private-time-close');
@@ -234,6 +238,7 @@
     if (btnDraw) btnDraw.textContent = t('game.draw_offer');
     if (btnClaimDraw) btnClaimDraw.textContent = t('game.claim_draw');
     if (btnPrivateGame) btnPrivateGame.textContent = t('lobby.private_game');
+    if (privateWaitingTitleEl) privateWaitingTitleEl.textContent = t('lobby.private_room_title');
     if (btnPrivateTimeClose) btnPrivateTimeClose.textContent = t('common.cancel');
     if (btnResign && !resignConfirming) btnResign.textContent = t('game.resign');
     if (resultModalTitleEl) resultModalTitleEl.textContent = t('result.title');
@@ -291,6 +296,26 @@
     lobbyButtons.querySelectorAll('.mode-btn').forEach(btn => {
       btn.addEventListener('click', () => onModeClick(btn.dataset.time));
     });
+  }
+
+  function hidePrivateWaitingPanel() {
+    privateWaitingState = null;
+    if (!privateWaitingPanelEl) return;
+    privateWaitingPanelEl.classList.remove('active');
+  }
+
+  function showPrivateWaitingPanel(payload) {
+    privateWaitingState = payload || null;
+    if (!privateWaitingPanelEl || !privateWaitingTextEl) return;
+    const role = payload && payload.role === 'guest' ? 'guest' : 'creator';
+    const hasOpponent = !!(payload && payload.has_opponent);
+    privateWaitingPanelEl.classList.add('active');
+    if (privateWaitingTitleEl) privateWaitingTitleEl.textContent = t('lobby.private_room_title');
+    if (role === 'creator') {
+      privateWaitingTextEl.textContent = hasOpponent ? t('lobby.private_room_creator_ready') : t('lobby.private_room_creator_wait');
+    } else {
+      privateWaitingTextEl.textContent = hasOpponent ? t('lobby.private_room_guest_ready') : t('lobby.private_room_guest_wait');
+    }
   }
 
   function openPrivateTimeModal() {
@@ -416,6 +441,7 @@
     replayIndex = -1;
     stopAnalysis();
     updateReplayControls();
+    hidePrivateWaitingPanel();
     showScreen('lobby-screen');
   }
 
@@ -1337,6 +1363,7 @@
     updateReplayControls();
     console.log('[PhoneChess] enterGame', { game_id: msg.game_id, color: msg.color, hasFen: !!msg.fen });
     currentGameId = msg.game_id;
+    hidePrivateWaitingPanel();
     myColor = msg.color;
     gameFen = msg.fen;
     whiteRemainingMs = msg.white_remaining_ms != null ? msg.white_remaining_ms : 0;
@@ -1436,19 +1463,37 @@
         } else if (msg.type === 'private_invite_created') {
           const link = msg.invite_link || '';
           const text = t('lobby.private_share_text', { link: link, tc: msg.time_control || '' });
+          if (ws && ws.readyState === WebSocket.OPEN && msg.invite_key) {
+            ws.send(JSON.stringify({ type: 'open_private_link', invite_key: msg.invite_key }));
+          }
           try {
             const share = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(text);
             if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.openTelegramLink === 'function') {
               window.Telegram.WebApp.openTelegramLink(share);
             }
           } catch (e) {}
+        } else if (msg.type === 'private_invite_waiting') {
+          currentQueue = null;
+          showScreen('lobby-screen');
+          showPrivateWaitingPanel({
+            invite_key: msg.invite_key,
+            time_control: msg.time_control,
+            role: msg.role,
+            has_opponent: msg.has_opponent
+          });
+          setWsStatus(t('lobby.private_waiting'));
         } else if (msg.type === 'private_invite_pending') {
+          showScreen('lobby-screen');
+          showPrivateWaitingPanel({ role: 'creator', has_opponent: false });
           setWsStatus(t('lobby.private_waiting'));
         } else if (msg.type === 'private_invite_invalid') {
+          hidePrivateWaitingPanel();
           setWsStatus(t('lobby.private_invalid'), 'error');
         } else if (msg.type === 'private_invite_taken') {
+          hidePrivateWaitingPanel();
           setWsStatus(t('lobby.private_taken'), 'error');
         } else if (msg.type === 'private_game_history') {
+          hidePrivateWaitingPanel();
           enterReplayMode(msg);
         } else if (msg.type === 'opponent_connection') {
           if (msg.status === 'disconnected') {

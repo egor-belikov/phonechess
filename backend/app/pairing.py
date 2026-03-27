@@ -309,23 +309,68 @@ def join_private_invite(invite_key: str, user_id: str, telegram_id: int, usernam
         if inv.status != "pending":
             return {"status": "taken"}
         if inv.creator_user_id == user_id:
-            return {"status": "pending_wait"}
+            return {
+                "status": "pending_wait",
+                "invite_key": invite_key,
+                "creator_user_id": inv.creator_user_id,
+                "invited_user_id": inv.invited_user_id,
+                "time_control": inv.time_control_key,
+            }
+        if inv.invited_user_id and inv.invited_user_id != user_id:
+            return {"status": "taken"}
+        if not inv.invited_user_id:
+            inv.invited_user_id = user_id
+            inv.used_at = dt.datetime.utcnow()
+            db.commit()
+        return {
+            "status": "pending_wait",
+            "invite_key": invite_key,
+            "creator_user_id": inv.creator_user_id,
+            "invited_user_id": inv.invited_user_id,
+            "time_control": inv.time_control_key,
+        }
+
+
+def activate_private_invite(invite_key: str) -> dict | None:
+    with SessionLocal() as db:
+        inv = db.get(PrivateInviteRecord, invite_key)
+        if not inv:
+            return None
+        if inv.status == "active" and inv.game_id:
+            g = get_game(inv.game_id)
+            if g:
+                return {"status": "active", "game": g}
+            return None
+        if inv.status != "pending":
+            return None
+        if not inv.invited_user_id or inv.invited_user_id == inv.creator_user_id:
+            return None
         owner_user = db.get(User, inv.creator_user_id)
+        guest_user = db.get(User, inv.invited_user_id)
         creator_username = owner_user.username if owner_user else ""
         creator_tid = owner_user.telegram_id if owner_user else 0
-        opener = QueuedPlayer(user_id=user_id, telegram_id=telegram_id, username=username or "")
-        owner = QueuedPlayer(user_id=inv.creator_user_id, telegram_id=creator_tid, username=creator_username or f"user_{inv.creator_user_id[:8]}")
+        guest_username = guest_user.username if guest_user else ""
+        guest_tid = guest_user.telegram_id if guest_user else 0
+        owner = QueuedPlayer(
+            user_id=inv.creator_user_id,
+            telegram_id=creator_tid,
+            username=creator_username or f"user_{inv.creator_user_id[:8]}",
+        )
+        opener = QueuedPlayer(
+            user_id=inv.invited_user_id,
+            telegram_id=guest_tid,
+            username=guest_username or f"user_{inv.invited_user_id[:8]}",
+        )
         game = _create_game(inv.time_control_key, owner, opener)
         _games[game.id] = game
         _persist_game_created(game)
         inv.status = "active"
-        inv.invited_user_id = user_id
         inv.game_id = game.id
-        inv.used_at = dt.datetime.utcnow()
+        if inv.used_at is None:
+            inv.used_at = dt.datetime.utcnow()
         db.commit()
         _private_invites_mem[invite_key] = game.id
-        color = "white" if game.white_id == user_id else "black"
-        return {"status": "matched", "game": game, "invite_key": invite_key, "color": color}
+        return {"status": "matched", "game": game, "invite_key": invite_key}
 
 
 def mark_invite_finished_by_game(game_id: str) -> None:

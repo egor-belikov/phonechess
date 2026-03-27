@@ -34,6 +34,7 @@ from .pairing import (
     join_private_invite,
     get_history_by_invite_key,
     get_user_notification_target,
+    activate_private_invite,
 )
 from .ws_manager import manager
 from .telegram_bot import send_webapp_message
@@ -42,6 +43,7 @@ from .config import get_config
 logger = logging.getLogger(__name__)
 DISCONNECT_GRACE_SECONDS = 10
 _disconnect_tasks: dict[str, asyncio.Task] = {}
+_private_room_presence: dict[str, set[str]] = {}
 
 
 def _user_id(telegram_id: int) -> str:
@@ -138,7 +140,65 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
             await manager.send_to_user(user_id, {"type": "private_invite_taken"})
             return True
         if status == "pending_wait":
-            await manager.send_to_user(user_id, {"type": "private_invite_pending"})
+            invite_key = opened.get("invite_key") or invite_key
+            room_users = _private_room_presence.setdefault(invite_key, set())
+            room_users.add(user_id)
+            creator_id = opened.get("creator_user_id")
+            invited_id = opened.get("invited_user_id")
+            role = "creator" if user_id == creator_id else "guest"
+            await manager.send_to_user(
+                user_id,
+                {
+                    "type": "private_invite_waiting",
+                    "invite_key": invite_key,
+                    "time_control": opened.get("time_control"),
+                    "role": role,
+                    "has_opponent": bool(invited_id and invited_id != creator_id),
+                },
+            )
+            if creator_id and invited_id and creator_id != invited_id:
+                for uid in (creator_id, invited_id):
+                    await manager.send_to_user(
+                        uid,
+                        {
+                            "type": "private_invite_waiting",
+                            "invite_key": invite_key,
+                            "time_control": opened.get("time_control"),
+                            "role": "creator" if uid == creator_id else "guest",
+                            "has_opponent": True,
+                        },
+                    )
+            if (
+                creator_id
+                and invited_id
+                and creator_id != invited_id
+                and manager.has_user(creator_id)
+                and manager.has_user(invited_id)
+                and creator_id in room_users
+                and invited_id in room_users
+            ):
+                activated = activate_private_invite(invite_key)
+                if activated and activated.get("status") in ("matched", "active"):
+                    g = activated.get("game")
+                    if g:
+                        base = {
+                            "type": "matched",
+                            "game_id": g.id,
+                            "time_control": g.time_control_key,
+                            "fen": g.fen,
+                            "white_username": g.white_username,
+                            "black_username": g.black_username,
+                            "white_remaining_ms": g.white_remaining_ms,
+                            "black_remaining_ms": g.black_remaining_ms,
+                        }
+                        await manager.send_to_user(g.white_id, {**base, "color": "white"})
+                        await manager.send_to_user(g.black_id, {**base, "color": "black"})
+                        cfg = get_config()
+                        link = f"https://t.me/{cfg.bot_username}?startapp=private_{invite_key}" if cfg.bot_username else f"{cfg.telegram_webapp_url}?startapp=private_{invite_key}"
+                        for uid in (g.white_id, g.black_id):
+                            tid, started = get_user_notification_target(uid)
+                            if started and tid:
+                                send_webapp_message(tid, f"Приватная игра создана. Ссылка:\n{link}", link)
             return True
         if status == "history":
             history = get_history_by_invite_key(invite_key)
@@ -451,6 +511,12 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
         logger.exception("WS: error user_id=%s: %s", user_id, e)
     finally:
         if user_id:
+            for key in list(_private_room_presence.keys()):
+                users = _private_room_presence.get(key) or set()
+                if user_id in users:
+                    users.discard(user_id)
+                if not users:
+                    _private_room_presence.pop(key, None)
             is_last = manager.disconnect(user_id, ws)
             if not is_last:
                 logger.info("WS: user_id=%s still has active tabs", user_id)
