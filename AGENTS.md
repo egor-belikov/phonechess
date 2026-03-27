@@ -287,3 +287,30 @@ From repo root:
 - Safety invariants preserved:
   - base matchmaking, private-invite waiting room, and resign confirmation UX remain compatible with existing clients;
   - persistent DB entities for regular games remain unchanged.
+
+## Latest Engine Update (2026-03-27: UCI Stockfish Worker for Bot Mode)
+
+- Scope:
+  - switch bot mode from placeholder move picker to real UCI engine worker with weak Stockfish settings.
+- Files changed:
+  - `backend/app/uci_bot.py` (new)
+  - `backend/app/ws_handlers.py`
+  - `backend/app/main.py`
+  - `backend/app/config.py`
+  - `Dockerfile`
+  - `AGENTS.md`
+- Behavior changes:
+  - server now runs Stockfish as UCI subprocess for bot games;
+  - dedicated async worker path `pick_move_weak_uci(...)` is used for bot move selection;
+  - engine is configured to weakest practical level:
+    - `Skill Level = 0`
+    - `UCI_LimitStrength = true`
+    - `UCI_Elo = 1320`
+    - `Threads = 1`, `Hash = 16`
+  - bot still moves with fixed 1-second delay in WS flow;
+  - `STOCKFISH_PATH` config added (default `/usr/games/stockfish`);
+  - Docker image now installs `stockfish` package;
+  - app shutdown now gracefully closes UCI engine process.
+- Safety invariants preserved:
+  - if UCI engine fails, worker falls back to first legal move (no game flow break);
+  - bot games remain non-profile and non-rating.

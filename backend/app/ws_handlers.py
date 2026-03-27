@@ -44,6 +44,7 @@ from .pairing import (
 )
 from .ws_manager import manager
 from .telegram_bot import send_webapp_message, send_game_result_message
+from .uci_bot import pick_move_weak_uci
 from .config import get_config
 
 logger = logging.getLogger(__name__)
@@ -143,10 +144,10 @@ async def _run_bot_move(game_id: str) -> None:
         turn_uid = g.white_id if board.turn else g.black_id
         if turn_uid != g.bot_user_id:
             return
-        legal = list(board.legal_moves)
-        if not legal:
+        uci = await pick_move_weak_uci(g.fen)
+        if not uci:
             return
-        mv = legal[0]
+        mv = chess.Move.from_uci(uci)
         update = apply_move(game_id, g.bot_user_id, mv.uci()[:2], mv.uci()[2:4], mv.uci()[4:] if len(mv.uci()) > 4 else None, is_premove=False)
         if not update:
             return
@@ -525,7 +526,6 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                 }
                 await manager.send_to_user(g.white_id, payload)
                 await manager.send_to_user(g.black_id, payload)
-                _notify_game_finished_once(g, update.get("result_reason"), update.get("result_detail"))
         return True
     if t == "respond_draw":
         game_id = data.get("game_id")

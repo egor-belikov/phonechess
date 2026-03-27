@@ -10,6 +10,7 @@ def get_config():
         "bot_username": os.environ.get("TELEGRAM_BOT_USERNAME", ""),
         "telegram_webapp_url": os.environ.get("TELEGRAM_WEBAPP_URL", "https://chess.apichatpong.online/"),
         "database_url": os.environ.get("DATABASE_URL", "sqlite+pysqlite:///./phonechess.db"),
+        "stockfish_path": os.environ.get("STOCKFISH_PATH", "/usr/games/stockfish"),
         "debug": os.environ.get("DEBUG", "0").lower() in ("1", "true", "yes"),
         "allowed_origins": os.environ.get("ALLOWED_ORIGINS", "*").split(","),
     })()

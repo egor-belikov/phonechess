@@ -14,6 +14,7 @@ from .config import get_config
 from .db import Base, SessionLocal, engine
 from . import models  # noqa: F401
 from .telegram_bot import process_update
+from .uci_bot import shutdown_uci_bot
 from .ws_handlers import ws_auth_and_loop
 
 logging.basicConfig(
@@ -86,6 +87,11 @@ async def telegram_webhook(request: Request):
     if isinstance(data, dict):
         process_update(data)
     return {"ok": True}
+
+
+@app.on_event("shutdown")
+def _shutdown_workers():
+    shutdown_uci_bot()
 
 
 LOGIN_RE = re.compile(r"^[A-Za-z0-9_.-]{1,20}$")
