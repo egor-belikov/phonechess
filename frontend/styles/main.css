@@ -417,16 +417,16 @@ body.mobile-blocked #app {
 
 .promotion-choices {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  width: min(240px, 70%);
+  grid-template-columns: 1fr;
+  gap: 4px;
+  width: min(88px, 28%);
 }
 
 .promotion-choice {
   aspect-ratio: 1;
-  border: 1px solid rgba(208, 207, 204, 0.45);
-  border-radius: 10px;
-  background: rgba(47, 46, 43, 0.78);
+  border: 1px solid rgba(208, 207, 204, 0.38);
+  border-radius: 6px;
+  background: rgba(47, 46, 43, 0.58);
   position: relative;
   padding: 0;
 }

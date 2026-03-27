@@ -297,15 +297,6 @@
     return (board[coords.row] && board[coords.row][coords.col]) || null;
   }
 
-  function isPromotionMoveCandidate(fen, fromSq, toSq, color) {
-    const piece = getPieceAtSquareFromFen(fen, fromSq);
-    if (!piece || piece.toUpperCase() !== 'P') return false;
-    if (pieceColorFromFenLetter(piece) !== color) return false;
-    const toCoords = squareToBoardCoords(toSq);
-    if (!toCoords) return false;
-    return (color === 'white' && toCoords.row === 0) || (color === 'black' && toCoords.row === 7);
-  }
-
   function pseudoTargetsFromSquareForColor(fen, square, color) {
     const coords = squareToBoardCoords(square);
     if (!coords) return [];
@@ -588,89 +579,11 @@
     let fen = baseFen;
     for (let i = 0; i < premoveQueue.length; i++) {
       const pm = premoveQueue[i];
-      try {
-        const c = new Chess(fenForColorTurn(fen, myColor));
-        const moves = c.moves({ square: pm.from, verbose: true }) || [];
-        const move = moves.find(function (m) { return m.to === pm.to; });
-        if (!move) break;
-        const promotion = pm.promotion || (((move.flags || '').indexOf('p') !== -1) ? 'q' : undefined);
-        c.move({ from: pm.from, to: pm.to, promotion: promotion });
-        fen = c.fen();
-      } catch (e) {
-        break;
-      }
+      const pseudoTargets = pseudoTargetsFromSquareForColor(fen, pm.from, myColor);
+      if (pseudoTargets.indexOf(pm.to) === -1) break;
+      fen = applyPseudoMoveToFen(fen, pm.from, pm.to, myColor, pm.promotion || 'q');
     }
     return fen;
-  }
-
-  function squareToCoords(square) {
-    if (!square || square.length !== 2) return null;
-    const file = FILES.indexOf(square[0]);
-    const rank = parseInt(square[1], 10) - 1;
-    if (file < 0 || rank < 0 || rank > 7) return null;
-    return { file: file, rank: rank };
-  }
-
-  function coordsToSquare(file, rank) {
-    if (file < 0 || file > 7 || rank < 0 || rank > 7) return null;
-    return FILES[file] + String(rank + 1);
-  }
-
-  function pseudoTargetsFromSquareForColor(fen, square, color) {
-    try {
-      const c = new Chess(fenForColorTurn(fen, color));
-      const piece = c.get(square);
-      const colorShort = color === 'white' ? 'w' : 'b';
-      if (!piece || piece.color !== colorShort) return [];
-      const from = squareToCoords(square);
-      if (!from) return [];
-      const targets = [];
-      const push = function (f, r) {
-        const sq = coordsToSquare(f, r);
-        if (sq) targets.push(sq);
-      };
-      const ray = function (df, dr) {
-        let f = from.file + df;
-        let r = from.rank + dr;
-        while (f >= 0 && f <= 7 && r >= 0 && r <= 7) {
-          push(f, r);
-          f += df;
-          r += dr;
-        }
-      };
-
-      if (piece.type === 'n') {
-        [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]]
-          .forEach(function (d) { push(from.file + d[0], from.rank + d[1]); });
-      } else if (piece.type === 'k') {
-        [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
-          .forEach(function (d) { push(from.file + d[0], from.rank + d[1]); });
-        if (color === 'white' && square === 'e1') {
-          push(6, 0);
-          push(2, 0);
-        } else if (color === 'black' && square === 'e8') {
-          push(6, 7);
-          push(2, 7);
-        }
-      } else if (piece.type === 'b') {
-        ray(1, 1); ray(1, -1); ray(-1, 1); ray(-1, -1);
-      } else if (piece.type === 'r') {
-        ray(1, 0); ray(-1, 0); ray(0, 1); ray(0, -1);
-      } else if (piece.type === 'q') {
-        ray(1, 1); ray(1, -1); ray(-1, 1); ray(-1, -1);
-        ray(1, 0); ray(-1, 0); ray(0, 1); ray(0, -1);
-      } else if (piece.type === 'p') {
-        const forward = color === 'white' ? 1 : -1;
-        const startRank = color === 'white' ? 1 : 6;
-        push(from.file, from.rank + forward);
-        if (from.rank === startRank) push(from.file, from.rank + 2 * forward);
-        push(from.file - 1, from.rank + forward);
-        push(from.file + 1, from.rank + forward);
-      }
-      return Array.from(new Set(targets));
-    } catch (e) {
-      return [];
-    }
   }
 
   function getInputContext() {
@@ -722,7 +635,7 @@
     }
     pendingPromotionChoice = { from: fromSq, to: toSq, isPremove: isPremove };
     const white = myColor === 'white';
-    const options = ['q', 'r', 'b', 'n'];
+    const options = white ? ['q', 'r', 'b', 'n'] : ['n', 'b', 'r', 'q'];
     promotionChoicesEl.innerHTML = '';
     options.forEach(function (opt) {
       const cell = document.createElement('button');

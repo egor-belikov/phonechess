@@ -54,7 +54,7 @@ This file is the operational guide for AI agents working in `phonechess`.
   - final legality is still validated at execution time, and illegal first premove still clears full queue.
 - Pawn promotion UX:
   - for both regular moves and premoves, promotion no longer auto-queens immediately;
-  - when a pawn reaches last rank, a semi-transparent picker with `Q/R/B/N` appears and requires an extra tap;
+  - when a pawn reaches last rank, a semi-transparent board-overlay picker with figure cells (`Q/R/B/N`) appears and requires an extra tap;
   - tapping outside picker cancels promotion choice without sending/queuing a move.
 - Build info badge at bottom: `version + deployed_at`.
 - Pairing safety:
@@ -151,17 +151,14 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - frontend move-input and premove UX improvements for realistic premove planning and explicit promotion choice.
+  - frontend premove logic refinement for queued-position previews plus explicit pawn-promotion selection UX.
 - Files changed:
   - `frontend/app.js`
-  - `frontend/index.html`
   - `frontend/styles/main.css`
-  - `AGENTS.md`
 - Behavior changes:
-  - premove hints now include pseudo-legal targets by piece geometry from preview FEN;
-  - premove source piece detection now respects preview position after queued premoves;
-  - promotion flow requires explicit piece selection (queen/rook/bishop/knight) via overlay UI;
-  - same promotion selection logic is applied to normal moves and premoves.
+  - preview FEN for premove chains now advances by pseudo-legal moves, so chained premove piece positions remain visible/selectable even when current legal chess.js moves are unavailable;
+  - duplicate/legacy helper paths were removed to keep a single source of truth for premove target generation;
+  - promotion picker layout is compact single-column and uses side-aware piece order (`Q,R,B,N` for white; mirrored for black).
 - Safety invariants preserved:
   - backend remains the source of truth for move legality;
   - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.
