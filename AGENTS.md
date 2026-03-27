@@ -163,17 +163,14 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - websocket resiliency fixes for multi-tab + unstable network (VPN flaps), and clock resync hardening.
+  - stricter timer sync and move-input latency reduction on frontend.
 - Files changed:
-  - `backend/app/ws_manager.py`
-  - `backend/app/ws_handlers.py`
   - `frontend/app.js`
   - `AGENTS.md`
 - Behavior changes:
-  - server now supports multiple simultaneous websocket connections per user (adjacent tabs stay in one consistent game state instead of replacing each other);
-  - disconnect/offline handling now triggers only when last user tab disconnects; one tab closing no longer starts false disconnect-forfeit flow;
-  - frontend now performs periodic `subscribe_game` state sync every ~5s during active games and immediately after reconnect auth, reducing timer drift after VPN reconnects;
-  - opponent-disconnect banner countdown now decrements smoothly and stays aligned with server grace window updates.
+  - frontend game-state resync cadence tightened to ~1s to keep clocks closely aligned across tabs/reconnect scenarios;
+  - additional forced resync on tab focus/visibility return to rapidly correct post-background drift;
+  - normal (in-turn) moves are now applied optimistically on client before server echo, reducing visible delay after piece drop while keeping backend as source of truth.
 - Safety invariants preserved:
   - backend remains the source of truth for move legality;
   - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.

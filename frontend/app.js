@@ -35,6 +35,7 @@
   const TIME_CONTROLS = ['3+0', '3+2', '5+0', '5+3', '10+0', '15+10'];
   const FILES = 'abcdefgh';
   const PREMOVE_COLORS = ['#4f8cff', '#ff9f43', '#22c55e', '#e879f9', '#f43f5e', '#14b8a6'];
+  const STATE_RESYNC_MS = 1000;
   /** Один спрайт: Chess_Pieces_Sprite.svg (270×90), порядок K,Q,B,N,R,P; ряд 0=белые, 1=чёрные */
   const PIECE_SPRITE_URL = '/pieces/Chess_Pieces_Sprite.svg';
   const SPRITE_COL = { K: 0, Q: 1, B: 2, N: 3, R: 4, P: 5 };
@@ -379,12 +380,17 @@
       }
     }
     lastClockTick = now;
-    if (currentGameId && ws && ws.readyState === WebSocket.OPEN && now - lastStateSyncAt >= 5000) {
-      ws.send(JSON.stringify({ type: 'subscribe_game', game_id: currentGameId }));
-      lastStateSyncAt = now;
-    }
+    requestGameStateSync(now);
     updateGameAlert();
     updateClocksDisplay();
+  }
+
+  function requestGameStateSync(nowMs) {
+    const now = nowMs != null ? nowMs : Date.now();
+    if (!currentGameId || !ws || ws.readyState !== WebSocket.OPEN) return;
+    if (now - lastStateSyncAt < STATE_RESYNC_MS) return;
+    ws.send(JSON.stringify({ type: 'subscribe_game', game_id: currentGameId }));
+    lastStateSyncAt = now;
   }
 
   function startClockTicker() {
@@ -791,11 +797,32 @@
     if (isPremove) {
       queuePremove(fromSq, toSq, promotion);
     } else {
+      applyOptimisticLocalMove(fromSq, toSq, promotion);
       ws.send(JSON.stringify({ type: 'make_move', game_id: currentGameId, from: fromSq, to: toSq, promotion: promotion || null }));
     }
     selectedSquare = null;
     legalTargets = [];
     renderBoard();
+  }
+
+  function applyOptimisticLocalMove(fromSq, toSq, promotion) {
+    if (!gameFen || gameResult) return;
+    try {
+      const c = new Chess(gameFen);
+      const m = c.move({ from: fromSq, to: toSq, promotion: promotion || undefined });
+      if (!m) return;
+      const now = Date.now();
+      const elapsed = lastClockTick > 0 ? Math.max(0, now - lastClockTick) : 0;
+      if (myColor === 'white') {
+        whiteRemainingMs = Math.max(0, whiteRemainingMs - elapsed);
+      } else if (myColor === 'black') {
+        blackRemainingMs = Math.max(0, blackRemainingMs - elapsed);
+      }
+      gameFen = c.fen();
+      lastMove = { from: fromSq, to: toSq };
+      lastClockTick = now;
+      updateClocksDisplay();
+    } catch (e) {}
   }
 
   function showPromotionPicker(fromSq, toSq, isPremove) {
@@ -1075,8 +1102,7 @@
           renderLobbyButtons(msg.counts);
           setWsStatus('Подключено', 'connected');
           if (currentGameId && ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: 'subscribe_game', game_id: currentGameId }));
-            lastStateSyncAt = Date.now();
+            requestGameStateSync(0);
           }
         } else if (msg.type === 'matched') {
           currentQueue = null;
@@ -1211,6 +1237,12 @@
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
   }
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) requestGameStateSync(0);
+  });
+  window.addEventListener('focus', function () {
+    requestGameStateSync(0);
+  });
 
   renderLobbyButtons({});
   loadBuildInfo();
