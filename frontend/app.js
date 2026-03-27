@@ -185,11 +185,19 @@
   }
 
   function formatClock(ms) {
-    if (ms <= 0) return '0:00';
+    if (ms <= 0) return '0:00.000';
+    if (ms < 20000) {
+      const total = Math.max(0, Math.ceil(ms));
+      const m = Math.floor(total / 60000);
+      const sec = Math.floor((total % 60000) / 1000);
+      const milli = total % 1000;
+      const secStr = (sec < 10 ? '0' : '') + sec;
+      const msStr = String(milli).padStart(3, '0');
+      return m + ':' + secStr + '.' + msStr;
+    }
     const s = Math.ceil(ms / 1000);
     const m = Math.floor(s / 60);
     const sec = s % 60;
-    if (ms < 20000) return m + ':' + (sec < 10 ? '0' : '') + sec + '.' + Math.floor((ms % 1000) / 100);
     return m + ':' + (sec < 10 ? '0' : '') + sec;
   }
 
@@ -398,7 +406,7 @@
     if (clockInterval) clearInterval(clockInterval);
     lastClockTick = Date.now();
     updateClocksDisplay();
-    clockInterval = setInterval(tickClocks, 100);
+    clockInterval = setInterval(tickClocks, 33);
   }
 
   function parseFenPieces(fen) {
