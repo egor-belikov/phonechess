@@ -163,13 +163,16 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - timer presentation accuracy improvements for sub-20s phase.
+  - move-list time formatting refinement (compact with milliseconds).
 - Files changed:
   - `frontend/app.js`
   - `AGENTS.md`
 - Behavior changes:
-  - when remaining time is below 20 seconds, both clocks now render milliseconds in `m:ss.mmm` format (project-plan compliant);
-  - clock render ticker frequency increased (~30 FPS) to keep millisecond display smooth and visibly synchronized across both players.
+  - move list now renders per-move time in compact ms-aware format:
+    - `<1s`: `Nмс`
+    - `<1m`: `S.mmmс`
+    - `>=1m`: `M:SS.mmm`
+  - keeps notation short while preserving sub-second precision.
 - Safety invariants preserved:
   - backend remains the source of truth for move legality;
   - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.

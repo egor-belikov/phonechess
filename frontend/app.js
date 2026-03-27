@@ -999,14 +999,24 @@
 
   function renderMoveList() {
     if (!moveListEl) return;
+    function formatMoveDuration(ms) {
+      const total = Math.max(0, ms | 0);
+      const min = Math.floor(total / 60000);
+      const sec = Math.floor((total % 60000) / 1000);
+      const milli = total % 1000;
+      if (min > 0) {
+        return min + ':' + String(sec).padStart(2, '0') + '.' + String(milli).padStart(3, '0');
+      }
+      if (sec > 0) {
+        return sec + '.' + String(milli).padStart(3, '0') + 'с';
+      }
+      return milli + 'мс';
+    }
     let html = '';
     let num = 1;
     for (let i = 0; i < gameMoves.length; i++) {
       const m = gameMoves[i];
-      const t = Math.floor(m.time_ms / 1000);
-      const min = Math.floor(t / 60);
-      const sec = t % 60;
-      const timeStr = min + ':' + (sec < 10 ? '0' : '') + sec;
+      const timeStr = formatMoveDuration(m.time_ms);
       if (i % 2 === 0) html += '<span class="move-num">' + num++ + '.</span> ';
       html += m.san + ' <span class="move-time">(' + timeStr + ')</span> ';
     }
