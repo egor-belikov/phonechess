@@ -47,7 +47,16 @@
     "you_lose": "Ua lilo ʻoe.",
     "white_win": "Lanakila keokeo.",
     "black_win": "Lanakila 'ele'ele.",
-    "draw": "Kaha kiʻi."
+    "draw": "Kaha kiʻi.",
+    "title_win_by_color": "{color} lanakila",
+    "draw_title": "Kaha kiʻi",
+    "color_white": "Keʻokeʻo",
+    "color_black": "ʻeleʻele",
+    "win_by_time": "i ka manawa",
+    "win_by_checkmate": "by checkmate",
+    "win_by_resign": "ma ka haalele ana",
+    "win_generic": "pau ka pāʻani",
+    "draw_subtitle": "ma ka lula huki"
   },
   "reasons": {
     "checkmate": "hoa hoʻopaʻa.",

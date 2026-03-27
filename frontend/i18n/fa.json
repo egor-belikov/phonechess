@@ -4,7 +4,7 @@
     "unsupported": "تبلت ها و دسکتاپ پشتیبانی نمی شوند."
   },
   "lobby": {
-    "title": "شطرنج تلفنی",
+    "title": "PhoneChess",
     "subtitle": "کنترل زمان را انتخاب کنید",
     "queue_count_you": "{n} در صف (شما گنجانده اید)",
     "queue_count": "{n} در صف"
@@ -42,6 +42,15 @@
   },
   "result": {
     "title": "بازی تموم شد",
+    "title_win_by_color": "{color} برنده شد",
+    "draw_title": "قرعه کشی کنید",
+    "color_white": "سفید",
+    "color_black": "مشکی",
+    "win_by_time": "به موقع",
+    "win_by_checkmate": "با مات",
+    "win_by_resign": "با استعفا",
+    "win_generic": "بازی تمام شد",
+    "draw_subtitle": "با قانون قرعه کشی",
     "back_to_lobby": "بازگشت به لابی",
     "you_win": "تو بردی",
     "you_lose": "باختی",
@@ -51,7 +60,7 @@
   },
   "reasons": {
     "checkmate": "مات.",
-    "timeout": "تایم اوت",
+    "timeout": "به موقع برنده شوید",
     "stalemate": "بن بست.",
     "insufficient_material": "با مواد ناکافی بکشید.",
     "draw_agreement": "قرعه کشی با توافق",
@@ -69,6 +78,6 @@
   },
   "time": {
     "sec_short": "س",
-    "ms_short": "ms"
+    "ms_short": "ام‌اس"
   }
 }

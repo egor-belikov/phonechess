@@ -47,7 +47,16 @@
     "you_lose": "Та хожигдсон.",
     "white_win": "Цагаан ялна.",
     "black_win": "Хар ялна.",
-    "draw": "Зурах."
+    "draw": "Зурах.",
+    "title_win_by_color": "{color} хожсон",
+    "draw_title": "Зурах",
+    "color_white": "Цагаан",
+    "color_black": "Хар",
+    "win_by_time": "цагтаа",
+    "win_by_checkmate": "шалгах матаар",
+    "win_by_resign": "огцрох замаар",
+    "win_generic": "тоглоом дууслаа",
+    "draw_subtitle": "сугалах дүрмээр"
   },
   "reasons": {
     "checkmate": "Checkmate.",

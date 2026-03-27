@@ -4,7 +4,7 @@
     "unsupported": "Tahvelarvuteid ja lauaarvuteid ei toetata."
   },
   "lobby": {
-    "title": "Telefonimale",
+    "title": "PhoneChess",
     "subtitle": "Valige ajakontroll",
     "queue_count_you": "{n} järjekorras (teie kaasasite)",
     "queue_count": "{n} järjekorras"
@@ -42,6 +42,15 @@
   },
   "result": {
     "title": "Mäng lõppenud",
+    "title_win_by_color": "{color} võitis",
+    "draw_title": "Joonista",
+    "color_white": "Valge",
+    "color_black": "Must",
+    "win_by_time": "õigel ajal",
+    "win_by_checkmate": "matti järgi",
+    "win_by_resign": "tagasiastumisega",
+    "win_generic": "mäng läbi",
+    "draw_subtitle": "loosimise reegli järgi",
     "back_to_lobby": "Tagasi fuajeesse",
     "you_win": "Sa võitsid.",
     "you_lose": "Sa kaotasid.",
@@ -51,7 +60,7 @@
   },
   "reasons": {
     "checkmate": "Matt.",
-    "timeout": "Aeg läbi.",
+    "timeout": "Võida õigel ajal.",
     "stalemate": "Patiseis.",
     "insufficient_material": "Joonista ebapiisava materjali järgi.",
     "draw_agreement": "Joonista kokkuleppel.",

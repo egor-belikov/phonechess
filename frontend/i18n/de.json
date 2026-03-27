@@ -4,7 +4,7 @@
     "unsupported": "Tablets und Desktops werden nicht unterstützt."
   },
   "lobby": {
-    "title": "Telefonschach",
+    "title": "PhoneChess",
     "subtitle": "Wählen Sie Zeitkontrolle",
     "queue_count_you": "{n} in der Warteschlange (Sie eingeschlossen)",
     "queue_count": "{n} in der Warteschlange"
@@ -20,12 +20,12 @@
     "header": "Spiel",
     "moves": "Bewegt sich",
     "flip": "Flipboard",
-    "draw_offer": "Zeichnen?",
+    "draw_offer": "Ziehen?",
     "draw_offer_sent": "Auslosung angeboten",
     "claim_draw": "Anspruchsverlosung",
     "claim_threefold": "Schadenverlosung (3-fach)",
     "claim_fifty": "Anspruchsremis (50 Züge)",
-    "resign": "Rücktritt",
+    "resign": "Zurücktreten",
     "resign_confirm": "Rücktritt bestätigen?",
     "you_white": "Du (weiß)",
     "you_black": "Du (schwarz)",
@@ -35,23 +35,32 @@
     "black_name": "Schwarz",
     "white_won": "Weiß hat gewonnen",
     "black_won": "Schwarz hat gewonnen",
-    "draw": "Zeichnen",
+    "draw": "Ziehen",
     "draw_offer_waiting": "Verlosungsangebot gesendet und wartet auf Antwort.",
     "draw_offer_received": "Der Gegner bot ein Unentschieden an. Tippen Sie auf „Zeichnen?“ akzeptieren.",
     "opp_disconnected": "Verbindung zum Gegner getrennt. Warten auf erneute Verbindung ({sec}s)..."
   },
   "result": {
     "title": "Spiel beendet",
+    "title_win_by_color": "{color} hat gewonnen",
+    "draw_title": "Ziehen",
+    "color_white": "Weiß",
+    "color_black": "Schwarz",
+    "win_by_time": "rechtzeitig",
+    "win_by_checkmate": "durch Schachmatt",
+    "win_by_resign": "durch Rücktritt",
+    "win_generic": "Spiel vorbei",
+    "draw_subtitle": "nach Auslosungsregel",
     "back_to_lobby": "Zurück zur Lobby",
     "you_win": "Du hast gewonnen.",
     "you_lose": "Du hast verloren.",
     "white_win": "Weiß gewinnt.",
     "black_win": "Schwarz gewinnt.",
-    "draw": "Zeichnen."
+    "draw": "Ziehen."
   },
   "reasons": {
     "checkmate": "Schachmatt.",
-    "timeout": "Auszeit.",
+    "timeout": "Gewinnen Sie pünktlich.",
     "stalemate": "Patt.",
     "insufficient_material": "Zeichnen Sie durch unzureichendes Material.",
     "draw_agreement": "Auslosung nach Vereinbarung.",
@@ -68,7 +77,7 @@
     "unknown": "unbekannt"
   },
   "time": {
-    "sec_short": "s",
-    "ms_short": "Frau"
+    "sec_short": "S",
+    "ms_short": "MS"
   }
 }

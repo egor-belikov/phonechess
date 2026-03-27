@@ -47,7 +47,16 @@
     "you_lose": "Сен жоготтуң.",
     "white_win": "Ак жеңет.",
     "black_win": "Кара жеңет.",
-    "draw": "Тартуу."
+    "draw": "Тартуу.",
+    "title_win_by_color": "{color} утту",
+    "draw_title": "Тартуу",
+    "color_white": "Ак",
+    "color_black": "Кара",
+    "win_by_time": "убактысында келүү",
+    "win_by_checkmate": "мат боюнча",
+    "win_by_resign": "отставкага кетүү менен",
+    "win_generic": "ойун соңу",
+    "draw_subtitle": "тартуу эрежеси боюнча"
   },
   "reasons": {
     "checkmate": "Checkmate.",

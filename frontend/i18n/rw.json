@@ -47,7 +47,16 @@
     "you_lose": "You lost.",
     "white_win": "White wins.",
     "black_win": "Black wins.",
-    "draw": "Draw."
+    "draw": "Draw.",
+    "title_win_by_color": "{color} yatsinze",
+    "draw_title": "Shushanya",
+    "color_white": "Cyera",
+    "color_black": "Umukara",
+    "win_by_time": "ku gihe",
+    "win_by_checkmate": "na cheque",
+    "win_by_resign": "no kwegura",
+    "win_generic": "umukino urangiye",
+    "draw_subtitle": "gushushanya amategeko"
   },
   "reasons": {
     "checkmate": "Checkmate.",

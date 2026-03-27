@@ -163,14 +163,22 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - russian locale terminology rollback/fix after machine-translation artifacts.
+  - result modal redesign + endgame clock/disconnect UX refinement + i18n key expansion with locale backfill.
 - Files changed:
+  - `frontend/app.js`
+  - `frontend/index.html`
+  - `frontend/styles/main.css`
+  - `frontend/i18n/en.json`
   - `frontend/i18n/ru.json`
+  - `frontend/i18n/*.json` (all non-`en`/`ru` locales updated for new result keys)
   - `AGENTS.md`
 - Behavior changes:
-  - corrected RU UI strings for chess/tournament UX vocabulary (`Ничья?`, `Заявить ничью`, `Сдаться`, draw-reason labels).
-  - removed awkward machine-calque wording such as `претензионный розыгрыш`, `подать в отставку`, and `рисовать`.
-  - preserved existing i18n key structure and placeholders while restoring natural Russian wording.
+  - game result modal now renders winner header by composable i18n parts (`{color} won`) and separate subtitle (`on time`, `by checkmate`, etc.), rather than a single hardcoded sentence.
+  - modal card now receives winner-color visual accent (`white`/`black`/`draw`) while keeping existing app visual language.
+  - low-time clock formatting changed to chess-like tenths under 20s and exact `0:00` on flag fall; flagged clock gets dedicated red state.
+  - opponent-disconnect alert now uses debounce (~700ms) to prevent short reconnect flicker during transient network/VPN blips.
+  - RU locale normalized for chess terms (`Пат`, `Победа по времени`, `Победа по сдаче`), and EN+RU are treated as reference locales.
+  - auto-translation rerun for expanded result-key set: non-reference locales were refreshed/filled for new keys, preserving placeholders and key completeness.
 - Safety invariants preserved:
   - backend remains the source of truth for move legality;
   - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.

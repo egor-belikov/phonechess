@@ -47,7 +47,16 @@
     "you_lose": "awak kalah.",
     "white_win": "Putih menang.",
     "black_win": "Hitam menang.",
-    "draw": "Lukis."
+    "draw": "Lukis.",
+    "title_win_by_color": "{color} menang",
+    "draw_title": "Lukis",
+    "color_white": "putih",
+    "color_black": "Hitam",
+    "win_by_time": "menepati masa",
+    "win_by_checkmate": "oleh checkmate",
+    "win_by_resign": "dengan meletakkan jawatan",
+    "win_generic": "permainan tamat",
+    "draw_subtitle": "dengan peraturan cabutan"
   },
   "reasons": {
     "checkmate": "Checkmate.",

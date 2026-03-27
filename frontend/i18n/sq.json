@@ -47,7 +47,16 @@
     "you_lose": "Ke humbur.",
     "white_win": "E bardha fiton.",
     "black_win": "E zeza fiton.",
-    "draw": "Vizatoni."
+    "draw": "Vizatoni.",
+    "title_win_by_color": "{color} won",
+    "draw_title": "Draw",
+    "color_white": "White",
+    "color_black": "Black",
+    "win_by_time": "on time",
+    "win_by_checkmate": "by checkmate",
+    "win_by_resign": "by resignation",
+    "win_generic": "game over",
+    "draw_subtitle": "by draw rule"
   },
   "reasons": {
     "checkmate": "mat shah.",

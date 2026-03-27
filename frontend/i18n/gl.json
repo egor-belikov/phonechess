@@ -47,7 +47,16 @@
     "you_lose": "You lost.",
     "white_win": "White wins.",
     "black_win": "Black wins.",
-    "draw": "Draw."
+    "draw": "Draw.",
+    "title_win_by_color": "{color} gañou",
+    "draw_title": "Debuxa",
+    "color_white": "Branco",
+    "color_black": "Negro",
+    "win_by_time": "a tempo",
+    "win_by_checkmate": "por xaque mate",
+    "win_by_resign": "por dimisión",
+    "win_generic": "xogo rematado",
+    "draw_subtitle": "por regra de sorteo"
   },
   "reasons": {
     "checkmate": "Checkmate.",

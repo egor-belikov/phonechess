@@ -4,7 +4,7 @@
     "unsupported": "Nid yw tabledi a bwrdd gwaith yn cael eu cefnogi."
   },
   "lobby": {
-    "title": "FfônChess",
+    "title": "PhoneChess",
     "subtitle": "Dewiswch reolaeth amser",
     "queue_count_you": "_PH_0__ yn y ciw (rydych yn cynnwys)",
     "queue_count": "_PH_0__ mewn ciw"
@@ -42,6 +42,15 @@
   },
   "result": {
     "title": "Gêm wedi gorffen",
+    "title_win_by_color": "Enillodd _PH_0__",
+    "draw_title": "Tynnu llun",
+    "color_white": "Gwyn",
+    "color_black": "Du",
+    "win_by_time": "ar amser",
+    "win_by_checkmate": "gan checkmate",
+    "win_by_resign": "trwy ymddiswyddiad",
+    "win_generic": "gêm drosodd",
+    "draw_subtitle": "trwy reol tynnu",
     "back_to_lobby": "Yn ôl i lobi",
     "you_win": "Enilloch chi.",
     "you_lose": "Collasoch.",
@@ -51,7 +60,7 @@
   },
   "reasons": {
     "checkmate": "Checkmate.",
-    "timeout": "Amser allan.",
+    "timeout": "Ennill ar amser.",
     "stalemate": "Stalemate.",
     "insufficient_material": "Tynnu llun gan ddefnyddio deunydd annigonol.",
     "draw_agreement": "Tynnu llun trwy gytundeb.",

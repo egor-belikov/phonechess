@@ -47,7 +47,16 @@
     "you_lose": "You lost.",
     "white_win": "White wins.",
     "black_win": "Black wins.",
-    "draw": "Draw."
+    "draw": "Draw.",
+    "title_win_by_color": "{color} je pobijedio",
+    "draw_title": "Crtajte",
+    "color_white": "Bijela",
+    "color_black": "Crna",
+    "win_by_time": "na vrijeme",
+    "win_by_checkmate": "šah-matom",
+    "win_by_resign": "ostavkom",
+    "win_generic": "igra gotova",
+    "draw_subtitle": "po pravilu izvlačenja"
   },
   "reasons": {
     "checkmate": "Checkmate.",

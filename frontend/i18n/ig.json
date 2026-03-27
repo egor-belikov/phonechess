@@ -4,7 +4,7 @@
     "unsupported": "A naghị akwado mbadamba nkume na desktọpụ."
   },
   "lobby": {
-    "title": "Chess ekwentị",
+    "title": "PhoneChess",
     "subtitle": "Họrọ njikwa oge",
     "queue_count_you": "_PH_0__ nọ n'ahịrị (ịgụnyere)",
     "queue_count": "_PH_0__ nọ n'ahịrị"
@@ -47,7 +47,16 @@
     "you_lose": "I tufuru.",
     "white_win": "Ọcha na-emeri.",
     "black_win": "Oji na-emeri.",
-    "draw": "See."
+    "draw": "See.",
+    "title_win_by_color": "_PH_0__ meriri",
+    "draw_title": "See",
+    "color_white": "Ọcha",
+    "color_black": "Nwa",
+    "win_by_time": "n'oge",
+    "win_by_checkmate": "site checkmate",
+    "win_by_resign": "site na arụkwaghịm",
+    "win_generic": "ngwụcha egwuregwu",
+    "draw_subtitle": "site na ise iwu"
   },
   "reasons": {
     "checkmate": "Onye nyocha.",

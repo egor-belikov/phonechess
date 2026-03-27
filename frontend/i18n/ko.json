@@ -47,7 +47,16 @@
     "you_lose": "You lost.",
     "white_win": "White wins.",
     "black_win": "Black wins.",
-    "draw": "Draw."
+    "draw": "Draw.",
+    "title_win_by_color": "{color}원",
+    "draw_title": "그리다",
+    "color_white": "하얀색",
+    "color_black": "검은색",
+    "win_by_time": "정시에",
+    "win_by_checkmate": "장군에 의해",
+    "win_by_resign": "사임으로",
+    "win_generic": "게임 종료",
+    "draw_subtitle": "추첨 규칙에 따라"
   },
   "reasons": {
     "checkmate": "Checkmate.",

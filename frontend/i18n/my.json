@@ -47,7 +47,16 @@
     "you_lose": "မင်းရှုံးတယ်။",
     "white_win": "အဖြူက အနိုင်ရတယ်။",
     "black_win": "လူမည်းအနိုင်ရသည်။",
-    "draw": "ဆွဲသည်။"
+    "draw": "ဆွဲသည်။",
+    "title_win_by_color": "{color} အနိုင်ရခဲ့သည်။",
+    "draw_title": "ဆွဲသည်။",
+    "color_white": "အဖြူရောင်",
+    "color_black": "အနက်ရောင်",
+    "win_by_time": "အချိန်မှန်",
+    "win_by_checkmate": "checkmate အားဖြင့်",
+    "win_by_resign": "နုတ်ထွက်ခြင်းဖြင့်",
+    "win_generic": "ပြီးသွားပါပြီ",
+    "draw_subtitle": "ဆွဲနည်းအားဖြင့်"
   },
   "reasons": {
     "checkmate": "ကျားဖော်။",

@@ -47,7 +47,16 @@
     "you_lose": "Siz yutqazdingiz.",
     "white_win": "Oq g'alaba qozonadi.",
     "black_win": "Qora g'alaba qozonadi.",
-    "draw": "Chizish."
+    "draw": "Chizish.",
+    "title_win_by_color": "{color} won",
+    "draw_title": "Draw",
+    "color_white": "White",
+    "color_black": "Black",
+    "win_by_time": "on time",
+    "win_by_checkmate": "by checkmate",
+    "win_by_resign": "by resignation",
+    "win_generic": "game over",
+    "draw_subtitle": "by draw rule"
   },
   "reasons": {
     "checkmate": "Checkmate.",

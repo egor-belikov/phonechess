@@ -4,7 +4,7 @@
     "unsupported": "ტაბლეტები და დესკტოპი არ არის მხარდაჭერილი."
   },
   "lobby": {
-    "title": "ტელეფონი ჭადრაკი",
+    "title": "PhoneChess",
     "subtitle": "აირჩიეთ დროის კონტროლი",
     "queue_count_you": "{n} რიგში (თქვენ ჩართეთ)",
     "queue_count": "{n} რიგში"
@@ -47,7 +47,16 @@
     "you_lose": "შენ დაკარგე.",
     "white_win": "თეთრი იმარჯვებს.",
     "black_win": "შავი იმარჯვებს.",
-    "draw": "დახატე."
+    "draw": "დახატე.",
+    "title_win_by_color": "{color} მოიგო",
+    "draw_title": "დახატე",
+    "color_white": "თეთრი",
+    "color_black": "შავი",
+    "win_by_time": "დროზე",
+    "win_by_checkmate": "მატით",
+    "win_by_resign": "გადადგომით",
+    "win_generic": "თამაში დასრულდა",
+    "draw_subtitle": "გათამაშების წესით"
   },
   "reasons": {
     "checkmate": "მატე.",

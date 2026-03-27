@@ -4,7 +4,7 @@
     "unsupported": "Tablety i komputery stacjonarne nie są obsługiwane."
   },
   "lobby": {
-    "title": "TelefonSzachy",
+    "title": "PhoneChess",
     "subtitle": "Wybierz kontrolę czasu",
     "queue_count_you": "{n} w kolejce (włącznie z Tobą)",
     "queue_count": "{n} w kolejce"
@@ -47,7 +47,16 @@
     "you_lose": "Przegrałeś.",
     "white_win": "Białe wygrywają.",
     "black_win": "Czarny wygrywa.",
-    "draw": "Narysuj."
+    "draw": "Narysuj.",
+    "title_win_by_color": "{color} wygrał",
+    "draw_title": "Rysować",
+    "color_white": "Biały",
+    "color_black": "Czarny",
+    "win_by_time": "o czasie",
+    "win_by_checkmate": "przez mat",
+    "win_by_resign": "przez rezygnację",
+    "win_generic": "koniec gry",
+    "draw_subtitle": "według zasady losowania"
   },
   "reasons": {
     "checkmate": "Mat.",

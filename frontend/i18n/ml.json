@@ -4,7 +4,7 @@
     "unsupported": "ടാബ്‌ലെറ്റുകളും ഡെസ്‌ക്‌ടോപ്പും പിന്തുണയ്‌ക്കുന്നില്ല."
   },
   "lobby": {
-    "title": "ഫോൺചെസ്സ്",
+    "title": "PhoneChess",
     "subtitle": "സമയ നിയന്ത്രണം തിരഞ്ഞെടുക്കുക",
     "queue_count_you": "{n} ക്യൂവിലാണ് (നിങ്ങൾ ഉൾപ്പെടുന്നു)",
     "queue_count": "{n} ക്യൂവിലാണ്"
@@ -47,7 +47,16 @@
     "you_lose": "നീ തോറ്റു.",
     "white_win": "വെള്ള വിജയിക്കുന്നു.",
     "black_win": "കറുപ്പ് വിജയിക്കുന്നു.",
-    "draw": "വരയ്ക്കുക."
+    "draw": "വരയ്ക്കുക.",
+    "title_win_by_color": "{color} വിജയിച്ചു",
+    "draw_title": "വരയ്ക്കുക",
+    "color_white": "വെള്ള",
+    "color_black": "കറുപ്പ്",
+    "win_by_time": "സമയത്ത്",
+    "win_by_checkmate": "ചെക്ക്മേറ്റ് വഴി",
+    "win_by_resign": "രാജിയിലൂടെ",
+    "win_generic": "കളി കഴിഞ്ഞു",
+    "draw_subtitle": "സമനില നിയമം വഴി"
   },
   "reasons": {
     "checkmate": "ചെക്ക്മേറ്റ്.",

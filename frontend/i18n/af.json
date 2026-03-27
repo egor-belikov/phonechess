@@ -4,7 +4,7 @@
     "unsupported": "Tablette en rekenaars word nie ondersteun nie."
   },
   "lobby": {
-    "title": "TelefoonSkaak",
+    "title": "PhoneChess",
     "subtitle": "Kies tydbeheer",
     "queue_count_you": "{n} in tou (jy ingesluit)",
     "queue_count": "{n} in die ry"
@@ -42,6 +42,15 @@
   },
   "result": {
     "title": "Wedstryd klaar",
+    "title_win_by_color": "{color} het gewen",
+    "draw_title": "Teken",
+    "color_white": "Wit",
+    "color_black": "Swart",
+    "win_by_time": "betyds",
+    "win_by_checkmate": "met skaakmat",
+    "win_by_resign": "deur bedanking",
+    "win_generic": "spel verby",
+    "draw_subtitle": "deur trekreël",
     "back_to_lobby": "Terug na voorportaal",
     "you_win": "Jy het gewen.",
     "you_lose": "Jy het verloor.",
@@ -51,7 +60,7 @@
   },
   "reasons": {
     "checkmate": "Skaakmat.",
-    "timeout": "Tyd uit.",
+    "timeout": "Wen betyds.",
     "stalemate": "Dooiepunt.",
     "insufficient_material": "Teken deur onvoldoende materiaal.",
     "draw_agreement": "Trek volgens ooreenkoms.",

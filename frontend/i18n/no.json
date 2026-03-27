@@ -47,7 +47,16 @@
     "you_lose": "Du tapte.",
     "white_win": "Hvit vinner.",
     "black_win": "Svart vinner.",
-    "draw": "Tegn."
+    "draw": "Tegn.",
+    "title_win_by_color": "{color} vant",
+    "draw_title": "Tegne",
+    "color_white": "Hvit",
+    "color_black": "Svart",
+    "win_by_time": "i tide",
+    "win_by_checkmate": "med sjakkmatt",
+    "win_by_resign": "ved oppsigelse",
+    "win_generic": "spillet er over",
+    "draw_subtitle": "etter trekningsregel"
   },
   "reasons": {
     "checkmate": "Sjakkmatt.",

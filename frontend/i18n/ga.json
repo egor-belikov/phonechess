@@ -4,7 +4,7 @@
     "unsupported": "Ní thacaítear le táibléad agus deasc."
   },
   "lobby": {
-    "title": "Ficheall Fón",
+    "title": "PhoneChess",
     "subtitle": "Roghnaigh rialú ama",
     "queue_count_you": "_PH_0__ sa scuaine (tú san áireamh)",
     "queue_count": "_PH_0__ sa scuaine"
@@ -47,7 +47,16 @@
     "you_lose": "Chaill tú.",
     "white_win": "Bhuaigh bán.",
     "black_win": "Bhuaigh dubh.",
-    "draw": "Tarraingt."
+    "draw": "Tarraingt.",
+    "title_win_by_color": "Bhuaigh _PH_0__",
+    "draw_title": "Tarraingt",
+    "color_white": "Bán",
+    "color_black": "Dubh",
+    "win_by_time": "in am",
+    "win_by_checkmate": "ag seiceadóir",
+    "win_by_resign": "trí éirí as",
+    "win_generic": "cluiche thart",
+    "draw_subtitle": "de réir riail tarraingt"
   },
   "reasons": {
     "checkmate": "Seiceamair.",

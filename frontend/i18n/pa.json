@@ -47,7 +47,16 @@
     "you_lose": "ਤੁਸੀਂ ਹਾਰ ਗਏ ਹੋ।",
     "white_win": "ਚਿੱਟਾ ਜਿੱਤਦਾ ਹੈ।",
     "black_win": "ਕਾਲਾ ਜਿੱਤਦਾ ਹੈ।",
-    "draw": "ਡਰਾਅ."
+    "draw": "ਡਰਾਅ.",
+    "title_win_by_color": "{color} ਜਿੱਤਿਆ",
+    "draw_title": "ਡਰਾਅ",
+    "color_white": "ਚਿੱਟਾ",
+    "color_black": "ਕਾਲਾ",
+    "win_by_time": "ਸਮੇਂ ਤੇ",
+    "win_by_checkmate": "ਚੈਕਮੇਟ ਦੁਆਰਾ",
+    "win_by_resign": "ਅਸਤੀਫਾ ਦੇ ਕੇ",
+    "win_generic": "ਖੇਲ ਖਤਮ",
+    "draw_subtitle": "ਡਰਾਅ ਨਿਯਮ ਦੁਆਰਾ"
   },
   "reasons": {
     "checkmate": "ਚੈੱਕਮੇਟ",

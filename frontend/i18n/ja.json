@@ -47,7 +47,16 @@
     "you_lose": "You lost.",
     "white_win": "White wins.",
     "black_win": "Black wins.",
-    "draw": "Draw."
+    "draw": "Draw.",
+    "title_win_by_color": "{color}が勝ちました",
+    "draw_title": "描く",
+    "color_white": "白",
+    "color_black": "黒",
+    "win_by_time": "時間通りに",
+    "win_by_checkmate": "チェックメイトによって",
+    "win_by_resign": "辞任によって",
+    "win_generic": "ゲームオーバー",
+    "draw_subtitle": "抽選ルールにより"
   },
   "reasons": {
     "checkmate": "Checkmate.",

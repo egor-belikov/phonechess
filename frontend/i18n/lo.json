@@ -47,7 +47,16 @@
     "you_lose": "ເຈົ້າເສຍ.",
     "white_win": "ສີຂາວຊະນະ.",
     "black_win": "ສີດໍາຊະນະ.",
-    "draw": "ແຕ້ມ."
+    "draw": "ແຕ້ມ.",
+    "title_win_by_color": "{color} ຊະນະ",
+    "draw_title": "ແຕ້ມ",
+    "color_white": "ສີຂາວ",
+    "color_black": "ດຳ",
+    "win_by_time": "ຕາມເວລາ",
+    "win_by_checkmate": "ໂດຍ checkmate",
+    "win_by_resign": "ດ້ວຍການລາອອກ",
+    "win_generic": "ເກມຈົບ",
+    "draw_subtitle": "ໂດຍ​ກົດ​ລະ​ບຽບ​ແຕ້ມ​"
   },
   "reasons": {
     "checkmate": "ເພື່ອນຮ່ວມເພດ.",

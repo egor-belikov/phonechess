@@ -47,7 +47,16 @@
     "you_lose": "Сіз жеңілдіңіз.",
     "white_win": "Ақ жеңеді.",
     "black_win": "Қара жеңеді.",
-    "draw": "Сурет салу."
+    "draw": "Сурет салу.",
+    "title_win_by_color": "{color} жеңді",
+    "draw_title": "Сурет салу",
+    "color_white": "Ақ",
+    "color_black": "Қара",
+    "win_by_time": "уақытында",
+    "win_by_checkmate": "мат арқылы",
+    "win_by_resign": "отставкаға кету арқылы",
+    "win_generic": "ойын аяқталды",
+    "draw_subtitle": "жеребе ережесі бойынша"
   },
   "reasons": {
     "checkmate": "Шамат.",

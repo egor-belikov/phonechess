@@ -47,7 +47,16 @@
     "you_lose": "Mwataya.",
     "white_win": "White amapambana.",
     "black_win": "Wakuda amapambana.",
-    "draw": "Jambulani."
+    "draw": "Jambulani.",
+    "title_win_by_color": "_PH_0__ adapambana",
+    "draw_title": "Jambulani",
+    "color_white": "Choyera",
+    "color_black": "Wakuda",
+    "win_by_time": "panthawi yake",
+    "win_by_checkmate": "ndi checkmate",
+    "win_by_resign": "mwa kusiya ntchito",
+    "win_generic": "masewera atha",
+    "draw_subtitle": "ndi lamulo la draw"
   },
   "reasons": {
     "checkmate": "Checkmate.",

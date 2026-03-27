@@ -4,7 +4,7 @@
     "unsupported": "Allunan da tebur ba su da tallafi."
   },
   "lobby": {
-    "title": "Chess na waya",
+    "title": "PhoneChess",
     "subtitle": "Zaɓi sarrafa lokaci",
     "queue_count_you": "_PH_0__ a cikin layi (an haɗa ku)",
     "queue_count": "_PH_0__ a cikin layi"
@@ -47,7 +47,16 @@
     "you_lose": "Ka rasa.",
     "white_win": "Farin nasara.",
     "black_win": "Baki yayi nasara.",
-    "draw": "Zana"
+    "draw": "Zana",
+    "title_win_by_color": "_PH_0__ nasara",
+    "draw_title": "Zana",
+    "color_white": "Fari",
+    "color_black": "Baki",
+    "win_by_time": "akan lokaci",
+    "win_by_checkmate": "ta checkmate",
+    "win_by_resign": "ta murabus",
+    "win_generic": "wasan ya kare",
+    "draw_subtitle": "ta hanyar zana doka"
   },
   "reasons": {
     "checkmate": "Checkmate.",

@@ -42,6 +42,15 @@
   },
   "result": {
     "title": "انتهت اللعبة",
+    "title_win_by_color": "{color} فاز",
+    "draw_title": "يرسم",
+    "color_white": "أبيض",
+    "color_black": "أسود",
+    "win_by_time": "في الوقت المحدد",
+    "win_by_checkmate": "بواسطة كش ملك",
+    "win_by_resign": "بالاستقالة",
+    "win_generic": "انتهت اللعبة",
+    "draw_subtitle": "بواسطة قاعدة السحب",
     "back_to_lobby": "العودة إلى الردهة",
     "you_win": "لقد فزت.",
     "you_lose": "لقد خسرت.",
@@ -51,7 +60,7 @@
   },
   "reasons": {
     "checkmate": "مات.",
-    "timeout": "نفذ الوقت.",
+    "timeout": "الفوز في الوقت المحدد.",
     "stalemate": "الجمود.",
     "insufficient_material": "الرسم باستخدام مواد غير كافية.",
     "draw_agreement": "السحب بالاتفاق.",
@@ -68,7 +77,7 @@
     "unknown": "مجهول"
   },
   "time": {
-    "sec_short": "ث",
-    "ms_short": "مللي ث"
+    "sec_short": "ق",
+    "ms_short": "آنسة"
   }
 }

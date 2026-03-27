@@ -42,6 +42,15 @@
   },
   "result": {
     "title": "Игра завершена",
+    "title_win_by_color": "{color} победили",
+    "draw_title": "Ничья",
+    "color_white": "Белые",
+    "color_black": "Черные",
+    "win_by_time": "по времени",
+    "win_by_checkmate": "матом",
+    "win_by_resign": "по сдаче",
+    "win_generic": "партия завершена",
+    "draw_subtitle": "по правилам ничьей",
     "back_to_lobby": "Вернуться в лобби",
     "you_win": "Вы выиграли.",
     "you_lose": "Вы проиграли.",
@@ -51,8 +60,8 @@
   },
   "reasons": {
     "checkmate": "Мат.",
-    "timeout": "Тайм-аут.",
-    "stalemate": "Тупик.",
+    "timeout": "Победа по времени.",
+    "stalemate": "Пат.",
     "insufficient_material": "Ничья из-за недостаточного материала.",
     "draw_agreement": "Ничья по соглашению.",
     "draw_claim_threefold": "Ничья по заявлению: троекратное повторение.",
@@ -61,7 +70,7 @@
     "draw_auto_75move": "Автоматическая ничья: правило 75 ходов.",
     "disconnect_forfeit": "Противник отключился и не вернулся.",
     "disconnect_turn_timeout": "Противник не вернулся в течение 10 секунд после своего хода.",
-    "resign": "Победить по отставке."
+    "resign": "Победа по сдаче."
   },
   "build": {
     "label": "Версия: {version} · Развернуто: {deployedAt}",

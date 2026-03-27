@@ -47,7 +47,16 @@
     "you_lose": "You lost.",
     "white_win": "White wins.",
     "black_win": "Black wins.",
-    "draw": "Draw."
+    "draw": "Draw.",
+    "title_win_by_color": "{color} rebaħ",
+    "draw_title": "Iġbed",
+    "color_white": "Abjad",
+    "color_black": "Iswed",
+    "win_by_time": "fil-ħin",
+    "win_by_checkmate": "minn checkmate",
+    "win_by_resign": "b’riżenja",
+    "win_generic": "logħba spiċċat",
+    "draw_subtitle": "bir-regola tat-tlugħ"
   },
   "reasons": {
     "checkmate": "Checkmate.",

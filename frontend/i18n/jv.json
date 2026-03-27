@@ -47,7 +47,16 @@
     "you_lose": "You lost.",
     "white_win": "White wins.",
     "black_win": "Black wins.",
-    "draw": "Draw."
+    "draw": "Draw.",
+    "title_win_by_color": "{color} menang",
+    "draw_title": "Nggambar",
+    "color_white": "Putih",
+    "color_black": "ireng",
+    "win_by_time": "ing wektu",
+    "win_by_checkmate": "dening checkmate",
+    "win_by_resign": "kanthi mundur",
+    "win_generic": "game liwat",
+    "draw_subtitle": "dening aturan tarik"
   },
   "reasons": {
     "checkmate": "Checkmate.",

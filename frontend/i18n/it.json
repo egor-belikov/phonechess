@@ -4,7 +4,7 @@
     "unsupported": "Tablet e desktop non sono supportati."
   },
   "lobby": {
-    "title": "TelefonoChess",
+    "title": "PhoneChess",
     "subtitle": "Scegli il controllo del tempo",
     "queue_count_you": "{n} in coda (hai incluso)",
     "queue_count": "{n} in coda"
@@ -47,7 +47,16 @@
     "you_lose": "Hai perso.",
     "white_win": "Il bianco vince.",
     "black_win": "Il nero vince.",
-    "draw": "Disegna."
+    "draw": "Disegna.",
+    "title_win_by_color": "{color} ha vinto",
+    "draw_title": "Disegno",
+    "color_white": "Bianco",
+    "color_black": "Nero",
+    "win_by_time": "in tempo",
+    "win_by_checkmate": "per scacco matto",
+    "win_by_resign": "per dimissioni",
+    "win_generic": "game Over",
+    "draw_subtitle": "secondo la regola del pareggio"
   },
   "reasons": {
     "checkmate": "Scacco matto.",

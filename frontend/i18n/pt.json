@@ -47,7 +47,16 @@
     "you_lose": "Você perdeu.",
     "white_win": "As brancas vencem.",
     "black_win": "As pretas vencem.",
-    "draw": "Empate."
+    "draw": "Empate.",
+    "title_win_by_color": "{color} ganhou",
+    "draw_title": "Empate",
+    "color_white": "Branco",
+    "color_black": "Preto",
+    "win_by_time": "na hora certa",
+    "win_by_checkmate": "por xeque-mate",
+    "win_by_resign": "por demissão",
+    "win_generic": "game Over",
+    "draw_subtitle": "por regra de sorteio"
   },
   "reasons": {
     "checkmate": "Xeque-mate.",

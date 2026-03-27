@@ -4,7 +4,7 @@
     "unsupported": "Tablet dan desktop tidak didukung."
   },
   "lobby": {
-    "title": "TeleponCatur",
+    "title": "PhoneChess",
     "subtitle": "Pilih kontrol waktu",
     "queue_count_you": "{n} dalam antrian (termasuk Anda)",
     "queue_count": "{n} dalam antrian"
@@ -47,7 +47,16 @@
     "you_lose": "Anda kalah.",
     "white_win": "Putih menang.",
     "black_win": "Hitam menang.",
-    "draw": "Menggambar."
+    "draw": "Menggambar.",
+    "title_win_by_color": "{color} menang",
+    "draw_title": "Menggambar",
+    "color_white": "Putih",
+    "color_black": "Hitam",
+    "win_by_time": "tepat waktu",
+    "win_by_checkmate": "dengan skakmat",
+    "win_by_resign": "dengan mengundurkan diri",
+    "win_generic": "permainan berakhir",
+    "draw_subtitle": "dengan aturan undian"
   },
   "reasons": {
     "checkmate": "Skakmat.",

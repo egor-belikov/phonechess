@@ -17,7 +17,7 @@
     "ws_error": "Error de conexión (WebSocket)"
   },
   "game": {
-    "header": "juego",
+    "header": "Juego",
     "moves": "se mueve",
     "flip": "tablero giratorio",
     "draw_offer": "¿Dibujar?",
@@ -31,8 +31,8 @@
     "you_black": "tu (negro)",
     "opp_white": "oponente (blanco)",
     "opp_black": "oponente (negro)",
-    "white_name": "blanco",
-    "black_name": "negro",
+    "white_name": "Blanco",
+    "black_name": "Negro",
     "white_won": "Las blancas ganaron",
     "black_won": "las negras ganaron",
     "draw": "Dibujar",
@@ -42,6 +42,15 @@
   },
   "result": {
     "title": "Juego terminado",
+    "title_win_by_color": "{color} ganó",
+    "draw_title": "Dibujar",
+    "color_white": "Blanco",
+    "color_black": "Negro",
+    "win_by_time": "a tiempo",
+    "win_by_checkmate": "por jaque mate",
+    "win_by_resign": "por renuncia",
+    "win_generic": "juego terminado",
+    "draw_subtitle": "por regla de sorteo",
     "back_to_lobby": "Volver al lobby",
     "you_win": "Ganaste.",
     "you_lose": "Perdiste.",
@@ -50,8 +59,8 @@
     "draw": "Dibujar."
   },
   "reasons": {
-    "checkmate": "Jaque mate.",
-    "timeout": "Tiempo muerto.",
+    "checkmate": "Mate.",
+    "timeout": "Gana a tiempo.",
     "stalemate": "Estancamiento.",
     "insufficient_material": "Empate por material insuficiente.",
     "draw_agreement": "Sorteo por acuerdo.",
@@ -69,6 +78,6 @@
   },
   "time": {
     "sec_short": "s",
-    "ms_short": "ms"
+    "ms_short": "EM"
   }
 }

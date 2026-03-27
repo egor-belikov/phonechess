@@ -47,7 +47,16 @@
     "you_lose": "Dir hutt verluer.",
     "white_win": "Wäiss gewënnt.",
     "black_win": "Schwaarz gewënnt.",
-    "draw": "Zeechnen."
+    "draw": "Zeechnen.",
+    "title_win_by_color": "{color} gewonnen",
+    "draw_title": "Zeechnen",
+    "color_white": "Wäiss",
+    "color_black": "Schwaarz",
+    "win_by_time": "op Zäit",
+    "win_by_checkmate": "duerch Scheckmatt",
+    "win_by_resign": "duerch Demissioun",
+    "win_generic": "D'Spill asss eriwwer",
+    "draw_subtitle": "duerch Zeechnen Regel"
   },
   "reasons": {
     "checkmate": "Scheckmatt.",

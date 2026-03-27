@@ -47,7 +47,16 @@
     "you_lose": "You lost.",
     "white_win": "White wins.",
     "black_win": "Black wins.",
-    "draw": "Draw."
+    "draw": "Draw.",
+    "title_win_by_color": "{color} ଜିତିଲା |",
+    "draw_title": "ଅଙ୍କନ କର |",
+    "color_white": "ଧଳା |",
+    "color_black": "କଳା",
+    "win_by_time": "ଠିକ୍ ସମୟରେ",
+    "win_by_checkmate": "ଚେକମେଟ ଦ୍ୱାରା |",
+    "win_by_resign": "ଇସ୍ତଫା ଦ୍ .ାରା",
+    "win_generic": "ଖେଳ ସମାପ୍ତ",
+    "draw_subtitle": "ଡ୍ର ନିୟମ ଦ୍ୱାରା |"
   },
   "reasons": {
     "checkmate": "Checkmate.",

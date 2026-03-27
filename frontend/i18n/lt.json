@@ -47,7 +47,16 @@
     "you_lose": "You lost.",
     "white_win": "White wins.",
     "black_win": "Black wins.",
-    "draw": "Draw."
+    "draw": "Draw.",
+    "title_win_by_color": "{color} laimėjo",
+    "draw_title": "Lygiosios",
+    "color_white": "Baltas",
+    "color_black": "Juoda",
+    "win_by_time": "laiku",
+    "win_by_checkmate": "pagal šachmatą",
+    "win_by_resign": "atsistatydinimu",
+    "win_generic": "žaidimas baigtas",
+    "draw_subtitle": "pagal traukimo taisyklę"
   },
   "reasons": {
     "checkmate": "Checkmate.",

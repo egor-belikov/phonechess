@@ -42,6 +42,15 @@
   },
   "result": {
     "title": "খেলা শেষ",
+    "title_win_by_color": "{color} জিতেছে",
+    "draw_title": "আঁকা",
+    "color_white": "সাদা",
+    "color_black": "কালো",
+    "win_by_time": "সময়মত",
+    "win_by_checkmate": "চেকমেট দ্বারা",
+    "win_by_resign": "পদত্যাগের মাধ্যমে",
+    "win_generic": "খেলা শেষ",
+    "draw_subtitle": "ড্র নিয়ম দ্বারা",
     "back_to_lobby": "লবিতে ফিরে যান",
     "you_win": "তুমি জিতেছ।",
     "you_lose": "তুমি হেরেছ।",
@@ -51,7 +60,7 @@
   },
   "reasons": {
     "checkmate": "চেকমেট",
-    "timeout": "টাইম আউট।",
+    "timeout": "সময়মতো জিতুন।",
     "stalemate": "অচলাবস্থা।",
     "insufficient_material": "অপর্যাপ্ত উপাদান দ্বারা আঁকা.",
     "draw_agreement": "চুক্তি দ্বারা আঁকা.",
@@ -68,7 +77,7 @@
     "unknown": "অজানা"
   },
   "time": {
-    "sec_short": "সে",
-    "ms_short": "মি.সে."
+    "sec_short": "s",
+    "ms_short": "ms"
   }
 }

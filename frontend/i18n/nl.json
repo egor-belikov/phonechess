@@ -4,7 +4,7 @@
     "unsupported": "Tablets en desktops worden niet ondersteund."
   },
   "lobby": {
-    "title": "TelefoonSchaken",
+    "title": "PhoneChess",
     "subtitle": "Kies voor tijdcontrole",
     "queue_count_you": "{n} in wachtrij (jij hebt meegerekend)",
     "queue_count": "{n} in wachtrij"
@@ -47,7 +47,16 @@
     "you_lose": "Jij hebt verloren.",
     "white_win": "Wit wint.",
     "black_win": "Zwart wint.",
-    "draw": "Teken."
+    "draw": "Teken.",
+    "title_win_by_color": "{color} heeft gewonnen",
+    "draw_title": "Tekenen",
+    "color_white": "Wit",
+    "color_black": "Zwart",
+    "win_by_time": "op tijd",
+    "win_by_checkmate": "door schaakmat",
+    "win_by_resign": "door ontslag",
+    "win_generic": "spel voorbij",
+    "draw_subtitle": "volgens de trekkingsregel"
   },
   "reasons": {
     "checkmate": "Schaakmat.",

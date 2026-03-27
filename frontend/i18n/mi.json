@@ -47,7 +47,16 @@
     "you_lose": "You lost.",
     "white_win": "White wins.",
     "black_win": "Black wins.",
-    "draw": "Draw."
+    "draw": "Draw.",
+    "title_win_by_color": "{color} i toa",
+    "draw_title": "Tuhia",
+    "color_white": "Mā",
+    "color_black": "Pango",
+    "win_by_time": "i runga i te wa",
+    "win_by_checkmate": "na te takimate",
+    "win_by_resign": "ma te rihaina",
+    "win_generic": "kua mutu te keemu",
+    "draw_subtitle": "ma te ture tuhi"
   },
   "reasons": {
     "checkmate": "Checkmate.",

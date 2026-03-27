@@ -47,7 +47,16 @@
     "you_lose": "You lost.",
     "white_win": "White wins.",
     "black_win": "Black wins.",
-    "draw": "Draw."
+    "draw": "Draw.",
+    "title_win_by_color": "{color} ang nanalo",
+    "draw_title": "Gumuhit",
+    "color_white": "Puti",
+    "color_black": "Itim",
+    "win_by_time": "nasa oras",
+    "win_by_checkmate": "sa pamamagitan ng checkmate",
+    "win_by_resign": "sa pamamagitan ng pagbibitiw",
+    "win_generic": "tapos na ang laro",
+    "draw_subtitle": "sa pamamagitan ng panuntunan sa pagguhit"
   },
   "reasons": {
     "checkmate": "Checkmate.",

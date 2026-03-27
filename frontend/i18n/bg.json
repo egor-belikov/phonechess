@@ -1,74 +1,83 @@
 {
   "mobile": {
-    "open_on_phone": "Open the app on your smartphone in Telegram.",
-    "unsupported": "Tablets and desktop are not supported."
+    "open_on_phone": "Отворете приложението на вашия смартфон в Telegram.",
+    "unsupported": "Таблетите и настолните компютри не се поддържат."
   },
   "lobby": {
     "title": "PhoneChess",
-    "subtitle": "Choose time control",
-    "queue_count_you": "{n} in queue (you included)",
-    "queue_count": "{n} in queue"
+    "subtitle": "Изберете контрол на времето",
+    "queue_count_you": "{n} в опашка (включително вие)",
+    "queue_count": "{n} в опашката"
   },
   "status": {
-    "connecting": "Connecting to server…",
-    "connected": "Connected",
-    "reconnecting": "Reconnecting…",
-    "disconnected_code": "Disconnected: code {code}{reasonPart}",
-    "ws_error": "Connection error (WebSocket)"
+    "connecting": "Свързване към сървъра...",
+    "connected": "Свързан",
+    "reconnecting": "Повторно свързване...",
+    "disconnected_code": "Прекъсната връзка: код {code}{reasonPart}",
+    "ws_error": "Грешка при свързване (WebSocket)"
   },
   "game": {
-    "header": "Game",
-    "moves": "Moves",
-    "flip": "Flip board",
-    "draw_offer": "Draw?",
-    "draw_offer_sent": "Draw offered",
-    "claim_draw": "Claim draw",
-    "claim_threefold": "Claim draw (3-fold)",
-    "claim_fifty": "Claim draw (50-move)",
-    "resign": "Resign",
-    "resign_confirm": "Confirm resign?",
-    "you_white": "You (white)",
-    "you_black": "You (black)",
-    "opp_white": "Opponent (white)",
-    "opp_black": "Opponent (black)",
-    "white_name": "White",
-    "black_name": "Black",
-    "white_won": "White won",
-    "black_won": "Black won",
-    "draw": "Draw",
-    "draw_offer_waiting": "Draw offer sent and waiting for response.",
-    "draw_offer_received": "Opponent offered a draw. Tap \"Draw?\" to accept.",
-    "opp_disconnected": "Opponent disconnected. Waiting for reconnect ({sec}s)..."
+    "header": "Игра",
+    "moves": "се движи",
+    "flip": "Обръщаща се дъска",
+    "draw_offer": "Рисуване?",
+    "draw_offer_sent": "Предлага се равенство",
+    "claim_draw": "Теглене на искове",
+    "claim_threefold": "Изтегляне на иск (3 пъти)",
+    "claim_fifty": "Жребий (50 хода)",
+    "resign": "Подай си оставката",
+    "resign_confirm": "Потвърждаване на оставката?",
+    "you_white": "ти (бял)",
+    "you_black": "ти (черно)",
+    "opp_white": "Противник (бял)",
+    "opp_black": "Противник (черен)",
+    "white_name": "Бяло",
+    "black_name": "черен",
+    "white_won": "Белите спечелиха",
+    "black_won": "Черните спечелиха",
+    "draw": "Начертайте",
+    "draw_offer_waiting": "Офертата за теглене е изпратена и чака отговор.",
+    "draw_offer_received": "Съперникът предложи равенство. Докоснете „Начертаване?“ да приемам.",
+    "opp_disconnected": "Противникът прекъсна връзката. Изчаква се повторно свързване ({sec}s)..."
   },
   "result": {
-    "title": "Game finished",
-    "back_to_lobby": "Back to lobby",
-    "you_win": "You won.",
-    "you_lose": "You lost.",
-    "white_win": "White wins.",
-    "black_win": "Black wins.",
-    "draw": "Draw."
+    "title": "Играта приключи",
+    "title_win_by_color": "{color} спечели",
+    "draw_title": "Начертайте",
+    "color_white": "Бяло",
+    "color_black": "черен",
+    "win_by_time": "навреме",
+    "win_by_checkmate": "чрез мат",
+    "win_by_resign": "чрез оставка",
+    "win_generic": "играта приключи",
+    "draw_subtitle": "по правило за теглене",
+    "back_to_lobby": "Обратно към лобито",
+    "you_win": "Вие спечелихте.",
+    "you_lose": "Вие загубихте.",
+    "white_win": "Белите печелят.",
+    "black_win": "Черните печелят.",
+    "draw": "Начертайте."
   },
   "reasons": {
-    "checkmate": "Checkmate.",
-    "timeout": "Time out.",
-    "stalemate": "Stalemate.",
-    "insufficient_material": "Draw by insufficient material.",
-    "draw_agreement": "Draw by agreement.",
-    "draw_claim_threefold": "Draw claimed: threefold repetition.",
-    "draw_claim_fifty_move": "Draw claimed: 50-move rule.",
-    "draw_auto_fivefold": "Automatic draw: fivefold repetition.",
-    "draw_auto_75move": "Automatic draw: 75-move rule.",
-    "disconnect_forfeit": "Opponent disconnected and did not return.",
-    "disconnect_turn_timeout": "Opponent did not return within 10 seconds on their turn.",
-    "resign": "Win by resignation."
+    "checkmate": "Мат и шах.",
+    "timeout": "Печелете навреме.",
+    "stalemate": "Патова ситуация.",
+    "insufficient_material": "Рисувайте с недостатъчен материал.",
+    "draw_agreement": "Теглене по споразумение.",
+    "draw_claim_threefold": "Заявено равенство: трикратно повторение.",
+    "draw_claim_fifty_move": "Изискано равенство: правило за 50 хода.",
+    "draw_auto_fivefold": "Автоматично теглене: петкратно повторение.",
+    "draw_auto_75move": "Автоматично теглене: правило за 75 хода.",
+    "disconnect_forfeit": "Противникът прекъсна връзката и не се върна.",
+    "disconnect_turn_timeout": "Противникът не се върна в рамките на 10 секунди на свой ред.",
+    "resign": "Победа с оставка."
   },
   "build": {
-    "label": "Version: {version} · Deployed: {deployedAt}",
-    "unknown": "unknown"
+    "label": "Версия: {version} · Внедрено: {deployedAt}",
+    "unknown": "неизвестен"
   },
   "time": {
     "sec_short": "s",
-    "ms_short": "ms"
+    "ms_short": "г-жа"
   }
 }

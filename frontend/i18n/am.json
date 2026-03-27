@@ -1,74 +1,83 @@
 {
   "mobile": {
-    "open_on_phone": "Open the app on your smartphone in Telegram.",
-    "unsupported": "Tablets and desktop are not supported."
+    "open_on_phone": "መተግበሪያውን በቴሌግራም በስማርትፎንዎ ላይ ይክፈቱት።",
+    "unsupported": "ታብሌቶች እና ዴስክቶፕ አይደገፉም።"
   },
   "lobby": {
     "title": "PhoneChess",
-    "subtitle": "Choose time control",
-    "queue_count_you": "{n} in queue (you included)",
-    "queue_count": "{n} in queue"
+    "subtitle": "የጊዜ መቆጣጠሪያን ይምረጡ",
+    "queue_count_you": "_PH_0__ ወረፋ ላይ (እርስዎ ተካተዋል)",
+    "queue_count": "_PH_0__ ወረፋ ላይ"
   },
   "status": {
-    "connecting": "Connecting to server…",
-    "connected": "Connected",
-    "reconnecting": "Reconnecting…",
-    "disconnected_code": "Disconnected: code {code}{reasonPart}",
-    "ws_error": "Connection error (WebSocket)"
+    "connecting": "ከአገልጋይ ጋር በመገናኘት ላይ…",
+    "connected": "ተገናኝቷል።",
+    "reconnecting": "እንደገና በማገናኘት ላይ…",
+    "disconnected_code": "ግንኙነቱ ተቋርጧል፡ ኮድ _PH_0__{reasonPart}",
+    "ws_error": "የግንኙነት ስህተት (WebSocket)"
   },
   "game": {
-    "header": "Game",
-    "moves": "Moves",
-    "flip": "Flip board",
-    "draw_offer": "Draw?",
-    "draw_offer_sent": "Draw offered",
-    "claim_draw": "Claim draw",
-    "claim_threefold": "Claim draw (3-fold)",
-    "claim_fifty": "Claim draw (50-move)",
-    "resign": "Resign",
-    "resign_confirm": "Confirm resign?",
-    "you_white": "You (white)",
-    "you_black": "You (black)",
-    "opp_white": "Opponent (white)",
-    "opp_black": "Opponent (black)",
-    "white_name": "White",
-    "black_name": "Black",
-    "white_won": "White won",
-    "black_won": "Black won",
-    "draw": "Draw",
-    "draw_offer_waiting": "Draw offer sent and waiting for response.",
-    "draw_offer_received": "Opponent offered a draw. Tap \"Draw?\" to accept.",
-    "opp_disconnected": "Opponent disconnected. Waiting for reconnect ({sec}s)..."
+    "header": "ጨዋታ",
+    "moves": "ይንቀሳቀሳል",
+    "flip": "ሰሌዳውን ይግለጡ",
+    "draw_offer": "ይሳሉ?",
+    "draw_offer_sent": "ስዕል ቀርቧል",
+    "claim_draw": "የይገባኛል ጥያቄ አወጣ",
+    "claim_threefold": "የይገባኛል ጥያቄ አወጣ (3 ጊዜ)",
+    "claim_fifty": "የይገባኛል ጥያቄ አወጣ (50-እንቅስቃሴ)",
+    "resign": "ስራ መልቀቅ",
+    "resign_confirm": "ስራ መልቀቁን ያረጋግጡ?",
+    "you_white": "አንተ (ነጭ)",
+    "you_black": "አንተ (ጥቁር)",
+    "opp_white": "ተቃዋሚ (ነጭ)",
+    "opp_black": "ተቃዋሚ (ጥቁር)",
+    "white_name": "ነጭ",
+    "black_name": "ጥቁር",
+    "white_won": "ነጭ አሸንፏል",
+    "black_won": "ጥቁር አሸንፏል",
+    "draw": "ይሳሉ",
+    "draw_offer_waiting": "ቅናሹን ይሳሉ እና ምላሽ በመጠባበቅ ላይ።",
+    "draw_offer_received": "ተቃዋሚው አቻ ወጥቷል። \"መሳል?\" የሚለውን ይንኩ። ለመቀበል.",
+    "opp_disconnected": "ተቃዋሚ ተቋርጧል። ዳግም ለመገናኘት በመጠበቅ ላይ ({sec}s)..."
   },
   "result": {
-    "title": "Game finished",
-    "back_to_lobby": "Back to lobby",
-    "you_win": "You won.",
-    "you_lose": "You lost.",
-    "white_win": "White wins.",
-    "black_win": "Black wins.",
-    "draw": "Draw."
+    "title": "ጨዋታው ተጠናቀቀ",
+    "title_win_by_color": "_PH_0__ አሸንፏል",
+    "draw_title": "ይሳሉ",
+    "color_white": "ነጭ",
+    "color_black": "ጥቁር",
+    "win_by_time": "በጊዜው",
+    "win_by_checkmate": "በቼክ ባልደረባ",
+    "win_by_resign": "በመልቀቅ",
+    "win_generic": "አበቃለት",
+    "draw_subtitle": "በመሳል ደንብ",
+    "back_to_lobby": "ወደ ሎቢ ተመለስ",
+    "you_win": "አሸንፈሃል።",
+    "you_lose": "ተሸንፈሃል።",
+    "white_win": "ነጭ ያሸንፋል።",
+    "black_win": "ጥቁር ያሸንፋል።",
+    "draw": "ይሳሉ።"
   },
   "reasons": {
-    "checkmate": "Checkmate.",
-    "timeout": "Time out.",
-    "stalemate": "Stalemate.",
-    "insufficient_material": "Draw by insufficient material.",
-    "draw_agreement": "Draw by agreement.",
-    "draw_claim_threefold": "Draw claimed: threefold repetition.",
-    "draw_claim_fifty_move": "Draw claimed: 50-move rule.",
-    "draw_auto_fivefold": "Automatic draw: fivefold repetition.",
-    "draw_auto_75move": "Automatic draw: 75-move rule.",
-    "disconnect_forfeit": "Opponent disconnected and did not return.",
-    "disconnect_turn_timeout": "Opponent did not return within 10 seconds on their turn.",
-    "resign": "Win by resignation."
+    "checkmate": "አረጋጋጭ",
+    "timeout": "በጊዜ አሸንፉ።",
+    "stalemate": "አለመረጋጋት።",
+    "insufficient_material": "በቂ ባልሆነ ቁሳቁስ ይሳሉ።",
+    "draw_agreement": "በስምምነት ይሳሉ።",
+    "draw_claim_threefold": "የይገባኛል ጥያቄ ይሳሉ፡ ሶስት ጊዜ መደጋገም።",
+    "draw_claim_fifty_move": "የይገባኛል ጥያቄ ይሳሉ፡ 50-አንቀሳቅስ ህግ።",
+    "draw_auto_fivefold": "ራስ-ሰር ስዕል: አምስት እጥፍ ድግግሞሽ.",
+    "draw_auto_75move": "ራስ-ሰር ስዕል: 75-አንቀሳቅስ ደንብ.",
+    "disconnect_forfeit": "ተቃዋሚ ተቋርጧል እና አልተመለሰም።",
+    "disconnect_turn_timeout": "ተቃዋሚዎች በተራቸው በ10 ሰከንድ ውስጥ አልተመለሱም።",
+    "resign": "በመልቀቅ ያሸንፉ።"
   },
   "build": {
-    "label": "Version: {version} · Deployed: {deployedAt}",
-    "unknown": "unknown"
+    "label": "ስሪት፡ _PH_0__ · ተሰማርቷል፡ {deployedAt}",
+    "unknown": "የማይታወቅ"
   },
   "time": {
-    "sec_short": "s",
-    "ms_short": "ms"
+    "sec_short": "ኤስ",
+    "ms_short": "ወይዘሮ"
   }
 }

@@ -47,7 +47,16 @@
     "you_lose": "Very ianao.",
     "white_win": "White no nandresy.",
     "black_win": "Mandresy ny mainty.",
-    "draw": "manao sary."
+    "draw": "manao sary.",
+    "title_win_by_color": "{color} nandresy",
+    "draw_title": "Manaova",
+    "color_white": "White",
+    "color_black": "Mainty",
+    "win_by_time": "ara-potoana",
+    "win_by_checkmate": "avy amin'ny checkmate",
+    "win_by_resign": "amin’ny fametraham-pialana",
+    "win_generic": "tapitra ny lalao",
+    "draw_subtitle": "amin'ny fitsipiky ny fisarihana"
   },
   "reasons": {
     "checkmate": "Checkmate.",

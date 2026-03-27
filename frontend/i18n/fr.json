@@ -47,7 +47,16 @@
     "you_lose": "Vous avez perdu.",
     "white_win": "Les blancs gagnent.",
     "black_win": "Les noirs gagnent.",
-    "draw": "Dessine."
+    "draw": "Dessine.",
+    "title_win_by_color": "{color} a gagné",
+    "draw_title": "Dessiner",
+    "color_white": "Blanc",
+    "color_black": "Noir",
+    "win_by_time": "à l'heure",
+    "win_by_checkmate": "par échec et mat",
+    "win_by_resign": "par démission",
+    "win_generic": "jeu terminé",
+    "draw_subtitle": "par règle de tirage au sort"
   },
   "reasons": {
     "checkmate": "Échec et mat.",

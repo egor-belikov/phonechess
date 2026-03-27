@@ -4,7 +4,7 @@
     "unsupported": "ટેબ્લેટ્સ અને ડેસ્કટોપ સપોર્ટેડ નથી."
   },
   "lobby": {
-    "title": "ફોનચેસ",
+    "title": "PhoneChess",
     "subtitle": "સમય નિયંત્રણ પસંદ કરો",
     "queue_count_you": "{n} કતારમાં (તમે સમાવેલ છે)",
     "queue_count": "{n} કતારમાં છે"
@@ -47,7 +47,16 @@
     "you_lose": "તમે હારી ગયા.",
     "white_win": "સફેદ જીતે છે.",
     "black_win": "કાળો જીતે છે.",
-    "draw": "દોરો."
+    "draw": "દોરો.",
+    "title_win_by_color": "{color} જીત્યો",
+    "draw_title": "દોરો",
+    "color_white": "સફેદ",
+    "color_black": "કાળો",
+    "win_by_time": "સમયસર",
+    "win_by_checkmate": "ચેકમેટ દ્વારા",
+    "win_by_resign": "રાજીનામું દ્વારા",
+    "win_generic": "રમત સમાપ્ત",
+    "draw_subtitle": "ડ્રો નિયમ દ્વારા"
   },
   "reasons": {
     "checkmate": "ચેકમેટ.",

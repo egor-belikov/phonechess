@@ -102,6 +102,8 @@
   let drawOfferPly = null;
   let opponentDisconnected = false;
   let opponentDisconnectGraceSeconds = 0;
+  let opponentDisconnectedVisible = false;
+  let opponentDisconnectDebounceTimer = null;
   let lastStateSyncAt = 0;
   let currentLang = 'ru';
   let i18nMessages = {};
@@ -129,6 +131,7 @@
   const promotionChoicesEl = $('promotion-choices');
   const gameAlertEl = $('game-alert');
   const resultModalEl = $('result-modal');
+  const resultModalTitleEl = $('result-modal-title');
   const resultModalTextEl = $('result-modal-text');
   const btnResultLobby = $('btn-result-lobby');
 
@@ -199,7 +202,6 @@
     const mobileHint = document.querySelector('.mobile-only-hint');
     const subtitle = document.querySelector('#lobby-screen .subtitle');
     const movesHeader = document.querySelector('.moves-header');
-    const resultTitle = document.querySelector('.result-modal-title');
     if (mobileText) mobileText.textContent = t('mobile.open_on_phone');
     if (mobileHint) mobileHint.textContent = t('mobile.unsupported');
     if (subtitle) subtitle.textContent = t('lobby.subtitle');
@@ -208,7 +210,7 @@
     if (btnDraw) btnDraw.textContent = t('game.draw_offer');
     if (btnClaimDraw) btnClaimDraw.textContent = t('game.claim_draw');
     if (btnResign && !resignConfirming) btnResign.textContent = t('game.resign');
-    if (resultTitle) resultTitle.textContent = t('result.title');
+    if (resultModalTitleEl) resultModalTitleEl.textContent = t('result.title');
     if (btnResultLobby) btnResultLobby.textContent = t('result.back_to_lobby');
     if (gameInfo && !currentGameId) gameInfo.textContent = t('game.header');
     if (wsStatus && (!ws || ws.readyState !== WebSocket.OPEN)) setWsStatus(t('status.connecting'));
@@ -281,15 +283,14 @@
   }
 
   function formatClock(ms) {
-    if (ms <= 0) return '0:00.000';
+    if (ms <= 0) return '0:00';
     if (ms < 20000) {
       const total = Math.max(0, Math.ceil(ms));
       const m = Math.floor(total / 60000);
       const sec = Math.floor((total % 60000) / 1000);
-      const milli = total % 1000;
       const secStr = (sec < 10 ? '0' : '') + sec;
-      const msStr = String(milli).padStart(3, '0');
-      return m + ':' + secStr + '.' + msStr;
+      const tenth = Math.floor((total % 1000) / 100);
+      return m + ':' + secStr + '.' + tenth;
     }
     const s = Math.ceil(ms / 1000);
     const m = Math.floor(s / 60);
@@ -314,11 +315,13 @@
       clockTop.textContent = formatClock(topMs);
       clockTop.classList.toggle('low-time', topMs < 20000 && topMs > 0);
       clockTop.classList.toggle('opp-turn', topIsActive && !gameResult);
+      clockTop.classList.toggle('flagged', topMs <= 0);
     }
     if (clockBottom) {
       clockBottom.textContent = formatClock(bottomMs);
       clockBottom.classList.toggle('low-time', bottomMs < 20000 && bottomMs > 0);
       clockBottom.classList.toggle('our-turn', bottomIsActive && ourTurn && !gameResult);
+      clockBottom.classList.toggle('flagged', bottomMs <= 0);
     }
   }
 
@@ -326,6 +329,8 @@
     if (!resultModalEl) return;
     resultModalEl.classList.remove('active');
     resultModalEl.setAttribute('aria-hidden', 'true');
+    const card = resultModalEl.querySelector('.result-modal-card');
+    if (card) card.classList.remove('result-white', 'result-black', 'result-draw');
   }
 
   function goToLobbyFromGame() {
@@ -336,9 +341,37 @@
     drawOfferColor = null;
     drawOfferPly = null;
     opponentDisconnected = false;
+    opponentDisconnectedVisible = false;
     opponentDisconnectGraceSeconds = 0;
+    if (opponentDisconnectDebounceTimer) {
+      clearTimeout(opponentDisconnectDebounceTimer);
+      opponentDisconnectDebounceTimer = null;
+    }
     hideResultModal();
     showScreen('lobby-screen');
+  }
+
+  function resultWinnerColor() {
+    if (gameResult === '1-0') return 'white';
+    if (gameResult === '0-1') return 'black';
+    return null;
+  }
+
+  function resultTitleText() {
+    const winner = resultWinnerColor();
+    if (!winner) return t('result.draw_title');
+    const colorWord = winner === 'white' ? t('result.color_white') : t('result.color_black');
+    return t('result.title_win_by_color', { color: colorWord });
+  }
+
+  function resultSubtitleText() {
+    if (gameResult === '1/2-1/2') return t('result.draw_subtitle');
+    if (resultReason === 'timeout') return t('result.win_by_time');
+    if (resultReason === 'checkmate') return t('result.win_by_checkmate');
+    if (resultReason === 'resign') return t('result.win_by_resign');
+    const reason = resultReasonText();
+    if (reason) return reason;
+    return t('result.win_generic');
   }
 
   function resultReasonText() {
@@ -362,23 +395,21 @@
 
   function showResultModal() {
     if (!resultModalEl || !resultModalTextEl || !gameResult) return;
-    let base = gameResult === '1-0' ? t('result.white_win') : (gameResult === '0-1' ? t('result.black_win') : t('result.draw'));
-    if (myColor === 'white') {
-      if (gameResult === '1-0') base = t('result.you_win');
-      if (gameResult === '0-1') base = t('result.you_lose');
-    } else if (myColor === 'black') {
-      if (gameResult === '0-1') base = t('result.you_win');
-      if (gameResult === '1-0') base = t('result.you_lose');
+    if (resultModalTitleEl) resultModalTitleEl.textContent = resultTitleText();
+    resultModalTextEl.textContent = resultSubtitleText();
+    const card = resultModalEl.querySelector('.result-modal-card');
+    if (card) {
+      card.classList.remove('result-white', 'result-black', 'result-draw');
+      const winner = resultWinnerColor();
+      card.classList.add(winner ? ('result-' + winner) : 'result-draw');
     }
-    const reason = resultReasonText();
-    resultModalTextEl.textContent = reason ? (base + ' ' + reason) : base;
     resultModalEl.classList.add('active');
     resultModalEl.setAttribute('aria-hidden', 'false');
   }
 
   function updateGameAlert() {
     if (!gameAlertEl) return;
-    if (opponentDisconnected && !gameResult) {
+    if (opponentDisconnectedVisible && !gameResult) {
       const sec = Math.max(0, Math.ceil(opponentDisconnectGraceSeconds));
       gameAlertEl.textContent = t('game.opp_disconnected', { sec: sec });
       gameAlertEl.className = 'game-alert active warning';
@@ -1175,7 +1206,12 @@
     drawOfferColor = null;
     drawOfferPly = null;
     opponentDisconnected = false;
+    opponentDisconnectedVisible = false;
     opponentDisconnectGraceSeconds = 0;
+    if (opponentDisconnectDebounceTimer) {
+      clearTimeout(opponentDisconnectDebounceTimer);
+      opponentDisconnectDebounceTimer = null;
+    }
     lastStateSyncAt = 0;
     hidePromotionPicker();
     hideResultModal();
@@ -1249,9 +1285,21 @@
           if (msg.status === 'disconnected') {
             opponentDisconnected = true;
             opponentDisconnectGraceSeconds = msg.grace_seconds || 0;
+            if (opponentDisconnectDebounceTimer) clearTimeout(opponentDisconnectDebounceTimer);
+            opponentDisconnectDebounceTimer = setTimeout(function () {
+              if (opponentDisconnected) {
+                opponentDisconnectedVisible = true;
+                updateGameAlert();
+              }
+            }, 700);
           } else if (msg.status === 'reconnected') {
             opponentDisconnected = false;
+            opponentDisconnectedVisible = false;
             opponentDisconnectGraceSeconds = 0;
+            if (opponentDisconnectDebounceTimer) {
+              clearTimeout(opponentDisconnectDebounceTimer);
+              opponentDisconnectDebounceTimer = null;
+            }
           }
           updateGameAlert();
         }

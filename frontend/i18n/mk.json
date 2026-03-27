@@ -4,7 +4,7 @@
     "unsupported": "Таблетите и работната површина не се поддржани."
   },
   "lobby": {
-    "title": "Телефонски шах",
+    "title": "PhoneChess",
     "subtitle": "Изберете контрола на времето",
     "queue_count_you": "{n} во редот (вклучивте)",
     "queue_count": "{n} во редица"
@@ -47,7 +47,16 @@
     "you_lose": "Вие изгубивте.",
     "white_win": "Белата победи.",
     "black_win": "Црното победи.",
-    "draw": "Нацртај."
+    "draw": "Нацртај.",
+    "title_win_by_color": "{color} победи",
+    "draw_title": "Нацртај",
+    "color_white": "Бело",
+    "color_black": "Црното",
+    "win_by_time": "на време",
+    "win_by_checkmate": "со шах",
+    "win_by_resign": "со оставка",
+    "win_generic": "играта заврши",
+    "draw_subtitle": "по правило за ждрепка"
   },
   "reasons": {
     "checkmate": "Шах мат.",

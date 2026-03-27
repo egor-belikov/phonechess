@@ -47,7 +47,16 @@
     "you_lose": "तुम हार गए.",
     "white_win": "सफेद जीतता है.",
     "black_win": "ब्लैक जीतता है.",
-    "draw": "ड्रा."
+    "draw": "ड्रा.",
+    "title_win_by_color": "{color} जीता",
+    "draw_title": "खींचना",
+    "color_white": "सफ़ेद",
+    "color_black": "काला",
+    "win_by_time": "समय पर",
+    "win_by_checkmate": "चेकमेट द्वारा",
+    "win_by_resign": "इस्तीफे से",
+    "win_generic": "खेल खत्म",
+    "draw_subtitle": "ड्रा नियम द्वारा"
   },
   "reasons": {
     "checkmate": "शह और मात।",

@@ -4,7 +4,7 @@
     "unsupported": "Spjaldtölvur og skjáborð eru ekki studd."
   },
   "lobby": {
-    "title": "Símaskák",
+    "title": "PhoneChess",
     "subtitle": "Veldu tímastjórnun",
     "queue_count_you": "{n} í biðröð (þú innifalinn)",
     "queue_count": "{n} í biðröð"
@@ -47,7 +47,16 @@
     "you_lose": "Þú tapaðir.",
     "white_win": "Hvítur vinnur.",
     "black_win": "Svartur vinnur.",
-    "draw": "Jafntefli."
+    "draw": "Jafntefli.",
+    "title_win_by_color": "{color} vann",
+    "draw_title": "Jafntefli",
+    "color_white": "Hvítur",
+    "color_black": "Svartur",
+    "win_by_time": "á réttum tíma",
+    "win_by_checkmate": "með mát",
+    "win_by_resign": "með afsögn",
+    "win_generic": "leik lokið",
+    "draw_subtitle": "eftir jafnteflisreglu"
   },
   "reasons": {
     "checkmate": "Mát.",

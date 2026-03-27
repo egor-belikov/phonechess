@@ -47,7 +47,16 @@
     "you_lose": "Amisisti.",
     "white_win": "Alba vincit.",
     "black_win": "Niger vincit.",
-    "draw": "Trahunt."
+    "draw": "Trahunt.",
+    "title_win_by_color": "{color} vicimus",
+    "draw_title": "trahere",
+    "color_white": "White",
+    "color_black": "Niger",
+    "win_by_time": "in tempore",
+    "win_by_checkmate": "per chekmate",
+    "win_by_resign": "per renuntiationem",
+    "win_generic": "ludum in",
+    "draw_subtitle": "per ducatur regulae"
   },
   "reasons": {
     "checkmate": "Resignare.",

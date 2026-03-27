@@ -47,7 +47,16 @@
     "you_lose": "Ai pierdut.",
     "white_win": "Albul câștigă.",
     "black_win": "Negrul câștigă.",
-    "draw": "Desenați."
+    "draw": "Desenați.",
+    "title_win_by_color": "{color} a câștigat",
+    "draw_title": "Remiză",
+    "color_white": "Alb",
+    "color_black": "Negru",
+    "win_by_time": "la timp",
+    "win_by_checkmate": "prin șahmat",
+    "win_by_resign": "prin demisie",
+    "win_generic": "joc încheiat",
+    "draw_subtitle": "prin regula de tragere"
   },
   "reasons": {
     "checkmate": "șah mat.",

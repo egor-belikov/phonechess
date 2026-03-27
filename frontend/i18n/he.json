@@ -47,7 +47,16 @@
     "you_lose": "הפסדת.",
     "white_win": "לבן מנצח.",
     "black_win": "שחור מנצח.",
-    "draw": "צייר."
+    "draw": "צייר.",
+    "title_win_by_color": "{color} זכה",
+    "draw_title": "לִמְשׁוֹך",
+    "color_white": "לָבָן",
+    "color_black": "שָׁחוֹר",
+    "win_by_time": "בַּזְמַן",
+    "win_by_checkmate": "לפי שח-מט",
+    "win_by_resign": "על ידי התפטרות",
+    "win_generic": "המשחק נגמר",
+    "draw_subtitle": "לפי כלל תיקו"
   },
   "reasons": {
     "checkmate": "שחמט.",

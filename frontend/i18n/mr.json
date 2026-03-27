@@ -47,7 +47,16 @@
     "you_lose": "You lost.",
     "white_win": "White wins.",
     "black_win": "Black wins.",
-    "draw": "Draw."
+    "draw": "Draw.",
+    "title_win_by_color": "{color} जिंकले",
+    "draw_title": "काढा",
+    "color_white": "पांढरा",
+    "color_black": "काळा",
+    "win_by_time": "वेळेवर",
+    "win_by_checkmate": "चेकमेट द्वारे",
+    "win_by_resign": "राजीनामा देऊन",
+    "win_generic": "खेळ संपला",
+    "draw_subtitle": "ड्रॉ नियमानुसार"
   },
   "reasons": {
     "checkmate": "Checkmate.",

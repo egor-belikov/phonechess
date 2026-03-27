@@ -1,74 +1,83 @@
 {
   "mobile": {
-    "open_on_phone": "Open the app on your smartphone in Telegram.",
-    "unsupported": "Tablets and desktop are not supported."
+    "open_on_phone": "Адкрыйце праграму на смартфоне ў Telegram.",
+    "unsupported": "Планшэты і працоўны стол не падтрымліваюцца."
   },
   "lobby": {
     "title": "PhoneChess",
-    "subtitle": "Choose time control",
-    "queue_count_you": "{n} in queue (you included)",
-    "queue_count": "{n} in queue"
+    "subtitle": "Выберыце кантроль часу",
+    "queue_count_you": "{n} у чарзе (уключаючы вас)",
+    "queue_count": "{n} у чарзе"
   },
   "status": {
-    "connecting": "Connecting to server…",
-    "connected": "Connected",
-    "reconnecting": "Reconnecting…",
-    "disconnected_code": "Disconnected: code {code}{reasonPart}",
-    "ws_error": "Connection error (WebSocket)"
+    "connecting": "Падключэнне да сервера…",
+    "connected": "Падключана",
+    "reconnecting": "Паўторнае падключэнне...",
+    "disconnected_code": "Адключана: код {code}{reasonPart}",
+    "ws_error": "Памылка злучэння (WebSocket)"
   },
   "game": {
-    "header": "Game",
-    "moves": "Moves",
-    "flip": "Flip board",
-    "draw_offer": "Draw?",
-    "draw_offer_sent": "Draw offered",
-    "claim_draw": "Claim draw",
-    "claim_threefold": "Claim draw (3-fold)",
-    "claim_fifty": "Claim draw (50-move)",
-    "resign": "Resign",
-    "resign_confirm": "Confirm resign?",
-    "you_white": "You (white)",
-    "you_black": "You (black)",
-    "opp_white": "Opponent (white)",
-    "opp_black": "Opponent (black)",
-    "white_name": "White",
-    "black_name": "Black",
-    "white_won": "White won",
-    "black_won": "Black won",
-    "draw": "Draw",
-    "draw_offer_waiting": "Draw offer sent and waiting for response.",
-    "draw_offer_received": "Opponent offered a draw. Tap \"Draw?\" to accept.",
-    "opp_disconnected": "Opponent disconnected. Waiting for reconnect ({sec}s)..."
+    "header": "Гульня",
+    "moves": "Рухаецца",
+    "flip": "Адкідная дошка",
+    "draw_offer": "Маляваць?",
+    "draw_offer_sent": "Прапанавалі нічыю",
+    "claim_draw": "Жараб'ёўка",
+    "claim_threefold": "Жараб'ёўка (у 3 разы)",
+    "claim_fifty": "Жараб'ёўка (50 хадоў)",
+    "resign": "Падаць у адстаўку",
+    "resign_confirm": "Пацвердзіць адстаўку?",
+    "you_white": "Вы (белы)",
+    "you_black": "Вы (чорны)",
+    "opp_white": "Супернік (белы)",
+    "opp_black": "Супернік (чорны)",
+    "white_name": "Белы",
+    "black_name": "Чорны",
+    "white_won": "Перамаглі белыя",
+    "black_won": "Перамаглі чорныя",
+    "draw": "маляваць",
+    "draw_offer_waiting": "Прапанова розыгрышу адпраўлена і чакае адказу.",
+    "draw_offer_received": "Супернік прапанаваў нічыю. Націсніце \"Маляваць?\" прыняць.",
+    "opp_disconnected": "Апанент адключаны. Чаканне паўторнага злучэння ({sec}s)..."
   },
   "result": {
-    "title": "Game finished",
-    "back_to_lobby": "Back to lobby",
-    "you_win": "You won.",
-    "you_lose": "You lost.",
-    "white_win": "White wins.",
-    "black_win": "Black wins.",
-    "draw": "Draw."
+    "title": "Гульня скончана",
+    "title_win_by_color": "{color} перамог",
+    "draw_title": "маляваць",
+    "color_white": "Белы",
+    "color_black": "Чорны",
+    "win_by_time": "своечасова",
+    "win_by_checkmate": "матам",
+    "win_by_resign": "шляхам адстаўкі",
+    "win_generic": "гульня скончана",
+    "draw_subtitle": "па правілу розыгрышу",
+    "back_to_lobby": "Назад у лобі",
+    "you_win": "Вы выйгралі.",
+    "you_lose": "Вы прайгралі.",
+    "white_win": "Белыя перамагаюць.",
+    "black_win": "Перамагаюць чорныя.",
+    "draw": "маляваць."
   },
   "reasons": {
-    "checkmate": "Checkmate.",
-    "timeout": "Time out.",
-    "stalemate": "Stalemate.",
-    "insufficient_material": "Draw by insufficient material.",
-    "draw_agreement": "Draw by agreement.",
-    "draw_claim_threefold": "Draw claimed: threefold repetition.",
-    "draw_claim_fifty_move": "Draw claimed: 50-move rule.",
-    "draw_auto_fivefold": "Automatic draw: fivefold repetition.",
-    "draw_auto_75move": "Automatic draw: 75-move rule.",
-    "disconnect_forfeit": "Opponent disconnected and did not return.",
-    "disconnect_turn_timeout": "Opponent did not return within 10 seconds on their turn.",
-    "resign": "Win by resignation."
+    "checkmate": "Мат.",
+    "timeout": "Перамагчы своечасова.",
+    "stalemate": "Патавая сітуацыя.",
+    "insufficient_material": "Маляваць па недастатковым матэрыяле.",
+    "draw_agreement": "Розыгрыш па дамоўленасці.",
+    "draw_claim_threefold": "Нічыя заяўлена: трохразовае паўтарэнне.",
+    "draw_claim_fifty_move": "Заяўлена нічыя: правіла 50 хадоў.",
+    "draw_auto_fivefold": "Аўтаматычны розыгрыш: пяціразовы паўтор.",
+    "draw_auto_75move": "Аўтаматычная нічыя: правіла 75 хадоў.",
+    "disconnect_forfeit": "Супернік адключыўся і не вярнуўся.",
+    "disconnect_turn_timeout": "Супернік не вярнуўся на працягу 10 секунд у свой ход.",
+    "resign": "Перамагчы адстаўкай."
   },
   "build": {
-    "label": "Version: {version} · Deployed: {deployedAt}",
-    "unknown": "unknown"
+    "label": "Версія: {version} · Разгорнута: {deployedAt}",
+    "unknown": "невядома"
   },
   "time": {
-    "sec_short": "s",
-    "ms_short": "ms"
+    "sec_short": "с",
+    "ms_short": "мс"
   }
 }

@@ -47,7 +47,16 @@
     "you_lose": "تاسو له لاسه ورکړ.",
     "white_win": "سپینه وګټله.",
     "black_win": "تور وګټي.",
-    "draw": "رسم."
+    "draw": "رسم.",
+    "title_win_by_color": "{color} وګټله",
+    "draw_title": "رسم",
+    "color_white": "سپین",
+    "color_black": "تور",
+    "win_by_time": "په وخت",
+    "win_by_checkmate": "د چیک میټ لخوا",
+    "win_by_resign": "د استعفا په واسطه",
+    "win_generic": "د لوبې پای",
+    "draw_subtitle": "د رسم له مخې"
   },
   "reasons": {
     "checkmate": "چیک میټ",

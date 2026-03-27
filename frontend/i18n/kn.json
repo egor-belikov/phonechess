@@ -4,7 +4,7 @@
     "unsupported": "ಟ್ಯಾಬ್ಲೆಟ್‌ಗಳು ಮತ್ತು ಡೆಸ್ಕ್‌ಟಾಪ್ ಬೆಂಬಲಿಸುವುದಿಲ್ಲ."
   },
   "lobby": {
-    "title": "ಫೋನ್ ಚೆಸ್",
+    "title": "PhoneChess",
     "subtitle": "ಸಮಯ ನಿಯಂತ್ರಣವನ್ನು ಆರಿಸಿ",
     "queue_count_you": "ಸರದಿಯಲ್ಲಿ {n} (ನೀವು ಸೇರಿಸಿದ್ದೀರಿ)",
     "queue_count": "ಸರದಿಯಲ್ಲಿ {n}"
@@ -47,7 +47,16 @@
     "you_lose": "ನೀನು ಸೋತಿದ್ದೀಯ.",
     "white_win": "ಬಿಳಿ ಗೆಲ್ಲುತ್ತಾನೆ.",
     "black_win": "ಕಪ್ಪು ಗೆಲ್ಲುತ್ತಾನೆ.",
-    "draw": "ಎಳೆಯಿರಿ."
+    "draw": "ಎಳೆಯಿರಿ.",
+    "title_win_by_color": "{color} ಗೆದ್ದಿದ್ದಾರೆ",
+    "draw_title": "ಎಳೆಯಿರಿ",
+    "color_white": "ಬಿಳಿ",
+    "color_black": "ಕಪ್ಪು",
+    "win_by_time": "ಸಮಯಕ್ಕೆ",
+    "win_by_checkmate": "ಚೆಕ್ಮೇಟ್ ಮೂಲಕ",
+    "win_by_resign": "ರಾಜೀನಾಮೆ ಮೂಲಕ",
+    "win_generic": "ಆಟ ಮುಗಿದಿದೆ",
+    "draw_subtitle": "ಡ್ರಾ ನಿಯಮದ ಮೂಲಕ"
   },
   "reasons": {
     "checkmate": "ಚೆಕ್ಮೇಟ್.",

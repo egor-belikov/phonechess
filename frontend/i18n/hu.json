@@ -47,7 +47,16 @@
     "you_lose": "You lost.",
     "white_win": "White wins.",
     "black_win": "Black wins.",
-    "draw": "Draw."
+    "draw": "Draw.",
+    "title_win_by_color": "{color} nyert",
+    "draw_title": "Rajzolj",
+    "color_white": "Fehér",
+    "color_black": "Fekete",
+    "win_by_time": "időben",
+    "win_by_checkmate": "sakkmatt által",
+    "win_by_resign": "lemondással",
+    "win_generic": "játéknak vége",
+    "draw_subtitle": "sorsolási szabály szerint"
   },
   "reasons": {
     "checkmate": "Checkmate.",

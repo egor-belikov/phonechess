@@ -4,7 +4,7 @@
     "unsupported": "Պլանշետները և աշխատասեղանը չեն աջակցվում:"
   },
   "lobby": {
-    "title": "Հեռախոս Շախմատ",
+    "title": "PhoneChess",
     "subtitle": "Ընտրեք ժամանակի վերահսկում",
     "queue_count_you": "{n} հերթում (դուք ներառել եք)",
     "queue_count": "{n} հերթում"
@@ -47,7 +47,16 @@
     "you_lose": "Դու պարտվեցիր։",
     "white_win": "Սպիտակները հաղթում են.",
     "black_win": "Սևերը հաղթում են.",
-    "draw": "Ոչ ոքի."
+    "draw": "Ոչ ոքի.",
+    "title_win_by_color": "{color} հաղթեց",
+    "draw_title": "Ոչ ոքի",
+    "color_white": "Սպիտակ",
+    "color_black": "Սեւ",
+    "win_by_time": "ժամանակին",
+    "win_by_checkmate": "շախմատով",
+    "win_by_resign": "հրաժարականով",
+    "win_generic": "խաղն ավարտված է",
+    "draw_subtitle": "ոչ-ոքի կանոնով"
   },
   "reasons": {
     "checkmate": "Շախմատ.",

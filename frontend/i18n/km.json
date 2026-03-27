@@ -47,7 +47,16 @@
     "you_lose": "អ្នកចាញ់។",
     "white_win": "ពណ៌សឈ្នះ។",
     "black_win": "ខ្មៅឈ្នះ។",
-    "draw": "គូរ។"
+    "draw": "គូរ។",
+    "title_win_by_color": "{color} ឈ្នះ",
+    "draw_title": "គូរ",
+    "color_white": "ស",
+    "color_black": "ខ្មៅ",
+    "win_by_time": "ទាន់ពេល",
+    "win_by_checkmate": "ដោយ checkmate",
+    "win_by_resign": "ដោយការលាលែងពីតំណែង",
+    "win_generic": "ហ្គេមចប់",
+    "draw_subtitle": "ដោយច្បាប់គូរ"
   },
   "reasons": {
     "checkmate": "អ្នកត្រួតពិនិត្យ។",

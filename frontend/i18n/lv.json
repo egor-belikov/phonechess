@@ -4,7 +4,7 @@
     "unsupported": "Planšetdatori un galddatori netiek atbalstīti."
   },
   "lobby": {
-    "title": "Tālrunis šahs",
+    "title": "PhoneChess",
     "subtitle": "Izvēlieties laika kontroli",
     "queue_count_you": "{n} rindā (jūs iekļāvāt)",
     "queue_count": "{n} rindā"
@@ -47,7 +47,16 @@
     "you_lose": "Jūs zaudējāt.",
     "white_win": "Baltais uzvar.",
     "black_win": "Melnais uzvar.",
-    "draw": "Zīmēt."
+    "draw": "Zīmēt.",
+    "title_win_by_color": "{color} uzvarēja",
+    "draw_title": "Zīmēt",
+    "color_white": "Balts",
+    "color_black": "Melns",
+    "win_by_time": "laikā",
+    "win_by_checkmate": "ar mattu",
+    "win_by_resign": "ar atkāpšanos",
+    "win_generic": "spēle beigusies",
+    "draw_subtitle": "pēc izlozes likuma"
   },
   "reasons": {
     "checkmate": "Mats.",
