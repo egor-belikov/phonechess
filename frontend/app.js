@@ -81,6 +81,7 @@
   let touchDragFromSquare = null;
   let touchDragTargetSquare = null;
   let touchDragMoved = false;
+  let pendingPromotionChoice = null;
 
   const $ = (id) => document.getElementById(id);
   const lobbyButtons = $('lobby-buttons');
@@ -99,6 +100,8 @@
   const btnResign = $('btn-resign');
   const btnFlipBoard = $('btn-flip-board');
   const buildInfoEl = $('build-info');
+  const promotionPickerEl = $('promotion-picker');
+  const promotionChoicesEl = $('promotion-choices');
 
   async function loadBuildInfo() {
     if (!buildInfoEl) return;
@@ -244,6 +247,165 @@
     return board;
   }
 
+  function boardToFenPlacement(board) {
+    const rows = [];
+    for (let r = 0; r < 8; r++) {
+      let row = '';
+      let empties = 0;
+      for (let c = 0; c < 8; c++) {
+        const p = board[r] && board[r][c];
+        if (!p) {
+          empties++;
+        } else {
+          if (empties > 0) row += String(empties);
+          empties = 0;
+          row += p;
+        }
+      }
+      if (empties > 0) row += String(empties);
+      rows.push(row);
+    }
+    return rows.join('/');
+  }
+
+  function squareToBoardCoords(square) {
+    if (!square || square.length < 2) return null;
+    const file = FILES.indexOf(square[0]);
+    const rank = parseInt(square[1], 10);
+    if (file < 0 || rank < 1 || rank > 8) return null;
+    return { row: 8 - rank, col: file };
+  }
+
+  function boardCoordsToSquare(row, col) {
+    if (row < 0 || row > 7 || col < 0 || col > 7) return null;
+    return FILES[col] + (8 - row);
+  }
+
+  function inBoard(row, col) {
+    return row >= 0 && row < 8 && col >= 0 && col < 8;
+  }
+
+  function pieceColorFromFenLetter(letter) {
+    if (!letter) return null;
+    return letter === letter.toUpperCase() ? 'white' : 'black';
+  }
+
+  function getPieceAtSquareFromFen(fen, square) {
+    const coords = squareToBoardCoords(square);
+    if (!coords) return null;
+    const board = parseFenPieces(fen);
+    return (board[coords.row] && board[coords.row][coords.col]) || null;
+  }
+
+  function isPromotionMoveCandidate(fen, fromSq, toSq, color) {
+    const piece = getPieceAtSquareFromFen(fen, fromSq);
+    if (!piece || piece.toUpperCase() !== 'P') return false;
+    if (pieceColorFromFenLetter(piece) !== color) return false;
+    const toCoords = squareToBoardCoords(toSq);
+    if (!toCoords) return false;
+    return (color === 'white' && toCoords.row === 0) || (color === 'black' && toCoords.row === 7);
+  }
+
+  function pseudoTargetsFromSquareForColor(fen, square, color) {
+    const coords = squareToBoardCoords(square);
+    if (!coords) return [];
+    const board = parseFenPieces(fen);
+    const piece = board[coords.row] && board[coords.row][coords.col];
+    if (!piece || pieceColorFromFenLetter(piece) !== color) return [];
+    const enemyColor = color === 'white' ? 'black' : 'white';
+    const targets = [];
+    const addStep = function (row, col) {
+      if (!inBoard(row, col)) return;
+      const targetPiece = board[row] && board[row][col];
+      const targetColor = pieceColorFromFenLetter(targetPiece);
+      if (targetColor === color) return;
+      const sq = boardCoordsToSquare(row, col);
+      if (sq) targets.push(sq);
+    };
+    const addSlide = function (dr, dc) {
+      let row = coords.row + dr;
+      let col = coords.col + dc;
+      while (inBoard(row, col)) {
+        const targetPiece = board[row] && board[row][col];
+        if (!targetPiece) {
+          const sq = boardCoordsToSquare(row, col);
+          if (sq) targets.push(sq);
+          row += dr;
+          col += dc;
+          continue;
+        }
+        if (pieceColorFromFenLetter(targetPiece) === enemyColor) {
+          const sq = boardCoordsToSquare(row, col);
+          if (sq) targets.push(sq);
+        }
+        break;
+      }
+    };
+
+    switch (piece.toUpperCase()) {
+      case 'P': {
+        const dir = color === 'white' ? -1 : 1;
+        const startRow = color === 'white' ? 6 : 1;
+        const oneRow = coords.row + dir;
+        if (inBoard(oneRow, coords.col) && !(board[oneRow] && board[oneRow][coords.col])) {
+          addStep(oneRow, coords.col);
+          const twoRow = coords.row + dir * 2;
+          if (coords.row === startRow && inBoard(twoRow, coords.col) && !(board[twoRow] && board[twoRow][coords.col])) {
+            addStep(twoRow, coords.col);
+          }
+        }
+        [coords.col - 1, coords.col + 1].forEach(function (captureCol) {
+          if (!inBoard(oneRow, captureCol)) return;
+          const tp = board[oneRow] && board[oneRow][captureCol];
+          if (pieceColorFromFenLetter(tp) === color) return;
+          const sq = boardCoordsToSquare(oneRow, captureCol);
+          if (sq) targets.push(sq);
+        });
+        break;
+      }
+      case 'N':
+        [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]].forEach(function (d) {
+          addStep(coords.row + d[0], coords.col + d[1]);
+        });
+        break;
+      case 'B':
+        [[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(function (d) { addSlide(d[0], d[1]); });
+        break;
+      case 'R':
+        [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(function (d) { addSlide(d[0], d[1]); });
+        break;
+      case 'Q':
+        [[-1, -1], [-1, 1], [1, -1], [1, 1], [-1, 0], [1, 0], [0, -1], [0, 1]].forEach(function (d) { addSlide(d[0], d[1]); });
+        break;
+      case 'K':
+        [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]].forEach(function (d) {
+          addStep(coords.row + d[0], coords.col + d[1]);
+        });
+        break;
+    }
+    return targets;
+  }
+
+  function applyPseudoMoveToFen(fen, fromSq, toSq, color, promotion) {
+    const from = squareToBoardCoords(fromSq);
+    const to = squareToBoardCoords(toSq);
+    if (!from || !to) return fen;
+    const parts = (fen || '').split(' ');
+    const board = parseFenPieces(fen);
+    const piece = board[from.row] && board[from.row][from.col];
+    if (!piece || pieceColorFromFenLetter(piece) !== color) return fen;
+    board[from.row][from.col] = null;
+    let nextPiece = piece;
+    if (piece.toUpperCase() === 'P' && ((color === 'white' && to.row === 0) || (color === 'black' && to.row === 7))) {
+      const promo = (promotion || 'q').toLowerCase();
+      nextPiece = color === 'white' ? promo.toUpperCase() : promo;
+    }
+    board[to.row][to.col] = nextPiece;
+    parts[0] = boardToFenPlacement(board);
+    if (parts.length >= 2) parts[1] = color === 'white' ? 'b' : 'w';
+    return parts.join(' ');
+  }
+
   function getBoardRowByDisplayRow(displayRow, orientation) {
     return orientation === 'black' ? 7 - displayRow : displayRow;
   }
@@ -295,8 +457,7 @@
         const pieceEl = div.querySelector('.piece-sprite');
         draggedSquare = sq;
         selectedSquare = sq;
-        var movesFrom = legalMovesFromSquareForColor(gameFen, sq, myColor);
-        legalTargets = movesFrom ? movesFrom.map(function (m) { return m.to; }) : [];
+        legalTargets = getTargetsForSquare(sq);
         e.dataTransfer.setData('text/plain', sq);
         e.dataTransfer.effectAllowed = 'move';
         if (pieceEl) {
@@ -355,19 +516,16 @@
       cell.addEventListener('dblclick', function () { clearPremoves(); });
       cell.addEventListener('touchstart', function (e) {
         if (!currentGameId || !gameFen || gameResult) return;
-        try {
-          var c = new Chess(gameFen);
-          var p = c.get(sq);
-          var myColorShort = myColor === 'white' ? 'w' : 'b';
-          if (!p || p.color !== myColorShort) return;
-          touchDragFromSquare = sq;
-          touchDragTargetSquare = sq;
-          touchDragMoved = false;
-          selectedSquare = sq;
-          var movesFrom = legalMovesFromSquareForColor(gameFen, sq, myColor);
-          legalTargets = movesFrom ? movesFrom.map(function (m) { return m.to; }) : [];
-          renderBoard();
-        } catch (err) {}
+        const ourTurn = turnFromFen(gameFen) === myColor;
+        const sourceFen = ourTurn ? gameFen : getPreviewFenFromPremoves(gameFen);
+        const p = getPieceAtSquareFromFen(sourceFen, sq);
+        if (!p || pieceColorFromFenLetter(p) !== myColor) return;
+        touchDragFromSquare = sq;
+        touchDragTargetSquare = sq;
+        touchDragMoved = false;
+        selectedSquare = sq;
+        legalTargets = getTargetsForSquare(sq);
+        renderBoard();
       }, { passive: true });
       cell.addEventListener('touchmove', function (e) {
         if (!touchDragFromSquare) return;
@@ -445,6 +603,146 @@
     return fen;
   }
 
+  function squareToCoords(square) {
+    if (!square || square.length !== 2) return null;
+    const file = FILES.indexOf(square[0]);
+    const rank = parseInt(square[1], 10) - 1;
+    if (file < 0 || rank < 0 || rank > 7) return null;
+    return { file: file, rank: rank };
+  }
+
+  function coordsToSquare(file, rank) {
+    if (file < 0 || file > 7 || rank < 0 || rank > 7) return null;
+    return FILES[file] + String(rank + 1);
+  }
+
+  function pseudoTargetsFromSquareForColor(fen, square, color) {
+    try {
+      const c = new Chess(fenForColorTurn(fen, color));
+      const piece = c.get(square);
+      const colorShort = color === 'white' ? 'w' : 'b';
+      if (!piece || piece.color !== colorShort) return [];
+      const from = squareToCoords(square);
+      if (!from) return [];
+      const targets = [];
+      const push = function (f, r) {
+        const sq = coordsToSquare(f, r);
+        if (sq) targets.push(sq);
+      };
+      const ray = function (df, dr) {
+        let f = from.file + df;
+        let r = from.rank + dr;
+        while (f >= 0 && f <= 7 && r >= 0 && r <= 7) {
+          push(f, r);
+          f += df;
+          r += dr;
+        }
+      };
+
+      if (piece.type === 'n') {
+        [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]]
+          .forEach(function (d) { push(from.file + d[0], from.rank + d[1]); });
+      } else if (piece.type === 'k') {
+        [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
+          .forEach(function (d) { push(from.file + d[0], from.rank + d[1]); });
+        if (color === 'white' && square === 'e1') {
+          push(6, 0);
+          push(2, 0);
+        } else if (color === 'black' && square === 'e8') {
+          push(6, 7);
+          push(2, 7);
+        }
+      } else if (piece.type === 'b') {
+        ray(1, 1); ray(1, -1); ray(-1, 1); ray(-1, -1);
+      } else if (piece.type === 'r') {
+        ray(1, 0); ray(-1, 0); ray(0, 1); ray(0, -1);
+      } else if (piece.type === 'q') {
+        ray(1, 1); ray(1, -1); ray(-1, 1); ray(-1, -1);
+        ray(1, 0); ray(-1, 0); ray(0, 1); ray(0, -1);
+      } else if (piece.type === 'p') {
+        const forward = color === 'white' ? 1 : -1;
+        const startRank = color === 'white' ? 1 : 6;
+        push(from.file, from.rank + forward);
+        if (from.rank === startRank) push(from.file, from.rank + 2 * forward);
+        push(from.file - 1, from.rank + forward);
+        push(from.file + 1, from.rank + forward);
+      }
+      return Array.from(new Set(targets));
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function getInputContext() {
+    const ourTurn = turnFromFen(gameFen) === myColor;
+    const previewFen = getPreviewFenFromPremoves(gameFen);
+    return {
+      ourTurn: ourTurn,
+      fenForPieces: ourTurn ? gameFen : previewFen,
+      fenForTargets: ourTurn ? gameFen : previewFen
+    };
+  }
+
+  function getTargetsForSquare(square) {
+    const ctx = getInputContext();
+    if (ctx.ourTurn) {
+      const moves = legalMovesFromSquareForColor(ctx.fenForTargets, square, myColor);
+      return (moves || []).map(function (m) { return m.to; });
+    }
+    return pseudoTargetsFromSquareForColor(ctx.fenForTargets, square, myColor);
+  }
+
+  function shouldAskPromotion(move) {
+    return !!move && (move.flags || '').indexOf('p') !== -1;
+  }
+
+  function hidePromotionPicker() {
+    pendingPromotionChoice = null;
+    if (!promotionPickerEl) return;
+    promotionPickerEl.classList.remove('active');
+    promotionPickerEl.setAttribute('aria-hidden', 'true');
+    if (promotionChoicesEl) promotionChoicesEl.innerHTML = '';
+  }
+
+  function submitMove(fromSq, toSq, promotion, isPremove) {
+    if (isPremove) {
+      queuePremove(fromSq, toSq, promotion);
+    } else {
+      ws.send(JSON.stringify({ type: 'make_move', game_id: currentGameId, from: fromSq, to: toSq, promotion: promotion || null }));
+    }
+    selectedSquare = null;
+    legalTargets = [];
+    renderBoard();
+  }
+
+  function showPromotionPicker(fromSq, toSq, isPremove) {
+    if (!promotionPickerEl || !promotionChoicesEl) {
+      submitMove(fromSq, toSq, 'q', isPremove);
+      return;
+    }
+    pendingPromotionChoice = { from: fromSq, to: toSq, isPremove: isPremove };
+    const white = myColor === 'white';
+    const options = ['q', 'r', 'b', 'n'];
+    promotionChoicesEl.innerHTML = '';
+    options.forEach(function (opt) {
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'promotion-choice';
+      cell.dataset.promotion = opt;
+      const wrap = document.createElement('div');
+      wrap.className = 'piece-sprite';
+      wrap.style.backgroundImage = 'url(' + PIECE_SPRITE_URL + ')';
+      wrap.style.backgroundSize = '600% 200%';
+      const pieceLetter = (white ? opt.toUpperCase() : opt);
+      const off = pieceSpriteOffset(pieceLetter);
+      wrap.style.backgroundPosition = (off.col * 20) + '% ' + (off.row * 100) + '%';
+      cell.appendChild(wrap);
+      promotionChoicesEl.appendChild(cell);
+    });
+    promotionPickerEl.classList.add('active');
+    promotionPickerEl.setAttribute('aria-hidden', 'false');
+  }
+
   function legalMovesFromSquareForColor(fen, square, color) {
     try {
       const c = new Chess(fenForColorTurn(fen, color));
@@ -468,6 +766,7 @@
     premoveQueue = [];
     selectedSquare = null;
     legalTargets = [];
+    hidePromotionPicker();
     updateClocksDisplay();
     renderBoard();
   }
@@ -509,18 +808,39 @@
       var c = new Chess(gameFen);
     } catch (e) { return; }
     var ourTurn = turnFromFen(gameFen) === myColor;
-    var moves = ourTurn ? c.moves({ square: fromSq, verbose: true }) : legalMovesFromSquareForColor(gameFen, fromSq, myColor);
-    var move = moves && moves.find(function (m) { return m.to === toSq; });
-    if (!move) return;
-    var promotion = (move.flags || '').indexOf('p') !== -1 ? 'q' : null;
     if (ourTurn) {
-      ws.send(JSON.stringify({ type: 'make_move', game_id: currentGameId, from: fromSq, to: toSq, promotion: promotion }));
-    } else {
-      queuePremove(fromSq, toSq, promotion);
+      var moves = c.moves({ square: fromSq, verbose: true });
+      var move = moves && moves.find(function (m) { return m.to === toSq; });
+      if (!move) return;
+      if (shouldAskPromotion(move)) {
+        showPromotionPicker(fromSq, toSq, false);
+        return;
+      }
+      submitMove(fromSq, toSq, null, false);
+      return;
     }
-    selectedSquare = null;
-    legalTargets = [];
-    renderBoard();
+
+    const previewFen = getPreviewFenFromPremoves(gameFen);
+    const legalMoves = legalMovesFromSquareForColor(previewFen, fromSq, myColor);
+    const legalMove = legalMoves && legalMoves.find(function (m) { return m.to === toSq; });
+    const pseudoTargets = pseudoTargetsFromSquareForColor(previewFen, fromSq, myColor);
+    if (!legalMove && pseudoTargets.indexOf(toSq) === -1) return;
+    let asksPromotion = false;
+    if (legalMove) {
+      asksPromotion = shouldAskPromotion(legalMove);
+    } else {
+      try {
+        const previewChess = new Chess(fenForColorTurn(previewFen, myColor));
+        const piece = previewChess.get(fromSq);
+        const rank = parseInt(toSq[1], 10);
+        asksPromotion = !!piece && piece.type === 'p' && (rank === 1 || rank === 8);
+      } catch (e) {}
+    }
+    if (asksPromotion) {
+      showPromotionPicker(fromSq, toSq, true);
+      return;
+    }
+    submitMove(fromSq, toSq, null, true);
   }
 
   function onSquareClick(sq) {
@@ -528,14 +848,14 @@
       console.log('[PhoneChess] onSquareClick early return: no game/fen/result');
       return;
     }
+    var piece = null;
     try {
-      var c = new Chess(gameFen);
+      var previewChess = new Chess(getInputContext().fenForPieces);
+      piece = previewChess.get(sq);
     } catch (e) {
       console.error('[PhoneChess] onSquareClick Chess error', e);
       return;
     }
-    var ourTurn = turnFromFen(gameFen) === myColor;
-    var piece = c.get(sq);
     var pieceColor = piece && typeof piece === 'object' ? piece.color : null;
     var myColorShort = myColor === 'white' ? 'w' : 'b';
     var mine = pieceColor && pieceColor === myColorShort;
@@ -548,8 +868,7 @@
       legalTargets = [];
     } else if (mine) {
       selectedSquare = sq;
-      var movesFrom = legalMovesFromSquareForColor(gameFen, sq, myColor);
-      legalTargets = movesFrom ? movesFrom.map(function (m) { return m.to; }) : [];
+      legalTargets = getTargetsForSquare(sq);
     }
     renderBoard();
   }
@@ -606,6 +925,7 @@
     lastMove = null;
     boardFlipped = false;
     premoveQueue = [];
+    hidePromotionPicker();
     updateClocksDisplay();
     if (resignConfirmTimeout) clearTimeout(resignConfirmTimeout);
     resignConfirming = false;
@@ -723,6 +1043,20 @@
           resignConfirmTimeout = null;
         }, 3000);
       }
+    });
+  }
+  if (promotionPickerEl) {
+    promotionPickerEl.addEventListener('click', function (e) {
+      if (e.target === promotionPickerEl) {
+        hidePromotionPicker();
+        return;
+      }
+      const choice = e.target && e.target.closest ? e.target.closest('.promotion-choice') : null;
+      if (!choice || !pendingPromotionChoice) return;
+      const promotion = choice.dataset.promotion || 'q';
+      const data = pendingPromotionChoice;
+      hidePromotionPicker();
+      submitMove(data.from, data.to, promotion, data.isPremove);
     });
   }
 

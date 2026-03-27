@@ -48,6 +48,14 @@ This file is the operational guide for AI agents working in `phonechess`.
   - colored markers with per-step numbering;
   - preview board position reflects chained premoves.
   - text hint with premove queue count under bottom clock is intentionally hidden (board markers stay as the source of truth).
+- Premove target selection while waiting for opponent:
+  - target hints are computed from piece movement rules on the preview position (current board + queued premoves), not only from currently legal chess.js moves;
+  - this allows chaining intent-driven premoves like "pawn push, then potential capture from the new square";
+  - final legality is still validated at execution time, and illegal first premove still clears full queue.
+- Pawn promotion UX:
+  - for both regular moves and premoves, promotion no longer auto-queens immediately;
+  - when a pawn reaches last rank, a semi-transparent picker with `Q/R/B/N` appears and requires an extra tap;
+  - tapping outside picker cancels promotion choice without sending/queuing a move.
 - Build info badge at bottom: `version + deployed_at`.
 - Pairing safety:
   - duplicate queue entries for same `user_id` are ignored;
@@ -139,3 +147,21 @@ From repo root:
   - illegal first premove clears full queue;
   - move list shows premove move time as `0:00`.
 - Do not commit secrets (`.env`, tokens).
+
+## Latest Commit Details (2026-03-27)
+
+- Scope:
+  - frontend move-input and premove UX improvements for realistic premove planning and explicit promotion choice.
+- Files changed:
+  - `frontend/app.js`
+  - `frontend/index.html`
+  - `frontend/styles/main.css`
+  - `AGENTS.md`
+- Behavior changes:
+  - premove hints now include pseudo-legal targets by piece geometry from preview FEN;
+  - premove source piece detection now respects preview position after queued premoves;
+  - promotion flow requires explicit piece selection (queen/rook/bishop/knight) via overlay UI;
+  - same promotion selection logic is applied to normal moves and premoves.
+- Safety invariants preserved:
+  - backend remains the source of truth for move legality;
+  - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.

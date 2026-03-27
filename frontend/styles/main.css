@@ -276,6 +276,7 @@ body.mobile-blocked #app {
   max-width: min(100vw - 12px, 480px);
   margin: 0 auto;
   aspect-ratio: 1;
+  position: relative;
 }
 
 .chess-board {
@@ -398,6 +399,46 @@ body.mobile-blocked #app {
 
 .square.check {
   box-shadow: inset 0 0 0 3px #c55;
+}
+
+.promotion-picker {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17, 17, 16, 0.55);
+  z-index: 8;
+}
+
+.promotion-picker.active {
+  display: flex;
+}
+
+.promotion-choices {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: min(240px, 70%);
+}
+
+.promotion-choice {
+  aspect-ratio: 1;
+  border: 1px solid rgba(208, 207, 204, 0.45);
+  border-radius: 10px;
+  background: rgba(47, 46, 43, 0.78);
+  position: relative;
+  padding: 0;
+}
+
+.promotion-choice .piece-sprite {
+  position: absolute;
+  width: 76%;
+  height: 76%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.88;
 }
 
 .moves-panel {
