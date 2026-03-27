@@ -375,6 +375,42 @@ body.mobile-blocked #app {
   margin-top: -2px;
 }
 
+.material-captured {
+  width: 100%;
+  max-width: min(100vw - 12px, 480px);
+  margin: 0 auto;
+  min-height: 1.35rem;
+  padding: 2px 6px;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  color: #c4c3bf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.material-captured .material-pile {
+  opacity: 0.92;
+}
+
+.material-balance {
+  width: 100%;
+  max-width: min(100vw - 12px, 480px);
+  margin: 0 auto;
+  text-align: center;
+  font-size: 0.78rem;
+  color: #9a988f;
+  padding: 0 4px 2px;
+  min-height: 1rem;
+}
+
+.material-balance-val {
+  font-family: "Roboto Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
 .game-your-side {
   font-size: 0.73rem;
   color: #6fa650;

@@ -157,7 +157,7 @@ async def _run_bot_move(game_id: str) -> None:
             "white_remaining_ms": update["white_remaining_ms"],
             "black_remaining_ms": update["black_remaining_ms"],
             "san": update["san"],
-            "move_time_ms": 1000,
+            "move_time_ms": update.get("move_time_ms", 0),
             "result": update["result"],
             "result_reason": update.get("result_reason"),
             "result_detail": update.get("result_detail"),

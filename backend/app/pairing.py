@@ -876,6 +876,9 @@ def apply_move(
     san = board.san(move)
     board.push(move)
     g.fen = board.fen()
+    if g.is_bot_game and not is_premove:
+        # Untimed game: still record wall time since previous move for move list / UX.
+        move_time_ms = min(max(0, elapsed_ms), 600_000)
     g.moves.append(MoveRecord(san=san, time_ms=move_time_ms))
     _apply_result(g, board)
     if not g.is_bot_game:

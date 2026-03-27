@@ -138,6 +138,9 @@
   const btnDraw = $('btn-draw');
   const btnClaimDraw = $('btn-claim-draw');
   const buildInfoEl = $('build-info');
+  const materialCapturedTopEl = $('material-captured-top');
+  const materialCapturedBottomEl = $('material-captured-bottom');
+  const materialBalanceCenterEl = $('material-balance-center');
   const btnPrivateGame = $('btn-private-game');
   const btnBotGame = $('btn-bot-game');
   const btnProfile = $('btn-profile');
@@ -622,6 +625,9 @@
     hidePrivateWaitingPanel();
     pingMs = null;
     updatePingIndicator();
+    if (materialCapturedTopEl) materialCapturedTopEl.innerHTML = '';
+    if (materialCapturedBottomEl) materialCapturedBottomEl.innerHTML = '';
+    if (materialBalanceCenterEl) materialBalanceCenterEl.innerHTML = '';
     showScreen('lobby-screen');
   }
 
@@ -1207,7 +1213,7 @@
       cell.addEventListener('click', handler);
       cell.addEventListener('dblclick', function () { clearPremoves(); });
       cell.addEventListener('touchstart', function (e) {
-        if (!currentGameId || !gameFen || gameResult) return;
+        if (!currentGameId || !gameFen || gameResult || replayMode) return;
         const ourTurn = turnFromFen(gameFen) === myColor;
         const sourceFen = ourTurn ? gameFen : getPreviewFenFromPremoves(gameFen);
         const p = getPieceAtSquareFromFen(sourceFen, sq);
@@ -1273,6 +1279,7 @@
         onSquareClick(sq);
       }, { passive: false });
     });
+    updateMaterialAndBalance();
     } catch (e) {
       console.error('[PhoneChess] renderBoard error', e);
     }
@@ -1534,6 +1541,111 @@
     renderBoard();
   }
 
+  function pieceValueFromLetter(ch) {
+    const v = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+    return v[String(ch || '').toLowerCase()] || 0;
+  }
+
+  function materialBalanceWhiteMinusBlack(fen) {
+    if (!fen) return 0;
+    const placement = fen.split(' ')[0];
+    let w = 0;
+    let b = 0;
+    for (let i = 0; i < placement.length; i++) {
+      const ch = placement[i];
+      if (ch === '/') continue;
+      if ('KQRBNP'.indexOf(ch) !== -1) w += pieceValueFromLetter(ch);
+      if ('kqrbnp'.indexOf(ch) !== -1) b += pieceValueFromLetter(ch);
+    }
+    return w - b;
+  }
+
+  function sortCapturedTypes(types) {
+    const order = { q: 5, r: 4, b: 3, n: 2, p: 1 };
+    return types.slice().sort(function (a, b) { return (order[b] || 0) - (order[a] || 0); });
+  }
+
+  function renderCaptureGlyphs(types, capturedWhitePieces) {
+    const whiteMap = { p: '\u2659', n: '\u2658', b: '\u2657', r: '\u2656', q: '\u2655' };
+    const blackMap = { p: '\u265F', n: '\u265E', b: '\u265D', r: '\u265C', q: '\u265B' };
+    const map = capturedWhitePieces ? whiteMap : blackMap;
+    return sortCapturedTypes(types)
+      .map(function (t) { return map[t] || ''; })
+      .join('');
+  }
+
+  function computeCapturePockets(moves) {
+    const byWhite = [];
+    const byBlack = [];
+    if (!moves || !moves.length || typeof window.Chess === 'undefined') {
+      return { byWhite: byWhite, byBlack: byBlack };
+    }
+    const c = new window.Chess();
+    for (let i = 0; i < moves.length; i++) {
+      const san = moves[i].san;
+      if (!san) continue;
+      const m = c.move(san);
+      if (!m) break;
+      if (m.captured) {
+        if (m.color === 'w') byWhite.push(m.captured);
+        else byBlack.push(m.captured);
+      }
+    }
+    return { byWhite: byWhite, byBlack: byBlack };
+  }
+
+  function effectiveMovesForMaterial() {
+    if (!replayMode) return gameMoves;
+    const k = Math.max(0, Math.min(replayIndex, gameMoves.length));
+    return gameMoves.slice(0, k);
+  }
+
+  function rebuildReplayFensFromGameMoves() {
+    replayFens = [];
+    if (typeof window.Chess === 'undefined' || !gameMoves.length) return;
+    const c = new window.Chess();
+    replayFens.push(c.fen());
+    for (let i = 0; i < gameMoves.length; i++) {
+      if (!c.move(gameMoves[i].san)) break;
+      replayFens.push(c.fen());
+    }
+  }
+
+  function updateMaterialAndBalance() {
+    if (!materialCapturedTopEl || !materialCapturedBottomEl || !materialBalanceCenterEl) return;
+    if (!currentGameId || !gameFen) {
+      materialCapturedTopEl.innerHTML = '';
+      materialCapturedBottomEl.innerHTML = '';
+      materialBalanceCenterEl.innerHTML = '';
+      materialCapturedTopEl.setAttribute('aria-hidden', 'true');
+      materialCapturedBottomEl.setAttribute('aria-hidden', 'true');
+      materialBalanceCenterEl.setAttribute('aria-hidden', 'true');
+      return;
+    }
+    const moves = effectiveMovesForMaterial();
+    const pockets = computeCapturePockets(moves);
+    const myCaps = myColor === 'white' ? pockets.byWhite : pockets.byBlack;
+    const oppCaps = myColor === 'white' ? pockets.byBlack : pockets.byWhite;
+    const balW = materialBalanceWhiteMinusBlack(gameFen);
+    const balMine = myColor === 'white' ? balW : -balW;
+    let balText = '0.0p';
+    if (Math.abs(balMine) >= 0.05) {
+      const sign = balMine >= 0 ? '+' : '\u2212';
+      balText = sign + Math.abs(balMine).toFixed(1) + 'p';
+    } else {
+      balText = '0.0p';
+    }
+    materialCapturedTopEl.innerHTML =
+      '<span class="material-pile">' + renderCaptureGlyphs(oppCaps, myColor === 'white') + '</span>';
+    materialCapturedBottomEl.innerHTML =
+      '<span class="material-pile">' + renderCaptureGlyphs(myCaps, myColor === 'black') + '</span>';
+    materialBalanceCenterEl.innerHTML =
+      '<span class="material-balance-val" title="">' + balText + '</span>';
+    materialCapturedTopEl.setAttribute('aria-hidden', 'false');
+    materialCapturedBottomEl.setAttribute('aria-hidden', 'false');
+    materialBalanceCenterEl.setAttribute('aria-hidden', 'false');
+  }
+
   function renderMoveList() {
     if (!moveListEl) return;
     function formatMoveDuration(ms) {
@@ -1554,8 +1666,12 @@
     for (let i = 0; i < gameMoves.length; i++) {
       const m = gameMoves[i];
       const timeStr = formatMoveDuration(m.time_ms);
+      let sanDisp = m.san || '';
+      if (i === gameMoves.length - 1 && gameResult && resultReason === 'checkmate' && sanDisp.indexOf('#') === -1) {
+        sanDisp = sanDisp + '#';
+      }
       if (i % 2 === 0) html += '<span class="move-num">' + num++ + '.</span> ';
-      html += m.san + ' <span class="move-time">(' + timeStr + ')</span> ';
+      html += sanDisp + ' <span class="move-time">(' + timeStr + ')</span> ';
     }
     moveListEl.innerHTML = html || '—';
   }
@@ -1563,6 +1679,7 @@
   function applyGameState(data) {
     if (replayMode) return;
     console.log('[PhoneChess] applyGameState', { hasFen: !!data.fen, moves: data.moves?.length, result: data.result });
+    const hadResultBefore = !!gameResult;
     gameFen = data.fen || gameFen;
     if (data.is_bot_game !== undefined) isBotGame = !!data.is_bot_game;
     whiteRemainingMs = data.white_remaining_ms != null ? data.white_remaining_ms : whiteRemainingMs;
@@ -1573,17 +1690,28 @@
       if (turnColor === 'white') whiteRemainingMs = Math.max(0, whiteRemainingMs - lag);
       else blackRemainingMs = Math.max(0, blackRemainingMs - lag);
     }
-    if (data.moves) gameMoves = data.moves;
+    if (data.moves) {
+      gameMoves = (data.moves || []).map(function (m) {
+        return { san: m.san, time_ms: m.time_ms != null ? m.time_ms : 0 };
+      });
+    } else if (data.san && data.move_time_ms !== undefined) {
+      gameMoves = gameMoves.concat([{ san: data.san, time_ms: data.move_time_ms }]);
+    }
     if (data.no_clock_user_id !== undefined) noClockUserId = data.no_clock_user_id || null;
     if (data.result !== undefined) gameResult = data.result;
     if (data.result_reason !== undefined) resultReason = data.result_reason;
     if (data.result_detail !== undefined) resultDetail = data.result_detail;
     if (data.draw_offer_by !== undefined) drawOfferBy = data.draw_offer_by;
     if (data.draw_offer_color !== undefined) drawOfferColor = data.draw_offer_color;
-    if (data.san && data.move_time_ms !== undefined) {
-      gameMoves = gameMoves.concat([{ san: data.san, time_ms: data.move_time_ms }]);
-    }
     if (data.from && data.to) lastMove = { from: data.from, to: data.to };
+    if (!hadResultBefore && gameResult && isBotGame) {
+      rebuildReplayFensFromGameMoves();
+      replayMode = true;
+      replayIndex = Math.max(0, replayFens.length - 1);
+      gameFen = replayFens[replayIndex] || gameFen;
+      if (analysisPanelEl) analysisPanelEl.classList.add('active');
+      updateReplayControls();
+    }
     updateClocksDisplay();
     startClockTicker();
     renderBoard();
