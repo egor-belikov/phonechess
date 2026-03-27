@@ -476,17 +476,10 @@
       let row = coords.row + dr;
       let col = coords.col + dc;
       while (inBoard(row, col)) {
-        const targetPiece = board[row] && board[row][col];
-        if (!targetPiece) {
-          const sq = boardCoordsToSquare(row, col);
-          if (sq) targets.push(sq);
-          row += dr;
-          col += dc;
-          continue;
-        }
         const sq = boardCoordsToSquare(row, col);
         if (sq) targets.push(sq);
-        break;
+        row += dr;
+        col += dc;
       }
     };
 

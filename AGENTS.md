@@ -170,7 +170,8 @@ From repo root:
   - `AGENTS.md`
 - Behavior changes:
   - premove pseudo-target generation now allows selecting squares occupied by own pieces in preview state;
-  - this enables conditional recapture planning in premove chains (e.g. bishop recapture square currently occupied by own piece);
+  - for sliding pieces (bishop/rook/queen), premove targets are available even behind currently occupied intermediate squares, so future-open lines can be queued in advance;
+  - this enables conditional recapture/line-opening planning in premove chains;
   - preview pseudo-move application already replaces piece on target square, so chain board state remains coherent;
   - board now renders subtle algebraic coordinates (`a-h`, `1-8`) directly on edge squares for move readability.
 - Safety invariants preserved:
