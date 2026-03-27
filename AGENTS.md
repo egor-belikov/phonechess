@@ -369,7 +369,7 @@ From repo root:
 - Release commit: `7e29014`.
 - **Move list times (bot):** In untimed bot games, `apply_move` still records **wall time** since `last_clock_at` as `move_time_ms` (capped at 600s) so the history shows real thinking time. Bot WS payload uses `update["move_time_ms"]` from `apply_move`, not a fixed 1000ms.
 - **Material:** Client shows captured-piece Unicode rows above/below the board (opponent / you) and a central **±Np** balance from the player’s perspective (piece values P=1, N=B=3, R=5, Q=9). Updates from FEN + move replay; respects replay scrub.
-- **After any game ends (PvP and bot):** Client switches to **replay mode** (rebuilds `replayFens` from `gameMoves`), opens analysis panel, and appends `#` to the last move in the list when `result_reason === 'checkmate'`. Result modal offers **Анализ** (dismiss overlay, enable analysis) and **Вернуться в лобби**; header **←** also returns to lobby.
+- **After any game ends (PvP and bot):** Client switches to **replay mode** (rebuilds `replayFens` from `gameMoves`), opens analysis panel, and appends `#` to the last move in the list when `result_reason === 'checkmate'`. Result modal offers **Анализ** (dismiss overlay, enable analysis) and **Вернуться в лобби**; header **←** also returns to lobby. Release: `9c17e54`.
 - **applyGameState:** Full `data.moves` replaces `gameMoves` without duplicating a trailing `san` line; `data.moves` vs single-move append are mutually exclusive.
 
 ## Bot game: untimed for both sides (2026-03-27)
