@@ -34,6 +34,7 @@
 
   const TIME_CONTROLS = ['3+0', '3+2', '5+0', '5+3', '10+0', '15+10'];
   const FILES = 'abcdefgh';
+  const PREMOVE_COLORS = ['#4f8cff', '#ff9f43', '#22c55e', '#e879f9', '#f43f5e', '#14b8a6'];
   /** Один спрайт: Chess_Pieces_Sprite.svg (270×90), порядок K,Q,B,N,R,P; ряд 0=белые, 1=чёрные */
   const PIECE_SPRITE_URL = '/pieces/Chess_Pieces_Sprite.svg';
   const SPRITE_COL = { K: 0, Q: 1, B: 2, N: 3, R: 4, P: 5 };
@@ -74,6 +75,12 @@
   let resignConfirming = false;
   let resignConfirmTimeout = null;
   let draggedSquare = null;
+  let premoveQueue = [];
+  let lastTouchTapAt = 0;
+  let lastTouchTapSquare = null;
+  let touchDragFromSquare = null;
+  let touchDragTargetSquare = null;
+  let touchDragMoved = false;
 
   const $ = (id) => document.getElementById(id);
   const lobbyButtons = $('lobby-buttons');
@@ -91,6 +98,21 @@
   const moveListEl = $('move-list');
   const btnResign = $('btn-resign');
   const btnFlipBoard = $('btn-flip-board');
+  const buildInfoEl = $('build-info');
+
+  async function loadBuildInfo() {
+    if (!buildInfoEl) return;
+    try {
+      const res = await fetch('/build-meta.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('build meta not available');
+      const meta = await res.json();
+      const version = meta.version || 'unknown';
+      const deployedAt = meta.deployed_at || 'unknown';
+      buildInfoEl.textContent = 'Версия: ' + version + ' · Деплой: ' + deployedAt;
+    } catch (e) {
+      buildInfoEl.textContent = 'Версия: unknown · Деплой: unknown';
+    }
+  }
 
   function getInitData() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
@@ -157,19 +179,26 @@
     const isWhite = myColor === 'white';
     const topMs = isWhite ? blackRemainingMs : whiteRemainingMs;
     const bottomMs = isWhite ? whiteRemainingMs : blackRemainingMs;
-    const ourTurn = (gameFen && gameFen.includes(' w ') && isWhite) || (gameFen && gameFen.includes(' b ') && !isWhite);
+    const turnColor = gameFen && gameFen.includes(' b ') ? 'black' : 'white';
+    const ourTurn = turnColor === myColor;
+    const topIsActive = isWhite ? turnColor === 'black' : turnColor === 'white';
+    const bottomIsActive = !topIsActive;
     if (clockTopLabel) clockTopLabel.textContent = isWhite ? 'Соперник (чёрные)' : 'Соперник (белые)';
     if (clockBottomLabel) clockBottomLabel.textContent = isWhite ? 'Вы (белые)' : 'Вы (чёрные)';
-    if (gameYourSideEl) gameYourSideEl.textContent = isWhite ? 'Вы играете белыми' : 'Вы играете чёрными';
+    if (gameYourSideEl) {
+      gameYourSideEl.textContent = premoveQueue.length > 0
+        ? ('Премувы: ' + premoveQueue.length + ' (показан план ходов)')
+        : '';
+    }
     if (clockTop) {
       clockTop.textContent = formatClock(topMs);
       clockTop.classList.toggle('low-time', topMs < 20000 && topMs > 0);
-      clockTop.classList.remove('our-turn');
+      clockTop.classList.toggle('opp-turn', topIsActive && !gameResult);
     }
     if (clockBottom) {
       clockBottom.textContent = formatClock(bottomMs);
       clockBottom.classList.toggle('low-time', bottomMs < 20000 && bottomMs > 0);
-      clockBottom.classList.toggle('our-turn', ourTurn && !gameResult);
+      clockBottom.classList.toggle('our-turn', bottomIsActive && ourTurn && !gameResult);
     }
   }
 
@@ -179,8 +208,7 @@
     const fen = gameFen;
     if (!fen) return;
     const turn = fen.includes(' w ') ? 'white' : 'black';
-    const isOurTurn = (turn === 'white' && myColor === 'white') || (turn === 'black' && myColor === 'black');
-    if (lastClockTick > 0 && isOurTurn) {
+    if (lastClockTick > 0) {
       const elapsed = Math.min(now - lastClockTick, 1000);
       if (turn === 'white') whiteRemainingMs = Math.max(0, whiteRemainingMs - elapsed);
       else blackRemainingMs = Math.max(0, blackRemainingMs - elapsed);
@@ -192,6 +220,7 @@
   function startClockTicker() {
     if (clockInterval) clearInterval(clockInterval);
     lastClockTick = Date.now();
+    updateClocksDisplay();
     clockInterval = setInterval(tickClocks, 100);
   }
 
@@ -237,7 +266,8 @@
     try {
     const orientation = myColor === 'black' ? 'black' : 'white';
     const effectiveOrientation = boardFlipped ? (orientation === 'white' ? 'black' : 'white') : orientation;
-    const board = parseFenPieces(gameFen);
+    const boardForDisplayFen = getPreviewFenFromPremoves(gameFen);
+    const board = parseFenPieces(boardForDisplayFen);
     boardEl.innerHTML = '';
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
@@ -286,7 +316,19 @@
           draggedSquare = null;
         });
         if (lastMove && (lastMove.from === sq || lastMove.to === sq)) div.classList.add('last-move');
+        const premoveFromIndex = premoveQueue.findIndex(function (pm) { return pm.from === sq; });
+        const premoveToIndex = premoveQueue.findIndex(function (pm) { return pm.to === sq; });
+        if (premoveFromIndex !== -1) {
+          div.classList.add('premove-from');
+          div.style.setProperty('--premove-color', PREMOVE_COLORS[premoveFromIndex % PREMOVE_COLORS.length]);
+        }
+        if (premoveToIndex !== -1) {
+          div.classList.add('premove-to');
+          div.style.setProperty('--premove-color', PREMOVE_COLORS[premoveToIndex % PREMOVE_COLORS.length]);
+          div.dataset.premoveStep = String(premoveToIndex + 1);
+        }
         if (selectedSquare === sq) div.classList.add('selected');
+        if (touchDragTargetSquare === sq) div.classList.add('drag-hover');
         if (legalTargets.indexOf(sq) !== -1) div.classList.add('legal');
         if (window.Chess && (piece === 'K' || piece === 'k')) {
           try {
@@ -305,11 +347,145 @@
       if (!sq) return;
       const handler = function () { onSquareClick(sq); };
       cell.addEventListener('click', handler);
-      cell.addEventListener('touchend', function (e) { e.preventDefault(); handler(); }, { passive: false });
+      cell.addEventListener('dblclick', function () { clearPremoves(); });
+      cell.addEventListener('touchstart', function (e) {
+        if (!currentGameId || !gameFen || gameResult) return;
+        try {
+          var c = new Chess(gameFen);
+          var p = c.get(sq);
+          var myColorShort = myColor === 'white' ? 'w' : 'b';
+          if (!p || p.color !== myColorShort) return;
+          touchDragFromSquare = sq;
+          touchDragTargetSquare = sq;
+          touchDragMoved = false;
+          selectedSquare = sq;
+          var movesFrom = legalMovesFromSquareForColor(gameFen, sq, myColor);
+          legalTargets = movesFrom ? movesFrom.map(function (m) { return m.to; }) : [];
+          renderBoard();
+        } catch (err) {}
+      }, { passive: true });
+      cell.addEventListener('touchmove', function (e) {
+        if (!touchDragFromSquare) return;
+        if (!e.changedTouches || !e.changedTouches.length) return;
+        e.preventDefault();
+        const t = e.changedTouches[0];
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        const target = el && el.closest ? el.closest('.square') : null;
+        if (!target || !target.dataset.square) return;
+        touchDragMoved = true;
+        if (touchDragTargetSquare !== target.dataset.square) {
+          touchDragTargetSquare = target.dataset.square;
+          renderBoard();
+        }
+      }, { passive: false });
+      cell.addEventListener('touchend', function (e) {
+        e.preventDefault();
+        if (touchDragFromSquare) {
+          const fromSq = touchDragFromSquare;
+          const toSq = touchDragTargetSquare;
+          touchDragFromSquare = null;
+          touchDragTargetSquare = null;
+          if (touchDragMoved && toSq && toSq !== fromSq) {
+            doMoveFromTo(fromSq, toSq);
+            touchDragMoved = false;
+            return;
+          }
+          touchDragMoved = false;
+        }
+        const now = Date.now();
+        if (now - lastTouchTapAt < 320 && lastTouchTapSquare === sq) {
+          clearPremoves();
+          lastTouchTapAt = 0;
+          lastTouchTapSquare = null;
+          return;
+        }
+        lastTouchTapAt = now;
+        lastTouchTapSquare = sq;
+        handler();
+      }, { passive: false });
     });
     } catch (e) {
       console.error('[PhoneChess] renderBoard error', e);
     }
+  }
+
+  function turnFromFen(fen) {
+    return fen && fen.includes(' b ') ? 'black' : 'white';
+  }
+
+  function fenForColorTurn(fen, color) {
+    if (!fen) return fen;
+    const parts = fen.split(' ');
+    if (parts.length >= 2) parts[1] = color === 'white' ? 'w' : 'b';
+    return parts.join(' ');
+  }
+
+  function getPreviewFenFromPremoves(baseFen) {
+    if (!baseFen || premoveQueue.length === 0) return baseFen;
+    let fen = baseFen;
+    for (let i = 0; i < premoveQueue.length; i++) {
+      const pm = premoveQueue[i];
+      try {
+        const c = new Chess(fenForColorTurn(fen, myColor));
+        const moves = c.moves({ square: pm.from, verbose: true }) || [];
+        const move = moves.find(function (m) { return m.to === pm.to; });
+        if (!move) break;
+        const promotion = pm.promotion || (((move.flags || '').indexOf('p') !== -1) ? 'q' : undefined);
+        c.move({ from: pm.from, to: pm.to, promotion: promotion });
+        fen = c.fen();
+      } catch (e) {
+        break;
+      }
+    }
+    return fen;
+  }
+
+  function legalMovesFromSquareForColor(fen, square, color) {
+    try {
+      const c = new Chess(fenForColorTurn(fen, color));
+      return c.moves({ square: square, verbose: true }) || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function clearPremoves() {
+    premoveQueue = [];
+    selectedSquare = null;
+    legalTargets = [];
+    updateClocksDisplay();
+    renderBoard();
+  }
+
+  function queuePremove(fromSq, toSq, promotion) {
+    premoveQueue.push({ from: fromSq, to: toSq, promotion: promotion || null });
+    updateClocksDisplay();
+  }
+
+  function tryExecutePremoves() {
+    if (!currentGameId || !gameFen || gameResult) return;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    if (turnFromFen(gameFen) !== myColor) return;
+
+    let sent = false;
+    while (premoveQueue.length > 0 && !sent) {
+      const pm = premoveQueue.shift();
+      const moves = legalMovesFromSquareForColor(gameFen, pm.from, myColor);
+      const move = moves.find(function (m) { return m.to === pm.to; });
+      if (!move) {
+        // If first premove is impossible in the new position, drop the whole chain.
+        premoveQueue = [];
+        updateClocksDisplay();
+        break;
+      }
+      const promotion = pm.promotion || (((move.flags || '').indexOf('p') !== -1) ? 'q' : null);
+      ws.send(JSON.stringify({ type: 'make_move', game_id: currentGameId, from: pm.from, to: pm.to, promotion: promotion, premove: true }));
+      selectedSquare = null;
+      legalTargets = [];
+      sent = true;
+    }
+    updateClocksDisplay();
+    renderBoard();
   }
 
   function doMoveFromTo(fromSq, toSq) {
@@ -317,14 +493,16 @@
     try {
       var c = new Chess(gameFen);
     } catch (e) { return; }
-    var turn = c.turn();
-    var ourTurn = (turn === 'w' && myColor === 'white') || (turn === 'b' && myColor === 'black');
-    if (!ourTurn) return;
-    var moves = c.moves({ square: fromSq, verbose: true });
+    var ourTurn = turnFromFen(gameFen) === myColor;
+    var moves = ourTurn ? c.moves({ square: fromSq, verbose: true }) : legalMovesFromSquareForColor(gameFen, fromSq, myColor);
     var move = moves && moves.find(function (m) { return m.to === toSq; });
     if (!move) return;
     var promotion = (move.flags || '').indexOf('p') !== -1 ? 'q' : null;
-    ws.send(JSON.stringify({ type: 'make_move', game_id: currentGameId, from: fromSq, to: toSq, promotion: promotion }));
+    if (ourTurn) {
+      ws.send(JSON.stringify({ type: 'make_move', game_id: currentGameId, from: fromSq, to: toSq, promotion: promotion }));
+    } else {
+      queuePremove(fromSq, toSq, promotion);
+    }
     selectedSquare = null;
     legalTargets = [];
     renderBoard();
@@ -341,30 +519,21 @@
       console.error('[PhoneChess] onSquareClick Chess error', e);
       return;
     }
-    var turn = c.turn();
-    var isWhite = turn === 'w';
-    var ourTurn = (isWhite && myColor === 'white') || (!isWhite && myColor === 'black');
-    if (!ourTurn) return;
+    var ourTurn = turnFromFen(gameFen) === myColor;
     var piece = c.get(sq);
     var pieceColor = piece && typeof piece === 'object' ? piece.color : null;
+    var myColorShort = myColor === 'white' ? 'w' : 'b';
+    var mine = pieceColor && pieceColor === myColorShort;
     if (selectedSquare) {
       if (legalTargets.indexOf(sq) !== -1) {
-        var from = selectedSquare;
-        var promotion = null;
-        var moves = c.moves({ square: from, verbose: true });
-        var move = moves && moves.find(function (m) { return m.to === sq; });
-        if (move && (move.flags || '').indexOf('p') !== -1) promotion = 'q';
-        ws.send(JSON.stringify({ type: 'make_move', game_id: currentGameId, from: from, to: sq, promotion: promotion }));
-        selectedSquare = null;
-        legalTargets = [];
-        renderBoard();
+        doMoveFromTo(selectedSquare, sq);
         return;
       }
       selectedSquare = null;
       legalTargets = [];
-    } else if (pieceColor && ((isWhite && pieceColor === 'w') || (!isWhite && pieceColor === 'b'))) {
+    } else if (mine) {
       selectedSquare = sq;
-      var movesFrom = c.moves({ square: sq, verbose: true });
+      var movesFrom = legalMovesFromSquareForColor(gameFen, sq, myColor);
       legalTargets = movesFrom ? movesFrom.map(function (m) { return m.to; }) : [];
     }
     renderBoard();
@@ -401,6 +570,7 @@
     startClockTicker();
     renderBoard();
     renderMoveList();
+    tryExecutePremoves();
     if (gameResult && gameInfo) {
       const r = gameResult === '1-0' ? 'Белые выиграли' : gameResult === '0-1' ? 'Чёрные выиграли' : 'Ничья';
       gameInfo.textContent = gameInfo.textContent + ' — ' + r;
@@ -420,6 +590,8 @@
     legalTargets = [];
     lastMove = null;
     boardFlipped = false;
+    premoveQueue = [];
+    updateClocksDisplay();
     if (resignConfirmTimeout) clearTimeout(resignConfirmTimeout);
     resignConfirming = false;
     if (btnResign) { btnResign.textContent = 'Сдаться'; btnResign.classList.remove('resign-confirm'); }
@@ -537,5 +709,6 @@
   }
 
   renderLobbyButtons({});
+  loadBuildInfo();
   connect();
 })();

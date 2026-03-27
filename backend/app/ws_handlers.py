@@ -92,9 +92,10 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
         from_sq = data.get("from")
         to_sq = data.get("to")
         promotion = data.get("promotion")
+        is_premove = bool(data.get("premove"))
         g = get_game_for_user(game_id, user_id) if game_id else None
         if g and from_sq and to_sq:
-            update = apply_move(game_id, user_id, from_sq, to_sq, promotion)
+            update = apply_move(game_id, user_id, from_sq, to_sq, promotion, is_premove=is_premove)
             if update:
                 payload = {
                     "type": "game_update",

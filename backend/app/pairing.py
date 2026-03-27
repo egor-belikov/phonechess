@@ -155,7 +155,14 @@ def resign_game(game_id: str, user_id: str) -> dict | None:
     }
 
 
-def apply_move(game_id: str, user_id: str, from_sq: str, to_sq: str, promotion: str | None = None) -> dict | None:
+def apply_move(
+    game_id: str,
+    user_id: str,
+    from_sq: str,
+    to_sq: str,
+    promotion: str | None = None,
+    is_premove: bool = False,
+) -> dict | None:
     """
     Применить ход. Возвращает dict для broadcast (game_update) или None при ошибке.
     """
@@ -173,7 +180,7 @@ def apply_move(game_id: str, user_id: str, from_sq: str, to_sq: str, promotion: 
     if move not in board.legal_moves:
         return None
     now = time.monotonic()
-    elapsed_ms = int((now - g.last_clock_at) * 1000)
+    elapsed_ms = 0 if is_premove else int((now - g.last_clock_at) * 1000)
     tc = g.time_control
     inc_ms = tc["increment_seconds"] * 1000
     if board.turn == chess.WHITE:

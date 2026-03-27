@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file is a compact operational guide for AI agents working in `phonechess`.
+This file is the operational guide for AI agents working in `phonechess`.
 
 ## Project Snapshot
 
@@ -9,6 +9,7 @@ This file is a compact operational guide for AI agents working in `phonechess`.
 - Runtime model: one web app serves UI, API, and WebSocket (`/ws`).
 - Primary language in UI/content: Russian (current implementation).
 - Target devices: smartphones first; desktop/tablet support is not a goal.
+- Current stage: playable realtime PvP prototype with mobile-first Lichess-like UI.
 
 ## Repository Layout
 
@@ -23,6 +24,28 @@ This file is a compact operational guide for AI agents working in `phonechess`.
 - `README.md` - local run and base deploy notes.
 - `DEPLOY_DOCKER.md`, `DEPLOY_SUBDOMAIN.md`, `HOSTING.md` - deploy/infra docs.
 - `PROJECT_PLAN.md` - product requirements and milestones.
+- `scripts/update_build_meta.py` - updates build metadata + asset version tags.
+
+## Current Implemented Features (2026-03-27)
+
+- Matchmaking by time controls: `3+0`, `3+2`, `5+0`, `5+3`, `10+0`, `15+10`.
+- Realtime game via WebSocket with legal move validation (python-chess).
+- Per-player board orientation by color; manual flip button remains.
+- Clocks with low-time styling (`<20s`) and tenths.
+- Last-move highlight, check highlight, move list with move time.
+- Move input:
+  - tap-select + tap-target;
+  - desktop drag-and-drop;
+  - touch drag on mobile.
+- Premove queue (unlimited):
+  - can be queued while waiting for opponent move;
+  - executes only if legal in resulting position;
+  - if first queued premove becomes illegal, whole premove chain is cleared;
+  - premove execution is sent with `premove: true` (0ms move cost on backend).
+- Premove visualization:
+  - colored markers with per-step numbering;
+  - preview board position reflects chained premoves.
+- Build info badge at bottom: `version + deployed_at`.
 
 ## Core Functional Expectations
 
@@ -52,6 +75,7 @@ This file is a compact operational guide for AI agents working in `phonechess`.
 - Auth is based on Telegram WebApp `initData` (with debug fallback modes).
 - Matchmaking and game updates should be resilient to reconnects.
 - Do not silently alter time-control semantics.
+- `apply_move(..., is_premove=True)` must keep `elapsed_ms = 0`.
 
 ## Local Development
 
@@ -69,12 +93,24 @@ From repo root:
    - app: `http://localhost:8000/`
    - health: `http://localhost:8000/health`
 
+## Build Metadata and Cache Busting
+
+- Before deploy, run from repo root:
+  - `python3 scripts/update_build_meta.py`
+- Script updates:
+  - `frontend/build-meta.json` (`version`, `deployed_at`);
+  - cache-busting tags in `frontend/index.html` for `app.js` and `main.css`;
+  - fallback text in `#build-info`.
+- Frontend reads `/build-meta.json` with `cache: no-store`.
+
 ## Deployment Notes
 
 - Canonical GitHub repo: `https://github.com/egor-belikov/phonechess`.
 - Standard server deploy uses Docker Compose (`docker compose build && docker compose up -d`).
 - Production entrypoint domain is expected to be `https://chess.apichatpong.online/`.
 - For reverse proxy, WebSocket upgrade headers are mandatory.
+- Server used in active workflow: SSH alias `egorvps`, path `/root/my_projects/phonechess`.
+- For browser-based testing without Telegram, server `.env` should keep `DEBUG=1`.
 
 ## Agent Working Rules
 
@@ -85,4 +121,8 @@ From repo root:
   - white orientation;
   - black orientation;
   - drag-and-drop still sends legal move payload.
+- For premove changes, additionally verify:
+  - queue while out-of-turn works;
+  - illegal first premove clears full queue;
+  - move list shows premove move time as `0:00`.
 - Do not commit secrets (`.env`, tokens).

@@ -7,7 +7,7 @@
   <title>PhoneChess</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/main.css?v=20260327103352">
 </head>
 <body>
   <!-- Блокировщик: только мобильный телефон (не планшет, не десктоп) -->
@@ -31,29 +31,36 @@
         <button type="button" class="btn-back" id="btn-back-game" aria-label="Назад">←</button>
         <span id="game-info">Партия</span>
       </div>
-      <p id="game-your-side" class="game-your-side"></p>
-      <div class="clock-bar">
-        <div class="clock-row">
-          <span id="clock-top-label" class="clock-label"></span>
+      <div class="game-layout">
+        <div class="player-row player-row-top">
+          <div class="player-meta">
+            <div id="clock-top-label" class="clock-label"></div>
+          </div>
           <div id="clock-top" class="clock"></div>
         </div>
-        <div class="clock-row">
-          <span id="clock-bottom-label" class="clock-label"></span>
+        <div class="board-wrap">
+          <div id="chess-board" class="chess-board"></div>
+        </div>
+        <div class="player-row player-row-bottom">
+          <div class="player-meta">
+            <div id="clock-bottom-label" class="clock-label"></div>
+            <div id="game-your-side" class="game-your-side"></div>
+          </div>
           <div id="clock-bottom" class="clock"></div>
         </div>
-      </div>
-      <div class="board-wrap">
-        <div id="chess-board" class="chess-board"></div>
-      </div>
-      <div class="moves-header">Ходы</div>
-      <div id="move-list" class="move-list"></div>
-      <div class="game-actions">
-        <button type="button" class="btn-flip" id="btn-flip-board">Повернуть доску</button>
-        <button type="button" class="btn-resign" id="btn-resign">Сдаться</button>
+        <div class="moves-panel">
+          <div class="moves-header">Ходы</div>
+          <div id="move-list" class="move-list"></div>
+          <div class="game-actions">
+            <button type="button" class="btn-flip" id="btn-flip-board">Повернуть доску</button>
+            <button type="button" class="btn-resign" id="btn-resign">Сдаться</button>
+          </div>
+        </div>
       </div>
     </section>
 
   </div>
-  <script src="app.js"></script>
+  <div id="build-info" class="build-info">Версия: 6ee5e7c · Деплой: 2026-03-27 10:33:52 UTC</div>
+  <script src="app.js?v=20260327103352"></script>
 </body>
 </html>
