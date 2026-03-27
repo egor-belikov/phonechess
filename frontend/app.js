@@ -128,6 +128,9 @@
   const btnClaimDraw = $('btn-claim-draw');
   const buildInfoEl = $('build-info');
   const btnPrivateGame = $('btn-private-game');
+  const privateTimeModalEl = $('private-time-modal');
+  const privateTimeGridEl = $('private-time-grid');
+  const btnPrivateTimeClose = $('btn-private-time-close');
   const promotionPickerEl = $('promotion-picker');
   const promotionChoicesEl = $('promotion-choices');
   const gameAlertEl = $('game-alert');
@@ -231,6 +234,7 @@
     if (btnDraw) btnDraw.textContent = t('game.draw_offer');
     if (btnClaimDraw) btnClaimDraw.textContent = t('game.claim_draw');
     if (btnPrivateGame) btnPrivateGame.textContent = t('lobby.private_game');
+    if (btnPrivateTimeClose) btnPrivateTimeClose.textContent = t('common.cancel');
     if (btnResign && !resignConfirming) btnResign.textContent = t('game.resign');
     if (resultModalTitleEl) resultModalTitleEl.textContent = t('result.title');
     if (btnResultLobby) btnResultLobby.textContent = t('result.back_to_lobby');
@@ -287,6 +291,29 @@
     lobbyButtons.querySelectorAll('.mode-btn').forEach(btn => {
       btn.addEventListener('click', () => onModeClick(btn.dataset.time));
     });
+  }
+
+  function openPrivateTimeModal() {
+    if (!privateTimeModalEl || !privateTimeGridEl) return;
+    privateTimeGridEl.innerHTML = TIME_CONTROLS.map(function (tc) {
+      return '<button type="button" class="mode-btn" data-private-time="' + tc + '"><span>' + tc + '</span></button>';
+    }).join('');
+    privateTimeGridEl.querySelectorAll('[data-private-time]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const tc = btn.getAttribute('data-private-time');
+        closePrivateTimeModal();
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        ws.send(JSON.stringify({ type: 'create_private_invite', time_control: tc }));
+      });
+    });
+    privateTimeModalEl.classList.add('active');
+    privateTimeModalEl.setAttribute('aria-hidden', 'false');
+  }
+
+  function closePrivateTimeModal() {
+    if (!privateTimeModalEl) return;
+    privateTimeModalEl.classList.remove('active');
+    privateTimeModalEl.setAttribute('aria-hidden', 'true');
   }
 
   function onModeClick(timeControl) {
@@ -1523,9 +1550,15 @@
   if (btnPrivateGame) {
     btnPrivateGame.addEventListener('click', function () {
       if (!ws || ws.readyState !== WebSocket.OPEN) return;
-      const choice = window.prompt('Time control: ' + TIME_CONTROLS.join(', '), TIME_CONTROLS[0]);
-      if (!choice || TIME_CONTROLS.indexOf(choice) === -1) return;
-      ws.send(JSON.stringify({ type: 'create_private_invite', time_control: choice }));
+      openPrivateTimeModal();
+    });
+  }
+  if (btnPrivateTimeClose) {
+    btnPrivateTimeClose.addEventListener('click', closePrivateTimeModal);
+  }
+  if (privateTimeModalEl) {
+    privateTimeModalEl.addEventListener('click', function (e) {
+      if (e.target === privateTimeModalEl) closePrivateTimeModal();
     });
   }
   if (btnClaimDraw) {

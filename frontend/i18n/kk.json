@@ -90,5 +90,8 @@
     "start": "Start analysis",
     "stop": "Stop analysis",
     "unavailable": "Stockfish unavailable in this browser."
+  },
+  "common": {
+    "cancel": "Cancel"
   }
 }

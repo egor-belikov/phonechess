@@ -164,6 +164,57 @@ body.mobile-blocked #app {
   font-size: 0.92rem;
 }
 
+.private-time-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(12, 12, 11, 0.72);
+  padding: 16px;
+}
+
+.private-time-modal.active {
+  display: flex;
+}
+
+.private-time-card {
+  width: min(420px, 100%);
+  border-radius: 12px;
+  border: 1px solid #3a3935;
+  background: #1f1e1b;
+  padding: 12px;
+}
+
+.private-time-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.private-time-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.private-time-grid .mode-btn {
+  padding: 10px 8px;
+  font-size: 1rem;
+}
+
+.btn-private-time-close {
+  margin-top: 10px;
+  width: 100%;
+  min-height: 38px;
+  border-radius: 8px;
+  border: 1px solid #3a3935;
+  background: #2a2926;
+  color: #d0cfcc;
+}
+
 .ws-status.connected {
   color: #5a9a5a;
 }
