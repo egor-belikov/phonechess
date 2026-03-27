@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Tatala le app i luga o lau telefoni ile Telegram.",
+    "unsupported": "E le lagolagoina papamaa ma le desktop."
+  },
+  "lobby": {
+    "title": "TelefonChess",
+    "subtitle": "Filifili le pulea o le taimi",
+    "queue_count_you": "{n} i le laina (e aofia ai)",
+    "queue_count": "{n} i le laina"
+  },
+  "status": {
+    "connecting": "Feso'ota'i ile server...",
+    "connected": "Feso'ota'i",
+    "reconnecting": "Toe feso'ota'i...",
+    "disconnected_code": "Momotu: code {code}{reasonPart}",
+    "ws_error": "Sese feso'ota'iga (WebSocket)"
+  },
+  "game": {
+    "header": "Taaloga",
+    "moves": "Fa'agaioiga",
+    "flip": "Su'e laupapa",
+    "draw_offer": "Tusi ata?",
+    "draw_offer_sent": "Ua ofoina atu se ata",
+    "claim_draw": "Talosaga tusi",
+    "claim_threefold": "Talosaga sei (3 sautua)",
+    "claim_fifty": "Talosaga tusi (50-gaoioiga)",
+    "resign": "Fa'amavae",
+    "resign_confirm": "Faamaonia le faamavae?",
+    "you_white": "Oe (pa'epa'e)",
+    "you_black": "Oe (uliuli)",
+    "opp_white": "Fa'afeagai (pa'epa'e)",
+    "opp_black": "Fa'afeagai (uliuli)",
+    "white_name": "Pa'epa'e",
+    "black_name": "Uuliuli",
+    "white_won": "Na manumalo White",
+    "black_won": "Na malo le Black",
+    "draw": "Tusi",
+    "draw_offer_waiting": "Tusi le ofo auina atu ma faatalitali mo se tali.",
+    "draw_offer_received": "Na ofo mai e le fili. Tap \"Draw?\" e talia.",
+    "opp_disconnected": "Momotu le fili. Fa'atali mo le toe feso'ota'i ({sec}s)..."
+  },
+  "result": {
+    "title": "Ua mae'a le ta'aloga",
+    "back_to_lobby": "Toe fo'i i le lobby",
+    "you_win": "Ua e malo.",
+    "you_lose": "Ua e leiloa.",
+    "white_win": "Ua malo Pa'epa'e.",
+    "black_win": "Manumalo Black.",
+    "draw": "Tusi."
+  },
+  "reasons": {
+    "checkmate": "Checkmate.",
+    "timeout": "Taimi malolo.",
+    "stalemate": "Faigata.",
+    "insufficient_material": "Tusi e ala i mea e le lava.",
+    "draw_agreement": "Tusi i se maliega.",
+    "draw_claim_threefold": "Tusi fai mai: fai faatolu.",
+    "draw_claim_fifty_move": "Draw fai mai: 50-move tulafono.",
+    "draw_auto_fivefold": "Tusi otometi: fai faalima.",
+    "draw_auto_75move": "Tusi otometi: 75-gaioi tulafono.",
+    "disconnect_forfeit": "Na motusia le feso'ota'iga ma le toe fo'i mai.",
+    "disconnect_turn_timeout": "E le'i toe fo'i mai le fili i totonu ole 10 sekone ile latou taimi.",
+    "resign": "Manumalo i le faamavae."
+  },
+  "build": {
+    "label": "Fa'aliliuga: {version} · Fa'atino: {deployedAt}",
+    "unknown": "le iloa"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

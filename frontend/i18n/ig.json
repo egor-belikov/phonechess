@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Mepee ngwa na ama gị na Telegram.",
+    "unsupported": "A naghị akwado mbadamba nkume na desktọpụ."
+  },
+  "lobby": {
+    "title": "Chess ekwentị",
+    "subtitle": "Họrọ njikwa oge",
+    "queue_count_you": "_PH_0__ nọ n'ahịrị (ịgụnyere)",
+    "queue_count": "_PH_0__ nọ n'ahịrị"
+  },
+  "status": {
+    "connecting": "Na-ejikọ na sava…",
+    "connected": "Ejikọtara",
+    "reconnecting": "Na-ejikọghachi…",
+    "disconnected_code": "Akwụsịla: koodu _PH_0__{reasonPart}",
+    "ws_error": "Njehie njikọ (WebSocket)"
+  },
+  "game": {
+    "header": "Egwuregwu",
+    "moves": "Ngagharị",
+    "flip": "Tụgharịa osisi",
+    "draw_offer": "See?",
+    "draw_offer_sent": "A na-enye eserese",
+    "claim_draw": "Mkpesa eserese",
+    "claim_threefold": "Mkpesa ikpe (okpukpu atọ)",
+    "claim_fifty": "Ihe osise (50-nkwagharị)",
+    "resign": "Ahapụ arụkwaghịm",
+    "resign_confirm": "Kwado arụkwaghịm?",
+    "you_white": "Ị (ọcha)",
+    "you_black": "Ị (nwa)",
+    "opp_white": "Onye mmegide (ọcha)",
+    "opp_black": "Onye mmegide (ojii)",
+    "white_name": "Ọcha",
+    "black_name": "Nwa",
+    "white_won": "Ọcha meriri",
+    "black_won": "Oji meriri",
+    "draw": "See",
+    "draw_offer_waiting": "Kpọtụrụ onyinye zitere wee chere nzaghachi.",
+    "draw_offer_received": "Onye mmegide nyere eserese. Pịa \"Sere?\" ịnabata.",
+    "opp_disconnected": "Akwụsịla onye mmegide. Na-eche maka njikọgharị ({sec}s)..."
+  },
+  "result": {
+    "title": "Egwuregwu agwụla",
+    "back_to_lobby": "Laghachi na ọnụ ụlọ",
+    "you_win": "Ị meriri.",
+    "you_lose": "I tufuru.",
+    "white_win": "Ọcha na-emeri.",
+    "black_win": "Oji na-emeri.",
+    "draw": "See."
+  },
+  "reasons": {
+    "checkmate": "Onye nyocha.",
+    "timeout": "Oge ezumike.",
+    "stalemate": "Akwụsịla.",
+    "insufficient_material": "sere site na ihe ezughi oke.",
+    "draw_agreement": "Were nkwekọrịta sere.",
+    "draw_claim_threefold": "Ihe osise kwuru: ugboro atọ ugboro ugboro.",
+    "draw_claim_fifty_move": "Ihe osise kwuru: iwu 50-ebugharị.",
+    "draw_auto_fivefold": "Eserese akpaaka: ugboro ise ugboro ise.",
+    "draw_auto_75move": "Eserese akpaaka: Iwu ngagharị 75.",
+    "disconnect_forfeit": "Onye mmegide kwụsịrị ma ọ laghachighị.",
+    "disconnect_turn_timeout": "Ndị mmegide alaghachighị n'ime sekọnd iri na ntụgharị ha.",
+    "resign": "Mmeri site n'arụkwaghịm."
+  },
+  "build": {
+    "label": "Ụdị: _PH_0__ · Ebugara: {deployedAt}",
+    "unknown": "amaghị"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

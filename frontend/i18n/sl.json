@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Odprite aplikacijo na pametnem telefonu v Telegramu.",
+    "unsupported": "Tablični in namizni računalniki niso podprti."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Izberite časovni nadzor",
+    "queue_count_you": "{n} v čakalni vrsti (vključno z vami)",
+    "queue_count": "{n} v čakalni vrsti"
+  },
+  "status": {
+    "connecting": "Povezovanje s strežnikom …",
+    "connected": "Povezan",
+    "reconnecting": "Ponovna povezava ...",
+    "disconnected_code": "Prekinjeno: koda {code}{reasonPart}",
+    "ws_error": "Napaka povezave (WebSocket)"
+  },
+  "game": {
+    "header": "Igra",
+    "moves": "Premiki",
+    "flip": "Preklopna deska",
+    "draw_offer": "Žrebanje?",
+    "draw_offer_sent": "Ponujen žreb",
+    "claim_draw": "Žrebanje terjatev",
+    "claim_threefold": "Žreb zahtevkov (3-krat)",
+    "claim_fifty": "Zahtevaj žreb (50 potez)",
+    "resign": "Odstopite",
+    "resign_confirm": "Potrdite odstop?",
+    "you_white": "ti (bela)",
+    "you_black": "Ti (črna)",
+    "opp_white": "Nasprotnik (beli)",
+    "opp_black": "Nasprotnik (črni)",
+    "white_name": "Bela",
+    "black_name": "Črna",
+    "white_won": "Beli je zmagal",
+    "black_won": "Črni je zmagal",
+    "draw": "Nariši",
+    "draw_offer_waiting": "Ponudba za žrebanje je poslana in čaka na odgovor.",
+    "draw_offer_received": "Nasprotnik je ponudil remi. Tapnite \"Narisati?\" sprejeti.",
+    "opp_disconnected": "Nasprotnik prekinjen. Čakanje na ponovno povezavo ({sec}s) ..."
+  },
+  "result": {
+    "title": "Igra končana",
+    "back_to_lobby": "Nazaj v preddverje",
+    "you_win": "Zmagal si.",
+    "you_lose": "Izgubil si.",
+    "white_win": "Beli zmaga.",
+    "black_win": "Črni zmaga.",
+    "draw": "Nariši."
+  },
+  "reasons": {
+    "checkmate": "Šah-mat.",
+    "timeout": "Time out.",
+    "stalemate": "Zastoj.",
+    "insufficient_material": "Risanje po premalo materiala.",
+    "draw_agreement": "Žrebanje po dogovoru.",
+    "draw_claim_threefold": "Neodločeno: trikratna ponovitev.",
+    "draw_claim_fifty_move": "Zahtevan remi: pravilo 50 potez.",
+    "draw_auto_fivefold": "Samodejno žrebanje: petkratna ponovitev.",
+    "draw_auto_75move": "Samodejno žrebanje: pravilo 75 potez.",
+    "disconnect_forfeit": "Nasprotnik je prekinil povezavo in se ni vrnil.",
+    "disconnect_turn_timeout": "Nasprotnik se ni vrnil v 10 sekundah na vrsti.",
+    "resign": "Zmaga z odstopom."
+  },
+  "build": {
+    "label": "Različica: {version} · Razporejeno: {deployedAt}",
+    "unknown": "neznano"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

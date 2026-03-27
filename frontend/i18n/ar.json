@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "افتح التطبيق على هاتفك الذكي في Telegram.",
+    "unsupported": "لا يتم دعم الأجهزة اللوحية وسطح المكتب."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "اختر التحكم في الوقت",
+    "queue_count_you": "{n} في قائمة الانتظار (لقد قمت بتضمينها)",
+    "queue_count": "{n} في قائمة الانتظار"
+  },
+  "status": {
+    "connecting": "جارٍ الاتصال بالخادم…",
+    "connected": "متصل",
+    "reconnecting": "جارٍ إعادة الاتصال…",
+    "disconnected_code": "غير متصل: الرمز {code}{reasonPart}",
+    "ws_error": "خطأ في الاتصال (WebSocket)"
+  },
+  "game": {
+    "header": "لعبة",
+    "moves": "التحركات",
+    "flip": "لوحة الوجه",
+    "draw_offer": "يرسم؟",
+    "draw_offer_sent": "عرضت السحب",
+    "claim_draw": "سحب المطالبة",
+    "claim_threefold": "سحب المطالبة (ثلاثة أضعاف)",
+    "claim_fifty": "سحب المطالبة (50 نقلة)",
+    "resign": "استقالة",
+    "resign_confirm": "تأكيد الاستقالة؟",
+    "you_white": "أنت (الأبيض)",
+    "you_black": "أنت (أسود)",
+    "opp_white": "المنافس (أبيض)",
+    "opp_black": "المنافس (أسود)",
+    "white_name": "أبيض",
+    "black_name": "أسود",
+    "white_won": "فاز الأبيض",
+    "black_won": "فاز الأسود",
+    "draw": "يرسم",
+    "draw_offer_waiting": "تم إرسال عرض السحب وفي انتظار الرد.",
+    "draw_offer_received": "عرض الخصم التعادل. اضغط على \"رسم؟\" لقبول.",
+    "opp_disconnected": "تم قطع اتصال الخصم. في انتظار إعادة الاتصال ({sec}s)..."
+  },
+  "result": {
+    "title": "انتهت اللعبة",
+    "back_to_lobby": "العودة إلى الردهة",
+    "you_win": "لقد فزت.",
+    "you_lose": "لقد خسرت.",
+    "white_win": "الأبيض يفوز.",
+    "black_win": "الأسود يفوز.",
+    "draw": "يرسم."
+  },
+  "reasons": {
+    "checkmate": "مات.",
+    "timeout": "نفذ الوقت.",
+    "stalemate": "الجمود.",
+    "insufficient_material": "الرسم باستخدام مواد غير كافية.",
+    "draw_agreement": "السحب بالاتفاق.",
+    "draw_claim_threefold": "ادعى التعادل: التكرار ثلاثة أضعاف.",
+    "draw_claim_fifty_move": "ادعى التعادل: قاعدة 50 نقلة.",
+    "draw_auto_fivefold": "السحب التلقائي: التكرار خمسة أضعاف.",
+    "draw_auto_75move": "السحب التلقائي: قاعدة 75 حركة.",
+    "disconnect_forfeit": "الخصم قطع الاتصال ولم يعود.",
+    "disconnect_turn_timeout": "لم يعود الخصم خلال 10 ثوانٍ من دوره.",
+    "resign": "الفوز بالاستقالة."
+  },
+  "build": {
+    "label": "الإصدار: {version} · تم النشر: {deployedAt}",
+    "unknown": "مجهول"
+  },
+  "time": {
+    "sec_short": "ث",
+    "ms_short": "مللي ث"
+  }
+}

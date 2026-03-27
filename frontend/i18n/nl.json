@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Open de app op je smartphone in Telegram.",
+    "unsupported": "Tablets en desktops worden niet ondersteund."
+  },
+  "lobby": {
+    "title": "TelefoonSchaken",
+    "subtitle": "Kies voor tijdcontrole",
+    "queue_count_you": "{n} in wachtrij (jij hebt meegerekend)",
+    "queue_count": "{n} in wachtrij"
+  },
+  "status": {
+    "connecting": "Verbinding maken met server…",
+    "connected": "Verbonden",
+    "reconnecting": "Opnieuw verbinding maken…",
+    "disconnected_code": "Verbinding verbroken: code {code}{reasonPart}",
+    "ws_error": "Verbindingsfout (WebSocket)"
+  },
+  "game": {
+    "header": "Spel",
+    "moves": "Beweegt",
+    "flip": "Flip bord",
+    "draw_offer": "Tekenen?",
+    "draw_offer_sent": "Gelijkspel aangeboden",
+    "claim_draw": "Claim gelijkspel",
+    "claim_threefold": "Claimtrekking (3-voudig)",
+    "claim_fifty": "Claim gelijkspel (50 zetten)",
+    "resign": "Neem ontslag",
+    "resign_confirm": "Aftreden bevestigen?",
+    "you_white": "Jij (wit)",
+    "you_black": "Jij (zwart)",
+    "opp_white": "Tegenstander (wit)",
+    "opp_black": "Tegenstander (zwart)",
+    "white_name": "Wit",
+    "black_name": "Zwart",
+    "white_won": "Wit heeft gewonnen",
+    "black_won": "Zwart heeft gewonnen",
+    "draw": "Teken",
+    "draw_offer_waiting": "Trekaanbieding verzonden en wacht op reactie.",
+    "draw_offer_received": "Tegenstander bood remise aan. Tik op 'Tekenen?' accepteren.",
+    "opp_disconnected": "Tegenstander heeft de verbinding verbroken. Wachten op opnieuw verbinden ({sec}s)..."
+  },
+  "result": {
+    "title": "Spel afgelopen",
+    "back_to_lobby": "Terug naar de lobby",
+    "you_win": "Jij hebt gewonnen.",
+    "you_lose": "Jij hebt verloren.",
+    "white_win": "Wit wint.",
+    "black_win": "Zwart wint.",
+    "draw": "Teken."
+  },
+  "reasons": {
+    "checkmate": "Schaakmat.",
+    "timeout": "Time-out.",
+    "stalemate": "Patstelling.",
+    "insufficient_material": "Teken door onvoldoende materiaal.",
+    "draw_agreement": "Teken in overleg.",
+    "draw_claim_threefold": "Gelijkspel beweerde: drievoudige herhaling.",
+    "draw_claim_fifty_move": "Gelijkspel geclaimd: 50-zettenregel.",
+    "draw_auto_fivefold": "Automatische trekking: vijfvoudige herhaling.",
+    "draw_auto_75move": "Automatische remise: 75 zettenregel.",
+    "disconnect_forfeit": "De tegenstander verbrak de verbinding en kwam niet terug.",
+    "disconnect_turn_timeout": "De tegenstander keerde tijdens zijn beurt niet binnen 10 seconden terug.",
+    "resign": "Winnen door berusting."
+  },
+  "build": {
+    "label": "Versie: {version} · Geïmplementeerd: {deployedAt}",
+    "unknown": "onbekend"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "mevrouw"
+  }
+}

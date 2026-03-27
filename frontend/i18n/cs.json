@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Otevřete aplikaci na svém smartphonu v Telegramu.",
+    "unsupported": "Tablety a stolní počítače nejsou podporovány."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Zvolte kontrolu času",
+    "queue_count_you": "{n} ve frontě (včetně vás)",
+    "queue_count": "{n} ve frontě"
+  },
+  "status": {
+    "connecting": "Připojování k serveru…",
+    "connected": "Připojeno",
+    "reconnecting": "Opětovné připojení…",
+    "disconnected_code": "Odpojeno: kód {code}{reasonPart}",
+    "ws_error": "Chyba připojení (WebSocket)"
+  },
+  "game": {
+    "header": "Hra",
+    "moves": "Pohyby",
+    "flip": "Překlápěcí deska",
+    "draw_offer": "Kreslit?",
+    "draw_offer_sent": "Nabídka remízy",
+    "claim_draw": "Nárokovat losování",
+    "claim_threefold": "Nárokovat losování (3x)",
+    "claim_fifty": "Nárokovat losování (50 tahů)",
+    "resign": "Odstoupit",
+    "resign_confirm": "Potvrdit rezignaci?",
+    "you_white": "ty (bílý)",
+    "you_black": "ty (černý)",
+    "opp_white": "Soupeř (bílý)",
+    "opp_black": "Soupeř (černý)",
+    "white_name": "Bílá",
+    "black_name": "Černá",
+    "white_won": "Bílý vyhrál",
+    "black_won": "Černý vyhrál",
+    "draw": "Kreslit",
+    "draw_offer_waiting": "Nabídka losování byla odeslána a čeká na odpověď.",
+    "draw_offer_received": "Soupeř nabídl remízu. Klepněte na \"Nakreslit?\" přijmout.",
+    "opp_disconnected": "Soupeř odpojen. Čekání na opětovné připojení ({sec}s)..."
+  },
+  "result": {
+    "title": "Hra skončila",
+    "back_to_lobby": "Zpět do lobby",
+    "you_win": "Vyhráli jste.",
+    "you_lose": "Prohrál jsi.",
+    "white_win": "Bílý vítězí.",
+    "black_win": "Černý vítězí.",
+    "draw": "Kreslit."
+  },
+  "reasons": {
+    "checkmate": "Mat.",
+    "timeout": "Časový limit.",
+    "stalemate": "Patová situace.",
+    "insufficient_material": "Kreslit nedostatečným materiálem.",
+    "draw_agreement": "Nakreslete po dohodě.",
+    "draw_claim_threefold": "Remíza nárokována: trojnásobné opakování.",
+    "draw_claim_fifty_move": "Nárok na losování: pravidlo 50 tahů.",
+    "draw_auto_fivefold": "Automatické tažení: pětinásobné opakování.",
+    "draw_auto_75move": "Automatické losování: Pravidlo 75 tahů.",
+    "disconnect_forfeit": "Soupeř se odpojil a nevrátil se.",
+    "disconnect_turn_timeout": "Soupeř se nevrátil do 10 sekund ve svém tahu.",
+    "resign": "Vyhrát rezignací."
+  },
+  "build": {
+    "label": "Verze: {version} · Nasazeno: {deployedAt}",
+    "unknown": "neznámý"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "paní"
+  }
+}

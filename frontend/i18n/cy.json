@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Agorwch yr ap ar eich ffôn clyfar yn Telegram.",
+    "unsupported": "Nid yw tabledi a bwrdd gwaith yn cael eu cefnogi."
+  },
+  "lobby": {
+    "title": "FfônChess",
+    "subtitle": "Dewiswch reolaeth amser",
+    "queue_count_you": "_PH_0__ yn y ciw (rydych yn cynnwys)",
+    "queue_count": "_PH_0__ mewn ciw"
+  },
+  "status": {
+    "connecting": "Wrthi'n cysylltu â'r gweinydd…",
+    "connected": "Wedi'i gysylltu",
+    "reconnecting": "Wrthi'n ailgysylltu…",
+    "disconnected_code": "Wedi'i ddatgysylltu: cod _PH_0__{reasonPart}",
+    "ws_error": "Gwall cysylltu (WebSocket)"
+  },
+  "game": {
+    "header": "Gêm",
+    "moves": "Symud",
+    "flip": "Bwrdd troi",
+    "draw_offer": "Tynnu llun?",
+    "draw_offer_sent": "Draw a gynigir",
+    "claim_draw": "Hawlio raffl",
+    "claim_threefold": "Hawlio raffl (3-plyg)",
+    "claim_fifty": "Hawlio raffl (50-symud)",
+    "resign": "Ymddiswyddo",
+    "resign_confirm": "Cadarnhau ymddiswyddo?",
+    "you_white": "Ti (gwyn)",
+    "you_black": "Ti (du)",
+    "opp_white": "Gwrthwynebydd (gwyn)",
+    "opp_black": "Gwrthwynebydd (du)",
+    "white_name": "Gwyn",
+    "black_name": "Du",
+    "white_won": "Enillodd Gwyn",
+    "black_won": "Enillodd Du",
+    "draw": "Tynnu llun",
+    "draw_offer_waiting": "Tynnu cynnig wedi'i anfon ac aros am ymateb.",
+    "draw_offer_received": "Cynigiodd y gwrthwynebydd gêm gyfartal. Tap \"Tynnu llun?\" i dderbyn.",
+    "opp_disconnected": "Gwrthwynebydd wedi'i ddatgysylltu. Aros am ailgysylltu ({sec}s)..."
+  },
+  "result": {
+    "title": "Gêm wedi gorffen",
+    "back_to_lobby": "Yn ôl i lobi",
+    "you_win": "Enilloch chi.",
+    "you_lose": "Collasoch.",
+    "white_win": "Gwyn yn ennill.",
+    "black_win": "Du yn ennill.",
+    "draw": "Tynnu llun."
+  },
+  "reasons": {
+    "checkmate": "Checkmate.",
+    "timeout": "Amser allan.",
+    "stalemate": "Stalemate.",
+    "insufficient_material": "Tynnu llun gan ddefnyddio deunydd annigonol.",
+    "draw_agreement": "Tynnu llun trwy gytundeb.",
+    "draw_claim_threefold": "Hawlir Draw: ailadrodd triphlyg.",
+    "draw_claim_fifty_move": "Hawlir y raffl: rheol 50 symudiad.",
+    "draw_auto_fivefold": "Tynnu'n awtomatig: ailadrodd pum gwaith.",
+    "draw_auto_75move": "Tynnu'n awtomatig: rheol 75-symud.",
+    "disconnect_forfeit": "Datgysylltodd y gwrthwynebydd ac ni ddychwelodd.",
+    "disconnect_turn_timeout": "Ni ddychwelodd y gwrthwynebydd o fewn 10 eiliad ar eu tro.",
+    "resign": "Ennill trwy ymddiswyddiad."
+  },
+  "build": {
+    "label": "Fersiwn: _PH_0__ · Wedi'i leoli: {deployedAt}",
+    "unknown": "anhysbys"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

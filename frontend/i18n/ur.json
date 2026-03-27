@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "ٹیلیگرام میں اپنے اسمارٹ فون پر ایپ کھولیں۔",
+    "unsupported": "ٹیبلٹس اور ڈیسک ٹاپ تعاون یافتہ نہیں ہیں۔"
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "ٹائم کنٹرول کا انتخاب کریں۔",
+    "queue_count_you": "{n} قطار میں (آپ شامل ہیں)",
+    "queue_count": "{n} قطار میں"
+  },
+  "status": {
+    "connecting": "سرور سے منسلک ہو رہا ہے…",
+    "connected": "جڑا ہوا",
+    "reconnecting": "دوبارہ منسلک ہو رہا ہے…",
+    "disconnected_code": "منقطع: کوڈ {code}PH_1__",
+    "ws_error": "کنکشن کی خرابی (ویب ساکٹ)"
+  },
+  "game": {
+    "header": "کھیل",
+    "moves": "چالیں",
+    "flip": "پلٹائیں بورڈ",
+    "draw_offer": "ڈرا؟",
+    "draw_offer_sent": "ڈرا پیش کیا گیا۔",
+    "claim_draw": "قرعہ اندازی کا دعویٰ کریں۔",
+    "claim_threefold": "دعوی قرعہ اندازی (3 گنا)",
+    "claim_fifty": "دعوی قرعہ اندازی (50-حرکت)",
+    "resign": "استعفیٰ دیں۔",
+    "resign_confirm": "استعفیٰ کی تصدیق؟",
+    "you_white": "تم (سفید)",
+    "you_black": "تم (سیاہ)",
+    "opp_white": "مخالف (سفید)",
+    "opp_black": "مخالف (سیاہ)",
+    "white_name": "سفید",
+    "black_name": "سیاہ",
+    "white_won": "سفید جیت گیا۔",
+    "black_won": "سیاہ جیت گیا۔",
+    "draw": "ڈرا",
+    "draw_offer_waiting": "ڈرا پیشکش بھیجی گئی ہے اور جواب کا انتظار ہے۔",
+    "draw_offer_received": "مخالف نے ڈرا کی پیشکش کی۔ \"ڈرا؟\" کو تھپتھپائیں۔ قبول کرنا",
+    "opp_disconnected": "مخالف کا رابطہ منقطع ہو گیا۔ دوبارہ منسلک ہونے کا انتظار کر رہا ہے ({sec}s)..."
+  },
+  "result": {
+    "title": "گیم ختم",
+    "back_to_lobby": "واپس لابی پر",
+    "you_win": "آپ جیت گئے۔",
+    "you_lose": "تم ہار گئے۔",
+    "white_win": "سفید جیت گیا۔",
+    "black_win": "سیاہ جیت جاتا ہے۔",
+    "draw": "ڈرا"
+  },
+  "reasons": {
+    "checkmate": "چیک میٹ",
+    "timeout": "وقت ختم.",
+    "stalemate": "تعطل۔",
+    "insufficient_material": "ناکافی مواد کی طرف سے ڈرا.",
+    "draw_agreement": "معاہدے کے ذریعے ڈرا کریں۔",
+    "draw_claim_threefold": "ڈرا نے دعوی کیا: تین گنا تکرار۔",
+    "draw_claim_fifty_move": "ڈرا کا دعویٰ کیا گیا: 50 حرکت کا اصول۔",
+    "draw_auto_fivefold": "خودکار ڈرا: پانچ گنا تکرار۔",
+    "draw_auto_75move": "خودکار ڈرا: 75 حرکت کا اصول۔",
+    "disconnect_forfeit": "مخالف نے رابطہ منقطع کیا اور واپس نہیں آیا۔",
+    "disconnect_turn_timeout": "حریف اپنی باری پر 10 سیکنڈ میں واپس نہیں آیا۔",
+    "resign": "استعفیٰ دے کر جیتیں۔"
+  },
+  "build": {
+    "label": "ورژن: {version} · تعینات کیا گیا: {deployedAt}",
+    "unknown": "نامعلوم"
+  },
+  "time": {
+    "sec_short": "س",
+    "ms_short": "ملی س"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Öffnen d'App op Ärem Smartphone am Telegram.",
+    "unsupported": "Pëllen an Desktop ginn net ënnerstëtzt."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Wielt Zäit Kontroll",
+    "queue_count_you": "{n} an der Schlaang (Dir abegraff)",
+    "queue_count": "{n} an der Schlaang"
+  },
+  "status": {
+    "connecting": "Uschloss un de Server…",
+    "connected": "Ugeschloss",
+    "reconnecting": "Reconnectéiert…",
+    "disconnected_code": "Deconnectéiert: Code {code}{reasonPart}",
+    "ws_error": "Verbindungsfehler (WebSocket)"
+  },
+  "game": {
+    "header": "Spill",
+    "moves": "Beweegt",
+    "flip": "Flip Verwaltungsrot",
+    "draw_offer": "Zeechnen?",
+    "draw_offer_sent": "Zeechnen ugebueden",
+    "claim_draw": "Fuerderung Zeechnen",
+    "claim_threefold": "Fuerderung (3-fach)",
+    "claim_fifty": "Fuerderung (50-Move)",
+    "resign": "Demissionéieren",
+    "resign_confirm": "Demission bestätegen?",
+    "you_white": "Dir (wäiss)",
+    "you_black": "Dir (schwaarz)",
+    "opp_white": "Géigner (wäiss)",
+    "opp_black": "Géigner (schwaarz)",
+    "white_name": "Wäiss",
+    "black_name": "Schwaarz",
+    "white_won": "Wäiss gewonnen",
+    "black_won": "Black gewonnen",
+    "draw": "Zeechnen",
+    "draw_offer_waiting": "Zeechnen Offer geschéckt a gewaart Äntwert.",
+    "draw_offer_received": "Géigner offréiert eng Remis. Tippen op \"Zeechnen?\" ze akzeptéieren.",
+    "opp_disconnected": "Géigespiller deconnectéiert. Waart op nei Verbindung ({sec}s) ..."
+  },
+  "result": {
+    "title": "Spill fäerdeg",
+    "back_to_lobby": "Zréck an de Lobby",
+    "you_win": "Dir hutt gewonnen.",
+    "you_lose": "Dir hutt verluer.",
+    "white_win": "Wäiss gewënnt.",
+    "black_win": "Schwaarz gewënnt.",
+    "draw": "Zeechnen."
+  },
+  "reasons": {
+    "checkmate": "Scheckmatt.",
+    "timeout": "Zäit eraus.",
+    "stalemate": "Stalmate.",
+    "insufficient_material": "Zeechnen duerch net genuch Material.",
+    "draw_agreement": "Zeechnen duerch Accord.",
+    "draw_claim_threefold": "Zeechnen behaapt: dräifach Widderhuelung.",
+    "draw_claim_fifty_move": "Draw behaapt: 50-Move Regel.",
+    "draw_auto_fivefold": "Automatesch Zeechnen: fënneffach Widderhuelung.",
+    "draw_auto_75move": "Automatesch Zeechnen: 75-Move Regel.",
+    "disconnect_forfeit": "Géigespiller deconnectéiert an net zréck.",
+    "disconnect_turn_timeout": "Géigner net zréck bannent 10 Sekonnen op hirem Tour.",
+    "resign": "Gewannen duerch Demissioun."
+  },
+  "build": {
+    "label": "Versioun: {version} · Ofgesat: {deployedAt}",
+    "unknown": "onbekannt"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

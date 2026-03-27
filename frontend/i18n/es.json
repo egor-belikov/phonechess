@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Abra la aplicación en su teléfono inteligente en Telegram.",
+    "unsupported": "No se admiten tabletas ni computadoras de escritorio."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Elige el control del tiempo",
+    "queue_count_you": "{n} en cola (tú incluido)",
+    "queue_count": "{n} en cola"
+  },
+  "status": {
+    "connecting": "Conectándose al servidor…",
+    "connected": "Conectado",
+    "reconnecting": "Reconectando…",
+    "disconnected_code": "Desconectado: código {code}{reasonPart}",
+    "ws_error": "Error de conexión (WebSocket)"
+  },
+  "game": {
+    "header": "juego",
+    "moves": "se mueve",
+    "flip": "tablero giratorio",
+    "draw_offer": "¿Dibujar?",
+    "draw_offer_sent": "Sorteo ofrecido",
+    "claim_draw": "Sorteo de reclamaciones",
+    "claim_threefold": "Sorteo de reclamos (3 veces)",
+    "claim_fifty": "Reclamar empate (50 movimientos)",
+    "resign": "Renunciar",
+    "resign_confirm": "¿Confirmar dimisión?",
+    "you_white": "tu (blanco)",
+    "you_black": "tu (negro)",
+    "opp_white": "oponente (blanco)",
+    "opp_black": "oponente (negro)",
+    "white_name": "blanco",
+    "black_name": "negro",
+    "white_won": "Las blancas ganaron",
+    "black_won": "las negras ganaron",
+    "draw": "Dibujar",
+    "draw_offer_waiting": "Oferta de sorteo enviada y esperando respuesta.",
+    "draw_offer_received": "El oponente ofreció un empate. Toca \"¿Dibujar?\" aceptar.",
+    "opp_disconnected": "Oponente desconectado. Esperando reconexión ({sec}s)..."
+  },
+  "result": {
+    "title": "Juego terminado",
+    "back_to_lobby": "Volver al lobby",
+    "you_win": "Ganaste.",
+    "you_lose": "Perdiste.",
+    "white_win": "Las blancas ganan.",
+    "black_win": "Las negras ganan.",
+    "draw": "Dibujar."
+  },
+  "reasons": {
+    "checkmate": "Jaque mate.",
+    "timeout": "Tiempo muerto.",
+    "stalemate": "Estancamiento.",
+    "insufficient_material": "Empate por material insuficiente.",
+    "draw_agreement": "Sorteo por acuerdo.",
+    "draw_claim_threefold": "Empate reclamado: triple repetición.",
+    "draw_claim_fifty_move": "Empate reclamado: regla de los 50 movimientos.",
+    "draw_auto_fivefold": "Sorteo automático: repetición quíntuple.",
+    "draw_auto_75move": "Empate automático: regla de los 75 movimientos.",
+    "disconnect_forfeit": "El oponente se desconectó y no regresó.",
+    "disconnect_turn_timeout": "El oponente no regresó dentro de los 10 segundos de su turno.",
+    "resign": "Ganar por resignación."
+  },
+  "build": {
+    "label": "Versión: {version} · Implementado: {deployedAt}",
+    "unknown": "desconocido"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

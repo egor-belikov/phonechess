@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "ਟੈਲੀਗ੍ਰਾਮ ਵਿੱਚ ਆਪਣੇ ਸਮਾਰਟਫੋਨ 'ਤੇ ਐਪ ਖੋਲ੍ਹੋ।",
+    "unsupported": "ਟੈਬਲੇਟ ਅਤੇ ਡੈਸਕਟਾਪ ਸਮਰਥਿਤ ਨਹੀਂ ਹਨ।"
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "ਸਮਾਂ ਨਿਯੰਤਰਣ ਚੁਣੋ",
+    "queue_count_you": "{n} ਕਤਾਰ ਵਿੱਚ (ਤੁਸੀਂ ਸ਼ਾਮਲ ਕੀਤਾ)",
+    "queue_count": "{n} ਕਤਾਰ ਵਿੱਚ"
+  },
+  "status": {
+    "connecting": "ਸਰਵਰ ਨਾਲ ਕਨੈਕਟ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ...",
+    "connected": "ਜੁੜਿਆ",
+    "reconnecting": "ਮੁੜ ਕਨੈਕਟ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ...",
+    "disconnected_code": "ਡਿਸਕਨੈਕਟ ਕੀਤਾ ਗਿਆ: ਕੋਡ {code}PH_1__",
+    "ws_error": "ਕਨੈਕਸ਼ਨ ਗਲਤੀ (ਵੈਬਸਾਕੇਟ)"
+  },
+  "game": {
+    "header": "ਖੇਡ",
+    "moves": "ਚਾਲ",
+    "flip": "ਫਲਿੱਪ ਬੋਰਡ",
+    "draw_offer": "ਡਰਾਅ?",
+    "draw_offer_sent": "ਡਰਾਅ ਦੀ ਪੇਸ਼ਕਸ਼ ਕੀਤੀ ਗਈ",
+    "claim_draw": "ਡਰਾਅ ਦਾ ਦਾਅਵਾ ਕਰੋ",
+    "claim_threefold": "ਦਾਅਵਾ ਡਰਾਅ (3-ਗੁਣਾ)",
+    "claim_fifty": "ਦਾਅਵਾ ਡਰਾਅ (50-ਚਾਲ)",
+    "resign": "ਅਸਤੀਫਾ",
+    "resign_confirm": "ਅਸਤੀਫੇ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ?",
+    "you_white": "ਤੂੰ (ਚਿੱਟਾ)",
+    "you_black": "ਤੂੰ (ਕਾਲਾ)",
+    "opp_white": "ਵਿਰੋਧੀ (ਚਿੱਟਾ)",
+    "opp_black": "ਵਿਰੋਧੀ (ਕਾਲਾ)",
+    "white_name": "ਚਿੱਟਾ",
+    "black_name": "ਕਾਲਾ",
+    "white_won": "ਚਿੱਟਾ ਜਿੱਤ ਗਿਆ",
+    "black_won": "ਕਾਲਾ ਜਿੱਤ ਗਿਆ",
+    "draw": "ਡਰਾਅ",
+    "draw_offer_waiting": "ਡਰਾਅ ਪੇਸ਼ਕਸ਼ ਭੇਜੀ ਗਈ ਹੈ ਅਤੇ ਜਵਾਬ ਦੀ ਉਡੀਕ ਹੈ।",
+    "draw_offer_received": "ਵਿਰੋਧੀ ਨੇ ਡਰਾਅ ਦੀ ਪੇਸ਼ਕਸ਼ ਕੀਤੀ। \"ਡਰਾਅ?\" 'ਤੇ ਟੈਪ ਕਰੋ? ਸਵੀਕਾਰ ਕਰਨ ਲਈ.",
+    "opp_disconnected": "ਵਿਰੋਧੀ ਡਿਸਕਨੈਕਟ ਕੀਤਾ ਗਿਆ। ਮੁੜ-ਕਨੈਕਟ ਹੋਣ ਦੀ ਉਡੀਕ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ ({sec}s)..."
+  },
+  "result": {
+    "title": "ਖੇਡ ਸਮਾਪਤ ਹੋਈ",
+    "back_to_lobby": "ਲਾਬੀ 'ਤੇ ਵਾਪਸ ਜਾਓ",
+    "you_win": "ਤੁਸੀਂ ਜਿੱਤ ਗਏ।",
+    "you_lose": "ਤੁਸੀਂ ਹਾਰ ਗਏ ਹੋ।",
+    "white_win": "ਚਿੱਟਾ ਜਿੱਤਦਾ ਹੈ।",
+    "black_win": "ਕਾਲਾ ਜਿੱਤਦਾ ਹੈ।",
+    "draw": "ਡਰਾਅ."
+  },
+  "reasons": {
+    "checkmate": "ਚੈੱਕਮੇਟ",
+    "timeout": "ਸਮਾਂ ਸਮਾਪਤ।",
+    "stalemate": "ਖੜੋਤ.",
+    "insufficient_material": "ਨਾਕਾਫ਼ੀ ਸਮੱਗਰੀ ਦੁਆਰਾ ਖਿੱਚੋ।",
+    "draw_agreement": "ਸਮਝੌਤੇ ਦੁਆਰਾ ਖਿੱਚੋ.",
+    "draw_claim_threefold": "ਡਰਾਅ ਨੇ ਦਾਅਵਾ ਕੀਤਾ: ਤਿੰਨ ਗੁਣਾ ਦੁਹਰਾਓ।",
+    "draw_claim_fifty_move": "ਡਰਾਅ ਦਾ ਦਾਅਵਾ ਕੀਤਾ ਗਿਆ: 50-ਮੂਵ ਨਿਯਮ।",
+    "draw_auto_fivefold": "ਆਟੋਮੈਟਿਕ ਡਰਾਅ: ਪੰਜ ਗੁਣਾ ਦੁਹਰਾਓ।",
+    "draw_auto_75move": "ਆਟੋਮੈਟਿਕ ਡਰਾਅ: 75-ਮੂਵ ਨਿਯਮ।",
+    "disconnect_forfeit": "ਵਿਰੋਧੀ ਨੇ ਡਿਸਕਨੈਕਟ ਕੀਤਾ ਅਤੇ ਵਾਪਸ ਨਹੀਂ ਆਇਆ।",
+    "disconnect_turn_timeout": "ਵਿਰੋਧੀ ਆਪਣੀ ਵਾਰੀ 'ਤੇ 10 ਸਕਿੰਟਾਂ ਦੇ ਅੰਦਰ ਵਾਪਸ ਨਹੀਂ ਆਏ।",
+    "resign": "ਅਸਤੀਫਾ ਦੇ ਕੇ ਜਿੱਤੋ।"
+  },
+  "build": {
+    "label": "ਸੰਸਕਰਣ: {version} · ਤੈਨਾਤ: {deployedAt}",
+    "unknown": "ਅਗਿਆਤ"
+  },
+  "time": {
+    "sec_short": "ਐੱਸ",
+    "ms_short": "ms"
+  }
+}

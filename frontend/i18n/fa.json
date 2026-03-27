@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "اپلیکیشن را در گوشی هوشمند خود در تلگرام باز کنید.",
+    "unsupported": "تبلت ها و دسکتاپ پشتیبانی نمی شوند."
+  },
+  "lobby": {
+    "title": "شطرنج تلفنی",
+    "subtitle": "کنترل زمان را انتخاب کنید",
+    "queue_count_you": "{n} در صف (شما گنجانده اید)",
+    "queue_count": "{n} در صف"
+  },
+  "status": {
+    "connecting": "در حال اتصال به سرور…",
+    "connected": "متصل شد",
+    "reconnecting": "در حال اتصال مجدد…",
+    "disconnected_code": "قطع شده: کد {code}{reasonPart}",
+    "ws_error": "خطای اتصال (WebSocket)"
+  },
+  "game": {
+    "header": "بازی",
+    "moves": "حرکت می کند",
+    "flip": "تخته تلنگر",
+    "draw_offer": "قرعه کشی؟",
+    "draw_offer_sent": "قرعه کشی ارائه شده است",
+    "claim_draw": "قرعه کشی ادعا",
+    "claim_threefold": "قرعه کشی ادعا (3 برابر)",
+    "claim_fifty": "قرعه کشی ادعا (50 حرکت)",
+    "resign": "استعفا دهد",
+    "resign_confirm": "تایید استعفا؟",
+    "you_white": "شما (سفید پوست)",
+    "you_black": "تو (سیاه)",
+    "opp_white": "حریف (سفید)",
+    "opp_black": "حریف (سیاه)",
+    "white_name": "سفید",
+    "black_name": "مشکی",
+    "white_won": "سفید پیروز شد",
+    "black_won": "سیاه پیروز شد",
+    "draw": "قرعه کشی کنید",
+    "draw_offer_waiting": "پیشنهاد قرعه کشی ارسال شد و منتظر پاسخ هستیم.",
+    "draw_offer_received": "حریف پیشنهاد تساوی داد. روی \"Draw?\" ضربه بزنید. پذیرفتن",
+    "opp_disconnected": "ارتباط حریف قطع شد در انتظار اتصال مجدد ({sec}s)..."
+  },
+  "result": {
+    "title": "بازی تموم شد",
+    "back_to_lobby": "بازگشت به لابی",
+    "you_win": "تو بردی",
+    "you_lose": "باختی",
+    "white_win": "سفید برنده می شود.",
+    "black_win": "سیاه پیروز می شود.",
+    "draw": "قرعه کشی کنید."
+  },
+  "reasons": {
+    "checkmate": "مات.",
+    "timeout": "تایم اوت",
+    "stalemate": "بن بست.",
+    "insufficient_material": "با مواد ناکافی بکشید.",
+    "draw_agreement": "قرعه کشی با توافق",
+    "draw_claim_threefold": "ادعای قرعه کشی: سه برابر تکرار.",
+    "draw_claim_fifty_move": "ادعای قرعه کشی: قانون 50 حرکت.",
+    "draw_auto_fivefold": "قرعه کشی خودکار: تکرار پنج برابر.",
+    "draw_auto_75move": "قرعه کشی خودکار: قانون 75 حرکت.",
+    "disconnect_forfeit": "حریف قطع شد و برنگشت.",
+    "disconnect_turn_timeout": "حریف در 10 ثانیه در نوبت خود برنگشت.",
+    "resign": "با استعفا پیروز شوید"
+  },
+  "build": {
+    "label": "نسخه: {version} · مستقر: {deployedAt}",
+    "unknown": "ناشناخته"
+  },
+  "time": {
+    "sec_short": "س",
+    "ms_short": "ms"
+  }
+}

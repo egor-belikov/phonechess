@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Öppna appen på din smartphone i Telegram.",
+    "unsupported": "Surfplattor och skrivbord stöds inte."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Välj tidskontroll",
+    "queue_count_you": "{n} i kö (du inkluderade)",
+    "queue_count": "{n} i kö"
+  },
+  "status": {
+    "connecting": "Ansluter till servern...",
+    "connected": "Ansluten",
+    "reconnecting": "Återansluter...",
+    "disconnected_code": "Frånkopplad: kod {code}{reasonPart}",
+    "ws_error": "Anslutningsfel (WebSocket)"
+  },
+  "game": {
+    "header": "Spel",
+    "moves": "Rör sig",
+    "flip": "Blädderbräda",
+    "draw_offer": "Rita?",
+    "draw_offer_sent": "Dragning erbjuds",
+    "claim_draw": "Gör anspråk på dragning",
+    "claim_threefold": "Gör anspråk på dragning (3 gånger)",
+    "claim_fifty": "Gör anspråk på dragning (50 drag)",
+    "resign": "Avgå",
+    "resign_confirm": "Bekräfta avgång?",
+    "you_white": "Du (vit)",
+    "you_black": "du (svart)",
+    "opp_white": "Motståndare (vit)",
+    "opp_black": "Motståndare (svart)",
+    "white_name": "Vit",
+    "black_name": "Svart",
+    "white_won": "Vit vann",
+    "black_won": "Svart vann",
+    "draw": "Rita",
+    "draw_offer_waiting": "Ritningserbjudande skickat och väntar på svar.",
+    "draw_offer_received": "Motståndaren bjöd på oavgjort. Tryck på \"Rita?\" att acceptera.",
+    "opp_disconnected": "Motståndaren kopplad bort. Väntar på återanslutningen ({sec}s)..."
+  },
+  "result": {
+    "title": "Spelet avslutat",
+    "back_to_lobby": "Tillbaka till lobbyn",
+    "you_win": "Du vann.",
+    "you_lose": "Du förlorade.",
+    "white_win": "Vit vinner.",
+    "black_win": "Svart vinner.",
+    "draw": "Rita."
+  },
+  "reasons": {
+    "checkmate": "Schackmatt.",
+    "timeout": "Time out.",
+    "stalemate": "Dödläge.",
+    "insufficient_material": "Rita med otillräckligt material.",
+    "draw_agreement": "Dra efter överenskommelse.",
+    "draw_claim_threefold": "Oavgjort: trefaldig upprepning.",
+    "draw_claim_fifty_move": "Oavgjort: 50-stegsregel.",
+    "draw_auto_fivefold": "Automatisk dragning: femfaldig upprepning.",
+    "draw_auto_75move": "Automatisk dragning: 75-dragsregel.",
+    "disconnect_forfeit": "Motståndaren kopplade ur och kom inte tillbaka.",
+    "disconnect_turn_timeout": "Motståndaren kom inte tillbaka inom 10 sekunder på sin tur.",
+    "resign": "Vinn genom att avgå."
+  },
+  "build": {
+    "label": "Version: {version} · Utplacerad: {deployedAt}",
+    "unknown": "okänt"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

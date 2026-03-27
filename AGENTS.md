@@ -163,16 +163,18 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - move-list time formatting refinement (compact with milliseconds).
+  - multilingual i18n rollout: 100 locale files, auto-detection support expansion, and automated baseline translation fill.
 - Files changed:
   - `frontend/app.js`
+  - `frontend/i18n/en.json`
+  - `frontend/i18n/ru.json`
+  - `frontend/i18n/*.json` (100 locales total)
   - `AGENTS.md`
 - Behavior changes:
-  - move list now renders per-move time in compact ms-aware format:
-    - `<1s`: `Nмс`
-    - `<1m`: `S.mmmс`
-    - `>=1m`: `M:SS.mmm`
-  - keeps notation short while preserving sub-second precision.
+  - language detection now supports a broad top-100 language code set from Telegram/browser locale.
+  - locale loading resolves to exact/base language and falls back safely (`en`, then `ru`) if a concrete locale file is unavailable.
+  - centralized translation dictionaries introduced for UI/system strings, including short time units (`sec_short`, `ms_short`).
+  - automated translation fill generated initial content across all locale files; top-priority locales additionally received deep-pass refresh to reduce placeholder errors and preserve key structure.
 - Safety invariants preserved:
   - backend remains the source of truth for move legality;
   - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.

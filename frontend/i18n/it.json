@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Apri l'app sul tuo smartphone in Telegram.",
+    "unsupported": "Tablet e desktop non sono supportati."
+  },
+  "lobby": {
+    "title": "TelefonoChess",
+    "subtitle": "Scegli il controllo del tempo",
+    "queue_count_you": "{n} in coda (hai incluso)",
+    "queue_count": "{n} in coda"
+  },
+  "status": {
+    "connecting": "Connessione al server...",
+    "connected": "Connesso",
+    "reconnecting": "Riconnessione…",
+    "disconnected_code": "Disconnesso: codice {code}{reasonPart}",
+    "ws_error": "Errore di connessione (WebSocket)"
+  },
+  "game": {
+    "header": "Gioco",
+    "moves": "Si muove",
+    "flip": "Lavagna ribaltabile",
+    "draw_offer": "Disegnare?",
+    "draw_offer_sent": "Pareggio offerto",
+    "claim_draw": "Richiedi il pareggio",
+    "claim_threefold": "Richiedi l'estrazione (3 volte)",
+    "claim_fifty": "Richiedi l'estrazione (50 mosse)",
+    "resign": "Dimettersi",
+    "resign_confirm": "Confermare le dimissioni?",
+    "you_white": "Tu (bianco)",
+    "you_black": "Tu (nero)",
+    "opp_white": "Avversario (bianco)",
+    "opp_black": "Avversario (nero)",
+    "white_name": "Bianco",
+    "black_name": "Nero",
+    "white_won": "Il bianco ha vinto",
+    "black_won": "Il nero ha vinto",
+    "draw": "Disegna",
+    "draw_offer_waiting": "Offerta di sorteggio inviata e in attesa di risposta.",
+    "draw_offer_received": "L'avversario ha offerto la patta. Tocca \"Disegna?\" accettare.",
+    "opp_disconnected": "L'avversario si è disconnesso. In attesa di riconnessione ({sec}s)..."
+  },
+  "result": {
+    "title": "Gioco finito",
+    "back_to_lobby": "Torniamo alla lobby",
+    "you_win": "Hai vinto.",
+    "you_lose": "Hai perso.",
+    "white_win": "Il bianco vince.",
+    "black_win": "Il nero vince.",
+    "draw": "Disegna."
+  },
+  "reasons": {
+    "checkmate": "Scacco matto.",
+    "timeout": "Tempo scaduto.",
+    "stalemate": "Stallo.",
+    "insufficient_material": "Disegna con materiale insufficiente.",
+    "draw_agreement": "Pareggio previo accordo.",
+    "draw_claim_threefold": "Pareggio reclamato: tripla ripetizione.",
+    "draw_claim_fifty_move": "Pareggio rivendicato: regola delle 50 mosse.",
+    "draw_auto_fivefold": "Sorteggio automatico: ripetizione quintuplicata.",
+    "draw_auto_75move": "Pareggio automatico: regola delle 75 mosse.",
+    "disconnect_forfeit": "L'avversario si è disconnesso e non è tornato.",
+    "disconnect_turn_timeout": "L'avversario non è tornato entro 10 secondi nel suo turno.",
+    "resign": "Vincere per dimissioni."
+  },
+  "build": {
+    "label": "Versione: {version} · Distribuito: {deployedAt}",
+    "unknown": "sconosciuto"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "signorina"
+  }
+}

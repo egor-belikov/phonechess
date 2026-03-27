@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Iepenje de app op jo smartphone yn Telegram.",
+    "unsupported": "Tablets en buroblêd wurde net stipe."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Kies tiidkontrôle",
+    "queue_count_you": "{n} yn wachtrige (jo opnommen)",
+    "queue_count": "{n} yn wachtrige"
+  },
+  "status": {
+    "connecting": "Ferbine mei tsjinner...",
+    "connected": "Ferbûn",
+    "reconnecting": "Op 'e nij ferbine...",
+    "disconnected_code": "Ferbûn: koade {code}{reasonPart}",
+    "ws_error": "Ferbiningsflater (WebSocket)"
+  },
+  "game": {
+    "header": "Game",
+    "moves": "Moves",
+    "flip": "Flip board",
+    "draw_offer": "Tekene?",
+    "draw_offer_sent": "Draw oanbean",
+    "claim_draw": "Claim draw",
+    "claim_threefold": "Oanfraachtekening (3 kear)",
+    "claim_fifty": "Claim draw (50-beweging)",
+    "resign": "Resign",
+    "resign_confirm": "Befêstigje ûntslach?",
+    "you_white": "Jo (wit)",
+    "you_black": "Jo (swart)",
+    "opp_white": "Tsjinstanner (wyt)",
+    "opp_black": "Tsjinstanner (swart)",
+    "white_name": "Wyt",
+    "black_name": "Swart",
+    "white_won": "Wit won",
+    "black_won": "Swart wûn",
+    "draw": "Draw",
+    "draw_offer_waiting": "Draw oanbod ferstjoerd en wachtsje op antwurd.",
+    "draw_offer_received": "Tsjinstanner joech in lykspul. Tik op \"Tekenje?\" akseptearje.",
+    "opp_disconnected": "Tsjinstanner loskeppele. Wachtsje op opnij ferbine ({sec}s)..."
+  },
+  "result": {
+    "title": "Spultsje klear",
+    "back_to_lobby": "Werom nei lobby",
+    "you_win": "Do wûn.",
+    "you_lose": "Jo hawwe ferlern.",
+    "white_win": "Wit wint.",
+    "black_win": "Swart wint.",
+    "draw": "Draw."
+  },
+  "reasons": {
+    "checkmate": "Skaakmat.",
+    "timeout": "Time out.",
+    "stalemate": "Dwaalstân.",
+    "insufficient_material": "Tekenje troch net genôch materiaal.",
+    "draw_agreement": "Draw by oerienkomst.",
+    "draw_claim_threefold": "Draw bewearde: trijefâldige werhelling.",
+    "draw_claim_fifty_move": "Draw opeaske: 50-move regel.",
+    "draw_auto_fivefold": "Automatysk tekenjen: fiif kear werhelling.",
+    "draw_auto_75move": "Automatysk tekenjen: 75-bewegingsregel.",
+    "disconnect_forfeit": "Tsjinstanner loskeppele en kaam net werom.",
+    "disconnect_turn_timeout": "Tsjinstanner kaam net werom binnen 10 sekonden op har beurt.",
+    "resign": "Win by resignaasje."
+  },
+  "build": {
+    "label": "Ferzje: {version} · Ynset: {deployedAt}",
+    "unknown": "ûnbekend"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

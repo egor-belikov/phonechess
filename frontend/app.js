@@ -33,6 +33,18 @@
   }
 
   const TIME_CONTROLS = ['3+0', '3+2', '5+0', '5+3', '10+0', '15+10'];
+  const SUPPORTED_LANGS = [
+    'en', 'zh', 'hi', 'es', 'fr', 'ar', 'bn', 'pt', 'ru', 'ur',
+    'id', 'de', 'ja', 'sw', 'mr', 'te', 'tr', 'ta', 'yue', 'vi',
+    'ko', 'fa', 'ha', 'th', 'it', 'gu', 'pl', 'uk', 'ml', 'kn',
+    'or', 'my', 'pa', 'nl', 'ro', 'el', 'hu', 'cs', 'sv', 'he',
+    'sr', 'az', 'be', 'bg', 'da', 'fi', 'no', 'sk', 'hr', 'lt',
+    'sl', 'et', 'lv', 'is', 'ga', 'cy', 'mt', 'sq', 'mk', 'bs',
+    'af', 'am', 'hy', 'ka', 'kk', 'ky', 'uz', 'tk', 'tg', 'mn',
+    'ne', 'si', 'ps', 'sd', 'lo', 'km', 'ms', 'jv', 'su', 'fil',
+    'ceb', 'yo', 'ig', 'zu', 'xh', 'so', 'mg', 'sn', 'rw', 'ny',
+    'co', 'fy', 'lb', 'eu', 'gl', 'ca', 'la', 'mi', 'haw', 'sm'
+  ];
   const FILES = 'abcdefgh';
   const PREMOVE_COLORS = ['#4f8cff', '#ff9f43', '#22c55e', '#e879f9', '#f43f5e', '#14b8a6'];
   const STATE_RESYNC_MS = 1000;
@@ -91,6 +103,8 @@
   let opponentDisconnected = false;
   let opponentDisconnectGraceSeconds = 0;
   let lastStateSyncAt = 0;
+  let currentLang = 'ru';
+  let i18nMessages = {};
 
   const $ = (id) => document.getElementById(id);
   const lobbyButtons = $('lobby-buttons');
@@ -118,17 +132,99 @@
   const resultModalTextEl = $('result-modal-text');
   const btnResultLobby = $('btn-result-lobby');
 
+  function deepGet(obj, path) {
+    const parts = path.split('.');
+    let cur = obj;
+    for (let i = 0; i < parts.length; i++) {
+      if (!cur || typeof cur !== 'object') return null;
+      cur = cur[parts[i]];
+    }
+    return cur;
+  }
+
+  function t(key, vars) {
+    let value = deepGet(i18nMessages, key);
+    if (typeof value !== 'string') value = key;
+    if (!vars) return value;
+    return value.replace(/\{(\w+)\}/g, function (_, name) {
+      return vars[name] != null ? String(vars[name]) : '';
+    });
+  }
+
+  function detectPreferredLang() {
+    try {
+      const tg = window.Telegram && window.Telegram.WebApp;
+      const tgLang = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code;
+      if (tgLang) return tgLang;
+    } catch (e) {}
+    if (navigator.languages && navigator.languages.length) return navigator.languages[0];
+    return navigator.language || 'ru';
+  }
+
+  function normalizeLang(raw) {
+    const normalized = String(raw || 'ru').toLowerCase().replace('_', '-');
+    const base = normalized.split('-')[0];
+    if (SUPPORTED_LANGS.indexOf(normalized) !== -1) return normalized;
+    if (SUPPORTED_LANGS.indexOf(base) !== -1) return base;
+    // Common aliases: keep mapping explicit for predictable behavior.
+    if (base === 'zh') return 'zh';
+    if (base === 'iw') return 'he';
+    if (base === 'in') return 'id';
+    if (base === 'mo') return 'ro';
+    return 'ru';
+  }
+
+  async function loadI18n() {
+    currentLang = normalizeLang(detectPreferredLang());
+    try {
+      const res = await fetch('/i18n/' + currentLang + '.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('i18n not available');
+      i18nMessages = await res.json();
+    } catch (e) {
+      currentLang = 'en';
+      try {
+        const fallbackEn = await fetch('/i18n/en.json', { cache: 'no-store' });
+        if (fallbackEn.ok) {
+          i18nMessages = await fallbackEn.json();
+          return;
+        }
+      } catch (err) {}
+      const fallbackRu = await fetch('/i18n/ru.json', { cache: 'no-store' });
+      i18nMessages = fallbackRu.ok ? await fallbackRu.json() : {};
+    }
+  }
+
+  function applyStaticTexts() {
+    const mobileText = document.querySelector('.mobile-only-text');
+    const mobileHint = document.querySelector('.mobile-only-hint');
+    const subtitle = document.querySelector('#lobby-screen .subtitle');
+    const movesHeader = document.querySelector('.moves-header');
+    const resultTitle = document.querySelector('.result-modal-title');
+    if (mobileText) mobileText.textContent = t('mobile.open_on_phone');
+    if (mobileHint) mobileHint.textContent = t('mobile.unsupported');
+    if (subtitle) subtitle.textContent = t('lobby.subtitle');
+    if (movesHeader) movesHeader.textContent = t('game.moves');
+    if (btnFlipBoard) btnFlipBoard.textContent = t('game.flip');
+    if (btnDraw) btnDraw.textContent = t('game.draw_offer');
+    if (btnClaimDraw) btnClaimDraw.textContent = t('game.claim_draw');
+    if (btnResign && !resignConfirming) btnResign.textContent = t('game.resign');
+    if (resultTitle) resultTitle.textContent = t('result.title');
+    if (btnResultLobby) btnResultLobby.textContent = t('result.back_to_lobby');
+    if (gameInfo && !currentGameId) gameInfo.textContent = t('game.header');
+    if (wsStatus && (!ws || ws.readyState !== WebSocket.OPEN)) setWsStatus(t('status.connecting'));
+  }
+
   async function loadBuildInfo() {
     if (!buildInfoEl) return;
     try {
       const res = await fetch('/build-meta.json', { cache: 'no-store' });
       if (!res.ok) throw new Error('build meta not available');
       const meta = await res.json();
-      const version = meta.version || 'unknown';
-      const deployedAt = meta.deployed_at || 'unknown';
-      buildInfoEl.textContent = 'Версия: ' + version + ' · Деплой: ' + deployedAt;
+      const version = meta.version || t('build.unknown');
+      const deployedAt = meta.deployed_at || t('build.unknown');
+      buildInfoEl.textContent = t('build.label', { version: version, deployedAt: deployedAt });
     } catch (e) {
-      buildInfoEl.textContent = 'Версия: unknown · Деплой: unknown';
+      buildInfoEl.textContent = t('build.label', { version: t('build.unknown'), deployedAt: t('build.unknown') });
     }
   }
 
@@ -160,7 +256,7 @@
     lobbyButtons.innerHTML = TIME_CONTROLS.map(key => {
       const n = counts[key] != null ? counts[key] : 0;
       const isYou = key === currentQueue;
-      const countText = isYou ? n + ' в очереди (и вы)' : n + ' в очереди';
+      const countText = isYou ? t('lobby.queue_count_you', { n: n }) : t('lobby.queue_count', { n: n });
       const cls = isYou ? 'mode-btn in-queue' : 'mode-btn';
       return `<button type="button" class="${cls}" data-time="${key}"><span>${key}</span><span class="queue-count">${countText}</span></button>`;
     }).join('');
@@ -209,8 +305,8 @@
     const ourTurn = turnColor === myColor;
     const topIsActive = isWhite ? turnColor === 'black' : turnColor === 'white';
     const bottomIsActive = !topIsActive;
-    if (clockTopLabel) clockTopLabel.textContent = isWhite ? 'Соперник (чёрные)' : 'Соперник (белые)';
-    if (clockBottomLabel) clockBottomLabel.textContent = isWhite ? 'Вы (белые)' : 'Вы (чёрные)';
+    if (clockTopLabel) clockTopLabel.textContent = isWhite ? t('game.opp_black') : t('game.opp_white');
+    if (clockBottomLabel) clockBottomLabel.textContent = isWhite ? t('game.you_white') : t('game.you_black');
     if (gameYourSideEl) {
       gameYourSideEl.textContent = '';
     }
@@ -248,31 +344,31 @@
   function resultReasonText() {
     if (resultDetail) return resultDetail;
     switch (resultReason) {
-      case 'checkmate': return 'Мат.';
-      case 'timeout': return 'Время вышло.';
-      case 'stalemate': return 'Пат.';
-      case 'insufficient_material': return 'Ничья из-за недостаточности материала.';
-      case 'draw_agreement': return 'Ничья по соглашению.';
-      case 'draw_claim_threefold': return 'Ничья по заявке: троекратное повторение.';
-      case 'draw_claim_fifty_move': return 'Ничья по заявке: 50 ходов.';
-      case 'draw_auto_fivefold': return 'Ничья автоматически: 5 повторений.';
-      case 'draw_auto_75move': return 'Ничья автоматически: 75 ходов.';
-      case 'disconnect_forfeit': return 'Соперник отключился и не вернулся.';
-      case 'disconnect_turn_timeout': return 'Соперник не вернулся в течение 10 секунд на своём ходе.';
-      case 'resign': return 'Победа: соперник сдался.';
+      case 'checkmate': return t('reasons.checkmate');
+      case 'timeout': return t('reasons.timeout');
+      case 'stalemate': return t('reasons.stalemate');
+      case 'insufficient_material': return t('reasons.insufficient_material');
+      case 'draw_agreement': return t('reasons.draw_agreement');
+      case 'draw_claim_threefold': return t('reasons.draw_claim_threefold');
+      case 'draw_claim_fifty_move': return t('reasons.draw_claim_fifty_move');
+      case 'draw_auto_fivefold': return t('reasons.draw_auto_fivefold');
+      case 'draw_auto_75move': return t('reasons.draw_auto_75move');
+      case 'disconnect_forfeit': return t('reasons.disconnect_forfeit');
+      case 'disconnect_turn_timeout': return t('reasons.disconnect_turn_timeout');
+      case 'resign': return t('reasons.resign');
       default: return '';
     }
   }
 
   function showResultModal() {
     if (!resultModalEl || !resultModalTextEl || !gameResult) return;
-    let base = gameResult === '1-0' ? 'Победа белых.' : (gameResult === '0-1' ? 'Победа чёрных.' : 'Ничья.');
+    let base = gameResult === '1-0' ? t('result.white_win') : (gameResult === '0-1' ? t('result.black_win') : t('result.draw'));
     if (myColor === 'white') {
-      if (gameResult === '1-0') base = 'Вы победили.';
-      if (gameResult === '0-1') base = 'Вы проиграли.';
+      if (gameResult === '1-0') base = t('result.you_win');
+      if (gameResult === '0-1') base = t('result.you_lose');
     } else if (myColor === 'black') {
-      if (gameResult === '0-1') base = 'Вы победили.';
-      if (gameResult === '1-0') base = 'Вы проиграли.';
+      if (gameResult === '0-1') base = t('result.you_win');
+      if (gameResult === '1-0') base = t('result.you_lose');
     }
     const reason = resultReasonText();
     resultModalTextEl.textContent = reason ? (base + ' ' + reason) : base;
@@ -284,15 +380,15 @@
     if (!gameAlertEl) return;
     if (opponentDisconnected && !gameResult) {
       const sec = Math.max(0, Math.ceil(opponentDisconnectGraceSeconds));
-      gameAlertEl.textContent = 'Соперник отключился. Ждём переподключение (' + sec + 'с)...';
+      gameAlertEl.textContent = t('game.opp_disconnected', { sec: sec });
       gameAlertEl.className = 'game-alert active warning';
       return;
     }
     if (drawOfferBy && currentGameId && !gameResult) {
       if (drawOfferColor === myColor) {
-        gameAlertEl.textContent = 'Предложение ничьей отправлено и ждёт ответа.';
+        gameAlertEl.textContent = t('game.draw_offer_waiting');
       } else {
-        gameAlertEl.textContent = 'Соперник предложил ничью. Нажмите "Ничья?" для согласия.';
+        gameAlertEl.textContent = t('game.draw_offer_received');
       }
       gameAlertEl.className = 'game-alert active info';
       return;
@@ -319,20 +415,20 @@
     btnDraw.classList.remove('draw-pending');
     if (drawOfferBy) {
       if (drawOfferColor === ourCode) {
-        btnDraw.textContent = 'Ничья предложена';
+        btnDraw.textContent = t('game.draw_offer_sent');
         btnDraw.disabled = true;
         btnDraw.classList.add('draw-pending');
       } else {
-        btnDraw.textContent = 'Ничья?';
+        btnDraw.textContent = t('game.draw_offer');
       }
       return;
     }
     if (completedPlies < 30) {
-      btnDraw.textContent = 'Ничья?';
+      btnDraw.textContent = t('game.draw_offer');
       btnDraw.disabled = true;
       return;
     }
-    btnDraw.textContent = 'Ничья?';
+    btnDraw.textContent = t('game.draw_offer');
   }
 
   function canClaimDrawByRules() {
@@ -371,7 +467,7 @@
       return;
     }
     btnClaimDraw.style.display = '';
-    btnClaimDraw.textContent = claimType === 'threefold' ? 'Заявить ничью (3 повтора)' : 'Заявить ничью (50 ходов)';
+    btnClaimDraw.textContent = claimType === 'threefold' ? t('game.claim_threefold') : t('game.claim_fifty');
   }
 
   function tickClocks() {
@@ -1008,9 +1104,9 @@
         return min + ':' + String(sec).padStart(2, '0') + '.' + String(milli).padStart(3, '0');
       }
       if (sec > 0) {
-        return sec + '.' + String(milli).padStart(3, '0') + 'с';
+        return sec + '.' + String(milli).padStart(3, '0') + t('time.sec_short');
       }
-      return milli + 'мс';
+      return milli + t('time.ms_short');
     }
     let html = '';
     let num = 1;
@@ -1053,7 +1149,7 @@
     updateClaimDrawButton();
     updateGameAlert();
     if (gameResult && gameInfo) {
-      const r = gameResult === '1-0' ? 'Белые выиграли' : gameResult === '0-1' ? 'Чёрные выиграли' : 'Ничья';
+      const r = gameResult === '1-0' ? t('game.white_won') : gameResult === '0-1' ? t('game.black_won') : t('game.draw');
       gameInfo.textContent = gameInfo.textContent + ' — ' + r;
       showResultModal();
     }
@@ -1086,8 +1182,8 @@
     updateClocksDisplay();
     if (resignConfirmTimeout) clearTimeout(resignConfirmTimeout);
     resignConfirming = false;
-    if (btnResign) { btnResign.textContent = 'Сдаться'; btnResign.classList.remove('resign-confirm'); }
-    if (gameInfo) gameInfo.textContent = (msg.white_username || 'Белые') + ' vs ' + (msg.black_username || 'Чёрные') + ' (' + (msg.time_control || '') + ')';
+    if (btnResign) { btnResign.textContent = t('game.resign'); btnResign.classList.remove('resign-confirm'); }
+    if (gameInfo) gameInfo.textContent = (msg.white_username || t('game.white_name')) + ' vs ' + (msg.black_username || t('game.black_name')) + ' (' + (msg.time_control || '') + ')';
     showScreen('game-screen');
     updateClocksDisplay();
     startClockTicker();
@@ -1105,7 +1201,7 @@
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
     var wsUrl = API_URL + '/ws';
     console.log('[PhoneChess] connect', wsUrl);
-    setWsStatus('Подключение к серверу…');
+    setWsStatus(t('status.connecting'));
     ws = new WebSocket(wsUrl);
 
     ws.onopen = function () {
@@ -1130,7 +1226,7 @@
             reconnectTimer = null;
           }
           renderLobbyButtons(msg.counts);
-          setWsStatus('Подключено', 'connected');
+          setWsStatus(t('status.connected'), 'connected');
           if (currentGameId && ws && ws.readyState === WebSocket.OPEN) {
             requestGameStateSync(0);
           }
@@ -1168,14 +1264,14 @@
       console.log('[PhoneChess] WS onclose', ev.code, ev.reason || '');
       ws = null;
       if (ev.code === 4000) {
-        setWsStatus('Переподключение…', '');
+        setWsStatus(t('status.reconnecting'), '');
         if (reconnectTimer) return;
         reconnectTimer = setInterval(function () {
           connect();
         }, 1000);
         return;
       }
-      var closeMsg = 'Отключено: код ' + ev.code + (ev.reason ? ' — ' + ev.reason : '');
+      var closeMsg = t('status.disconnected_code', { code: ev.code, reasonPart: ev.reason ? ' — ' + ev.reason : '' });
       setWsStatus(closeMsg, 'error');
       if (reconnectTimer) return;
       if (ev.code === 4001 || ev.code === 4003) return;
@@ -1186,7 +1282,7 @@
 
     ws.onerror = function (e) {
       console.warn('[PhoneChess] WS onerror', e);
-      setWsStatus('Ошибка соединения (WebSocket)', 'error');
+      setWsStatus(t('status.ws_error'), 'error');
     };
   }
 
@@ -1205,16 +1301,16 @@
       if (resignConfirming) {
         if (resignConfirmTimeout) clearTimeout(resignConfirmTimeout);
         resignConfirming = false;
-        btnResign.textContent = 'Сдаться';
+        btnResign.textContent = t('game.resign');
         btnResign.classList.remove('resign-confirm');
         ws.send(JSON.stringify({ type: 'resign', game_id: currentGameId }));
       } else {
         resignConfirming = true;
-        btnResign.textContent = 'Точно сдаться?';
+        btnResign.textContent = t('game.resign_confirm');
         btnResign.classList.add('resign-confirm');
         resignConfirmTimeout = setTimeout(function () {
           resignConfirming = false;
-          btnResign.textContent = 'Сдаться';
+          btnResign.textContent = t('game.resign');
           btnResign.classList.remove('resign-confirm');
           resignConfirmTimeout = null;
         }, 3000);
@@ -1274,7 +1370,14 @@
     requestGameStateSync(0);
   });
 
-  renderLobbyButtons({});
-  loadBuildInfo();
-  connect();
+  async function initApp() {
+    await loadI18n();
+    document.documentElement.lang = currentLang;
+    applyStaticTexts();
+    renderLobbyButtons({});
+    await loadBuildInfo();
+    connect();
+  }
+
+  initApp();
 })();

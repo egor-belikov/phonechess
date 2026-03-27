@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Buka aplikasi di ponsel cerdas Anda di Telegram.",
+    "unsupported": "Tablet dan desktop tidak didukung."
+  },
+  "lobby": {
+    "title": "TeleponCatur",
+    "subtitle": "Pilih kontrol waktu",
+    "queue_count_you": "{n} dalam antrian (termasuk Anda)",
+    "queue_count": "{n} dalam antrian"
+  },
+  "status": {
+    "connecting": "Menghubungkan ke server…",
+    "connected": "Terhubung",
+    "reconnecting": "Menghubungkan kembali…",
+    "disconnected_code": "Terputus: kode {code}{reasonPart}",
+    "ws_error": "Kesalahan koneksi (WebSocket)"
+  },
+  "game": {
+    "header": "Permainan",
+    "moves": "Bergerak",
+    "flip": "Balik papan",
+    "draw_offer": "Menggambar?",
+    "draw_offer_sent": "Gambar ditawarkan",
+    "claim_draw": "Klaim undian",
+    "claim_threefold": "Klaim undian (3 kali lipat)",
+    "claim_fifty": "Klaim undian (50 langkah)",
+    "resign": "Mengundurkan diri",
+    "resign_confirm": "Konfirmasi mengundurkan diri?",
+    "you_white": "Kamu (putih)",
+    "you_black": "Kamu (hitam)",
+    "opp_white": "Lawan (putih)",
+    "opp_black": "Lawan (hitam)",
+    "white_name": "Putih",
+    "black_name": "Hitam",
+    "white_won": "Putih menang",
+    "black_won": "Hitam menang",
+    "draw": "Menggambar",
+    "draw_offer_waiting": "Penawaran undian telah dikirim dan menunggu tanggapan.",
+    "draw_offer_received": "Lawan menawarkan hasil imbang. Ketuk \"Gambar?\" untuk menerima.",
+    "opp_disconnected": "Lawan terputus. Menunggu sambungan kembali ({sec}s)..."
+  },
+  "result": {
+    "title": "Permainan selesai",
+    "back_to_lobby": "Kembali ke lobi",
+    "you_win": "Anda menang.",
+    "you_lose": "Anda kalah.",
+    "white_win": "Putih menang.",
+    "black_win": "Hitam menang.",
+    "draw": "Menggambar."
+  },
+  "reasons": {
+    "checkmate": "Skakmat.",
+    "timeout": "Waktu habis.",
+    "stalemate": "Kebuntuan.",
+    "insufficient_material": "Gambarlah dengan bahan yang tidak mencukupi.",
+    "draw_agreement": "Menggambar berdasarkan kesepakatan.",
+    "draw_claim_threefold": "Gambar diklaim: pengulangan tiga kali lipat.",
+    "draw_claim_fifty_move": "Hasil seri diklaim: aturan 50 langkah.",
+    "draw_auto_fivefold": "Pengundian otomatis: pengulangan lima kali lipat.",
+    "draw_auto_75move": "Pengundian otomatis: aturan 75 langkah.",
+    "disconnect_forfeit": "Lawan terputus dan tidak kembali.",
+    "disconnect_turn_timeout": "Lawan tidak kembali dalam waktu 10 detik pada gilirannya.",
+    "resign": "Menang dengan mengundurkan diri."
+  },
+  "build": {
+    "label": "Versi: {version} · Dikerahkan: {deployedAt}",
+    "unknown": "tidak diketahui"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "Nona"
+  }
+}

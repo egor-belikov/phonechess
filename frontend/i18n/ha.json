@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Bude app akan wayoyinku a cikin Telegram.",
+    "unsupported": "Allunan da tebur ba su da tallafi."
+  },
+  "lobby": {
+    "title": "Chess na waya",
+    "subtitle": "Zaɓi sarrafa lokaci",
+    "queue_count_you": "_PH_0__ a cikin layi (an haɗa ku)",
+    "queue_count": "_PH_0__ a cikin layi"
+  },
+  "status": {
+    "connecting": "Ana haɗawa zuwa uwar garken…",
+    "connected": "An haɗa",
+    "reconnecting": "Ana sake haɗawa…",
+    "disconnected_code": "An cire haɗin: lambar _PH_0__{reasonPart}",
+    "ws_error": "Kuskuren haɗi (WebSocket)"
+  },
+  "game": {
+    "header": "Wasan",
+    "moves": "Motsawa",
+    "flip": "Juya allo",
+    "draw_offer": "Zana?",
+    "draw_offer_sent": "Zana tayi",
+    "claim_draw": "Zana da'awar",
+    "claim_threefold": "Zana da'awar (nnki uku)",
+    "claim_fifty": "Zana da'awar (motsi 50)",
+    "resign": "Murabus",
+    "resign_confirm": "Tabbatar da murabus?",
+    "you_white": "ka (fararen)",
+    "you_black": "ka (baki)",
+    "opp_white": "Abokin hamayya (fararen fata)",
+    "opp_black": "Abokin hamayya (baki)",
+    "white_name": "Fari",
+    "black_name": "Baki",
+    "white_won": "Farin nasara",
+    "black_won": "Bakar nasara",
+    "draw": "Zana",
+    "draw_offer_waiting": "Zana tayin aika da jiran amsa.",
+    "draw_offer_received": "Abokin hamayya ya ba da zane. Taɓa \"Zana?\" karba.",
+    "opp_disconnected": "An katse abokin hamayya. Ana jiran sake haɗawa ({sec}s)..."
+  },
+  "result": {
+    "title": "An gama wasan",
+    "back_to_lobby": "Komawa zuwa haraba",
+    "you_win": "Ka yi nasara.",
+    "you_lose": "Ka rasa.",
+    "white_win": "Farin nasara.",
+    "black_win": "Baki yayi nasara.",
+    "draw": "Zana"
+  },
+  "reasons": {
+    "checkmate": "Checkmate.",
+    "timeout": "Lokaci ya ƙare.",
+    "stalemate": "Tashin hankali.",
+    "insufficient_material": "Zana ta abin da bai isa ba.",
+    "draw_agreement": "Zana ta yarjejeniya.",
+    "draw_claim_threefold": "Zana da'awar: maimaita sau uku.",
+    "draw_claim_fifty_move": "Zana da'awar: Dokokin motsi 50.",
+    "draw_auto_fivefold": "Zana ta atomatik: maimaita sau biyar.",
+    "draw_auto_75move": "Zane ta atomatik: Dokar motsi 75.",
+    "disconnect_forfeit": "An katse abokin hamayya kuma bai dawo ba.",
+    "disconnect_turn_timeout": "Abokan hamayyar ba su dawo cikin dakika 10 ba a juyowarsu.",
+    "resign": "Nasara ta murabus."
+  },
+  "build": {
+    "label": "Siga: _PH_0__ · An Rasa: {deployedAt}",
+    "unknown": "wanda ba a sani ba"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

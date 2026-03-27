@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Барномаро дар смартфони худ дар Telegram кушоед.",
+    "unsupported": "Планшетҳо ва мизи корӣ дастгирӣ намешаванд."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Назорати вақтро интихоб кунед",
+    "queue_count_you": "{n} дар навбат (шумо дохил кардаед)",
+    "queue_count": "{n} дар навбат"
+  },
+  "status": {
+    "connecting": "Пайвастшавӣ ба сервер…",
+    "connected": "пайваст",
+    "reconnecting": "Аз нав пайваст карда мешавад…",
+    "disconnected_code": "Хомӯш шуд: код {code}{reasonPart}",
+    "ws_error": "Хатогии пайвастшавӣ (WebSocket)"
+  },
+  "game": {
+    "header": "Бозӣ",
+    "moves": "Ҳаракат мекунад",
+    "flip": "Варақаи тахта",
+    "draw_offer": "кашидан?",
+    "draw_offer_sent": "Тарҳ пешниҳод карда мешавад",
+    "claim_draw": "Даъво кашед",
+    "claim_threefold": "Турнигории даъво (3 маротиба)",
+    "claim_fifty": "Даъвои қуръа (50-ҳаракат)",
+    "resign": "Истеъфо",
+    "resign_confirm": "Истеъфоро тасдиқ кунед?",
+    "you_white": "Шумо (сафед)",
+    "you_black": "Шумо (сиёҳ)",
+    "opp_white": "Рақиб (сафед)",
+    "opp_black": "Рақиб (сиёҳ)",
+    "white_name": "Сафед",
+    "black_name": "Сиёҳ",
+    "white_won": "Сафед ғалаба кард",
+    "black_won": "Сиёҳ ғолиб омад",
+    "draw": "кашидан",
+    "draw_offer_waiting": "Пешниҳод кашед ва интизори посух аст.",
+    "draw_offer_received": "Рақиб дурангро пешниҳод кард. \"Расм кардан?\"-ро клик кунед. кабул кардан.",
+    "opp_disconnected": "Рақиб ҷудо шуд. Интизории пайвастшавӣ ({sec}s)..."
+  },
+  "result": {
+    "title": "Бозӣ анҷом ёфт",
+    "back_to_lobby": "Бозгашт ба лобби",
+    "you_win": "Шумо бурдед.",
+    "you_lose": "Шумо гум кардед.",
+    "white_win": "Сафед ғалаба мекунад.",
+    "black_win": "Сиёҳ ғалаба мекунад.",
+    "draw": "кашидан."
+  },
+  "reasons": {
+    "checkmate": "Шакар.",
+    "timeout": "Вақт тамом шуд.",
+    "stalemate": "Бунбаст.",
+    "insufficient_material": "Бо маводи нокифоя тасвир кунед.",
+    "draw_agreement": "Бо созишнома кашед.",
+    "draw_claim_threefold": "Тақвимшуда: такрори секарата.",
+    "draw_claim_fifty_move": "Тақвимшуда: Қоидаи 50-ҳаракат.",
+    "draw_auto_fivefold": "Тирезаи худкор: такрори панҷкарата.",
+    "draw_auto_75move": "Тарзи худкор: Қоидаи 75-ҳаракат.",
+    "disconnect_forfeit": "Рақиб канда шуд ва барнагашт.",
+    "disconnect_turn_timeout": "Рақиб дар давоми 10 сония дар навбати худ барнагашт.",
+    "resign": "Бо истеъфо ғалаба кунед."
+  },
+  "build": {
+    "label": "Версия: {version} · Ҷойгиршуда: {deployedAt}",
+    "unknown": "номаълум"
+  },
+  "time": {
+    "sec_short": "с",
+    "ms_short": "ms"
+  }
+}

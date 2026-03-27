@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "פתח את האפליקציה בסמארטפון שלך בטלגרם.",
+    "unsupported": "טאבלטים ושולחן עבודה אינם נתמכים."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "בחר בקרת זמן",
+    "queue_count_you": "{n} בתור (כוללת)",
+    "queue_count": "{n} בתור"
+  },
+  "status": {
+    "connecting": "מתחבר לשרת...",
+    "connected": "מחובר",
+    "reconnecting": "מתחבר מחדש...",
+    "disconnected_code": "מנותק: קוד {code}{reasonPart}",
+    "ws_error": "שגיאת חיבור (WebSocket)"
+  },
+  "game": {
+    "header": "משחק",
+    "moves": "מהלכים",
+    "flip": "לוח הפוך",
+    "draw_offer": "לצייר?",
+    "draw_offer_sent": "הגרלה מוצעת",
+    "claim_draw": "תבע הגרלת",
+    "claim_threefold": "טען הגרלה (פי 3)",
+    "claim_fifty": "טען הגרלה (50 מהלכים)",
+    "resign": "תתפטר",
+    "resign_confirm": "לאשר את התפטרות?",
+    "you_white": "אתה (לבן)",
+    "you_black": "אתה (שחור)",
+    "opp_white": "יריב (לבן)",
+    "opp_black": "יריב (שחור)",
+    "white_name": "לבן",
+    "black_name": "שחור",
+    "white_won": "לבן ניצח",
+    "black_won": "שחור ניצח",
+    "draw": "צייר",
+    "draw_offer_waiting": "הגרלת הצעה נשלחה ומחכה לתגובה.",
+    "draw_offer_received": "היריב הציע תיקו. הקש על \"צייר?\" לקבל.",
+    "opp_disconnected": "היריב מנותק. ממתין לחיבור מחדש ({sec}s)..."
+  },
+  "result": {
+    "title": "המשחק הסתיים",
+    "back_to_lobby": "חזרה ללובי",
+    "you_win": "זכית.",
+    "you_lose": "הפסדת.",
+    "white_win": "לבן מנצח.",
+    "black_win": "שחור מנצח.",
+    "draw": "צייר."
+  },
+  "reasons": {
+    "checkmate": "שחמט.",
+    "timeout": "פסק זמן.",
+    "stalemate": "קיפאון.",
+    "insufficient_material": "צייר לפי חומר לא מספיק.",
+    "draw_agreement": "צייר בהסכמה.",
+    "draw_claim_threefold": "תיקו טען: חזרה משולשת.",
+    "draw_claim_fifty_move": "תיקו נטען: כלל 50 מהלכים.",
+    "draw_auto_fivefold": "ציור אוטומטי: חזרה פי חמישה.",
+    "draw_auto_75move": "הגרלה אוטומטית: כלל 75 מהלכים.",
+    "disconnect_forfeit": "היריב התנתק ולא חזר.",
+    "disconnect_turn_timeout": "היריב לא חזר תוך 10 שניות בתורו.",
+    "resign": "לנצח בהתפטרות."
+  },
+  "build": {
+    "label": "גרסה: {version} · פרוסה: {deployedAt}",
+    "unknown": "לא ידוע"
+  },
+  "time": {
+    "sec_short": "ס",
+    "ms_short": "MS"
+  }
+}

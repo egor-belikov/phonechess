@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Öffnen Sie die App auf Ihrem Smartphone in Telegram.",
+    "unsupported": "Tablets und Desktops werden nicht unterstützt."
+  },
+  "lobby": {
+    "title": "Telefonschach",
+    "subtitle": "Wählen Sie Zeitkontrolle",
+    "queue_count_you": "{n} in der Warteschlange (Sie eingeschlossen)",
+    "queue_count": "{n} in der Warteschlange"
+  },
+  "status": {
+    "connecting": "Verbindung zum Server wird hergestellt…",
+    "connected": "Verbunden",
+    "reconnecting": "Wieder verbinden…",
+    "disconnected_code": "Nicht verbunden: Code {code}{reasonPart}",
+    "ws_error": "Verbindungsfehler (WebSocket)"
+  },
+  "game": {
+    "header": "Spiel",
+    "moves": "Bewegt sich",
+    "flip": "Flipboard",
+    "draw_offer": "Zeichnen?",
+    "draw_offer_sent": "Auslosung angeboten",
+    "claim_draw": "Anspruchsverlosung",
+    "claim_threefold": "Schadenverlosung (3-fach)",
+    "claim_fifty": "Anspruchsremis (50 Züge)",
+    "resign": "Rücktritt",
+    "resign_confirm": "Rücktritt bestätigen?",
+    "you_white": "Du (weiß)",
+    "you_black": "Du (schwarz)",
+    "opp_white": "Gegner (weiß)",
+    "opp_black": "Gegner (schwarz)",
+    "white_name": "Weiß",
+    "black_name": "Schwarz",
+    "white_won": "Weiß hat gewonnen",
+    "black_won": "Schwarz hat gewonnen",
+    "draw": "Zeichnen",
+    "draw_offer_waiting": "Verlosungsangebot gesendet und wartet auf Antwort.",
+    "draw_offer_received": "Der Gegner bot ein Unentschieden an. Tippen Sie auf „Zeichnen?“ akzeptieren.",
+    "opp_disconnected": "Verbindung zum Gegner getrennt. Warten auf erneute Verbindung ({sec}s)..."
+  },
+  "result": {
+    "title": "Spiel beendet",
+    "back_to_lobby": "Zurück zur Lobby",
+    "you_win": "Du hast gewonnen.",
+    "you_lose": "Du hast verloren.",
+    "white_win": "Weiß gewinnt.",
+    "black_win": "Schwarz gewinnt.",
+    "draw": "Zeichnen."
+  },
+  "reasons": {
+    "checkmate": "Schachmatt.",
+    "timeout": "Auszeit.",
+    "stalemate": "Patt.",
+    "insufficient_material": "Zeichnen Sie durch unzureichendes Material.",
+    "draw_agreement": "Auslosung nach Vereinbarung.",
+    "draw_claim_threefold": "Unentschieden behauptet: dreifache Wiederholung.",
+    "draw_claim_fifty_move": "Remis beansprucht: 50-Züge-Regel.",
+    "draw_auto_fivefold": "Automatische Auslosung: fünffache Wiederholung.",
+    "draw_auto_75move": "Automatisches Remis: 75-Züge-Regel.",
+    "disconnect_forfeit": "Der Gegner hat die Verbindung getrennt und ist nicht zurückgekehrt.",
+    "disconnect_turn_timeout": "Der Gegner kehrte nach seinem Zug nicht innerhalb von 10 Sekunden zurück.",
+    "resign": "Gewinnen Sie durch Rücktritt."
+  },
+  "build": {
+    "label": "Version: {version} · Bereitgestellt: {deployedAt}",
+    "unknown": "unbekannt"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "Frau"
+  }
+}

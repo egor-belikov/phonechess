@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Telegramda smartfoningizda ilovani oching.",
+    "unsupported": "Planshet va ish stoli qo'llab-quvvatlanmaydi."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Vaqtni boshqarishni tanlang",
+    "queue_count_you": "{n} navbatda (siz kiritgansiz)",
+    "queue_count": "{n} navbatda"
+  },
+  "status": {
+    "connecting": "Serverga ulanmoqda…",
+    "connected": "Ulangan",
+    "reconnecting": "Qayta ulanmoqda…",
+    "disconnected_code": "O‘chirildi: kod {code}{reasonPart}",
+    "ws_error": "Ulanish xatosi (WebSocket)"
+  },
+  "game": {
+    "header": "O'yin",
+    "moves": "Harakat qiladi",
+    "flip": "Doskani aylantiring",
+    "draw_offer": "Chizish?",
+    "draw_offer_sent": "Taklif qilingan",
+    "claim_draw": "Da'vo qilish",
+    "claim_threefold": "Daʼvo qura (3 marta)",
+    "claim_fifty": "Qura tashlash (50-harakat)",
+    "resign": "Iste'foga chiqish",
+    "resign_confirm": "Iste'foga chiqish tasdiqlansinmi?",
+    "you_white": "Siz (oq)",
+    "you_black": "Siz (qora)",
+    "opp_white": "Raqib (oq)",
+    "opp_black": "Raqib (qora)",
+    "white_name": "Oq",
+    "black_name": "Qora",
+    "white_won": "Oq g'alaba qozondi",
+    "black_won": "Qora g'alaba qozondi",
+    "draw": "Chizish",
+    "draw_offer_waiting": "Taklif yuborildi va javob kutilmoqda.",
+    "draw_offer_received": "Raqib durang o'ynashni taklif qildi. \"Chizish?\"ga teging. qabul qilmoq.",
+    "opp_disconnected": "Raqib uzildi. Qayta ulanish kutilmoqda ({sec}s)..."
+  },
+  "result": {
+    "title": "O'yin tugadi",
+    "back_to_lobby": "Lobbi sahifasiga qaytish",
+    "you_win": "Siz g'alaba qozondingiz.",
+    "you_lose": "Siz yutqazdingiz.",
+    "white_win": "Oq g'alaba qozonadi.",
+    "black_win": "Qora g'alaba qozonadi.",
+    "draw": "Chizish."
+  },
+  "reasons": {
+    "checkmate": "Checkmate.",
+    "timeout": "Vaqt tugadi.",
+    "stalemate": "Turg'un.",
+    "insufficient_material": "Etarli material bo'lmagan holda chizish.",
+    "draw_agreement": "Kelishuv bo'yicha chizish.",
+    "draw_claim_threefold": "Da'vo qilingan durang: uch marta takrorlash.",
+    "draw_claim_fifty_move": "Daʼvo qilingan durang: 50 ta harakat qoidasi.",
+    "draw_auto_fivefold": "Avtomatik chizish: besh marta takrorlash.",
+    "draw_auto_75move": "Avtomatik chizish: 75-harakat qoidasi.",
+    "disconnect_forfeit": "Raqib aloqani uzdi va qaytmadi.",
+    "disconnect_turn_timeout": "Raqib o'z navbatida 10 soniya ichida qaytmadi.",
+    "resign": "Iste'foga chiqish orqali g'alaba qozoning."
+  },
+  "build": {
+    "label": "Versiya: {version} · Joylashtirilgan: {deployedAt}",
+    "unknown": "noma'lum"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

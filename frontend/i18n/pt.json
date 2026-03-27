@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Abra o aplicativo em seu smartphone no Telegram.",
+    "unsupported": "Tablets e desktops não são suportados."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Escolha o controle de tempo",
+    "queue_count_you": "{n} na fila (você incluído)",
+    "queue_count": "{n} na fila"
+  },
+  "status": {
+    "connecting": "Conectando ao servidor…",
+    "connected": "Conectado",
+    "reconnecting": "Reconectando…",
+    "disconnected_code": "Desconectado: código {code}{reasonPart}",
+    "ws_error": "Erro de conexão (WebSocket)"
+  },
+  "game": {
+    "header": "Jogo",
+    "moves": "Movimentos",
+    "flip": "Virar tabuleiro",
+    "draw_offer": "Empate?",
+    "draw_offer_sent": "Sorteio oferecido",
+    "claim_draw": "Reivindicar sorteio",
+    "claim_threefold": "Reivindicar empate (3 vezes)",
+    "claim_fifty": "Reivindicar empate (50 movimentos)",
+    "resign": "Renunciar",
+    "resign_confirm": "Confirmar demissão?",
+    "you_white": "Você (branco)",
+    "you_black": "Você (preto)",
+    "opp_white": "Oponente (branco)",
+    "opp_black": "Oponente (preto)",
+    "white_name": "Branco",
+    "black_name": "Preto",
+    "white_won": "Brancas venceram",
+    "black_won": "As pretas venceram",
+    "draw": "Empate",
+    "draw_offer_waiting": "Oferta de sorteio enviada e aguardando resposta.",
+    "draw_offer_received": "O adversário ofereceu empate. Toque em \"Desenhar?\" aceitar.",
+    "opp_disconnected": "Oponente desconectado. Aguardando reconexão ({sec}s)..."
+  },
+  "result": {
+    "title": "Jogo terminado",
+    "back_to_lobby": "De volta ao lobby",
+    "you_win": "Você venceu.",
+    "you_lose": "Você perdeu.",
+    "white_win": "As brancas vencem.",
+    "black_win": "As pretas vencem.",
+    "draw": "Empate."
+  },
+  "reasons": {
+    "checkmate": "Xeque-mate.",
+    "timeout": "Tempo esgotado.",
+    "stalemate": "Impasse.",
+    "insufficient_material": "Desenhe por material insuficiente.",
+    "draw_agreement": "Desenhe por acordo.",
+    "draw_claim_threefold": "Empate reivindicado: repetição tripla.",
+    "draw_claim_fifty_move": "Empate reivindicado: regra dos 50 lances.",
+    "draw_auto_fivefold": "Sorteio automático: repetição quíntupla.",
+    "draw_auto_75move": "Sorteio automático: regra dos 75 movimentos.",
+    "disconnect_forfeit": "O adversário desconectou e não retornou.",
+    "disconnect_turn_timeout": "O oponente não retornou dentro de 10 segundos no seu turno.",
+    "resign": "Ganhe por renúncia."
+  },
+  "build": {
+    "label": "Versão: {version} · Implantado: {deployedAt}",
+    "unknown": "desconhecido"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

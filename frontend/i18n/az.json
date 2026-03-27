@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Telegram-da smartfonunuzda proqramı açın.",
+    "unsupported": "Planşetlər və masaüstü kompüterlər dəstəklənmir."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Vaxt nəzarətini seçin",
+    "queue_count_you": "{n} növbədə (siz daxil etdiniz)",
+    "queue_count": "{n} növbədədir"
+  },
+  "status": {
+    "connecting": "Serverə qoşulur...",
+    "connected": "Qoşuldu",
+    "reconnecting": "Yenidən qoşulur...",
+    "disconnected_code": "Bağlantı kəsildi: kod {code}{reasonPart}",
+    "ws_error": "Bağlantı xətası (WebSocket)"
+  },
+  "game": {
+    "header": "Oyun",
+    "moves": "Hərəkət edir",
+    "flip": "Flip board",
+    "draw_offer": "çəkmək?",
+    "draw_offer_sent": "Təklif olunur",
+    "claim_draw": "Püşkatma iddiası",
+    "claim_threefold": "İddia heç-heçə (3 qat)",
+    "claim_fifty": "İddia heç-heçə (50-hərəkət)",
+    "resign": "istefa ver",
+    "resign_confirm": "İstefa təsdiqlənsin?",
+    "you_white": "sən (ağ)",
+    "you_black": "Sən (qara)",
+    "opp_white": "Rəqib (ağ)",
+    "opp_black": "Rəqib (qara)",
+    "white_name": "Ağ",
+    "black_name": "Qara",
+    "white_won": "Ağ qalib gəldi",
+    "black_won": "Qara qalib gəldi",
+    "draw": "çəkmək",
+    "draw_offer_waiting": "Təklif göndərildi və cavab gözlənilir.",
+    "draw_offer_received": "Rəqib heç-heçə təklif etdi. \"Çəkmək?\" qəbul etmək.",
+    "opp_disconnected": "Rəqibin əlaqəsi kəsildi. Yenidən qoşulma gözlənilir ({sec}s)..."
+  },
+  "result": {
+    "title": "Oyun bitdi",
+    "back_to_lobby": "Lobbiyə qayıt",
+    "you_win": "Sən qazandın.",
+    "you_lose": "itirdin.",
+    "white_win": "Ağ qalib gəlir.",
+    "black_win": "Qara qalib gəlir.",
+    "draw": "çəkmək."
+  },
+  "reasons": {
+    "checkmate": "Şah mat.",
+    "timeout": "Vaxt bitdi.",
+    "stalemate": "Durğun.",
+    "insufficient_material": "Kifayət qədər olmayan materialla çəkin.",
+    "draw_agreement": "Razılaşma yolu ilə çəkmək.",
+    "draw_claim_threefold": "İddia edilən heç-heçə: üçqat təkrar.",
+    "draw_claim_fifty_move": "İddia edilən heç-heçə: 50 hərəkət qaydası.",
+    "draw_auto_fivefold": "Avtomatik çəkiliş: beş dəfə təkrar.",
+    "draw_auto_75move": "Avtomatik çəkiliş: 75 hərəkət qaydası.",
+    "disconnect_forfeit": "Rəqib əlaqəni kəsdi və geri qayıtmadı.",
+    "disconnect_turn_timeout": "Rəqib öz növbəsində 10 saniyə ərzində geri qayıtmadı.",
+    "resign": "İstefa verməklə qalib gəl."
+  },
+  "build": {
+    "label": "Versiya: {version} · Yerləşdirilib: {deployedAt}",
+    "unknown": "naməlum"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Ṣii ohun elo lori foonuiyara rẹ ni Telegram.",
+    "unsupported": "Awọn tabulẹti ati tabili ko ni atilẹyin."
+  },
+  "lobby": {
+    "title": "Chess foonu",
+    "subtitle": "Yan iṣakoso akoko",
+    "queue_count_you": "_PH_0__ ninu ila (o wa ninu)",
+    "queue_count": "_PH_0__ ninu ila"
+  },
+  "status": {
+    "connecting": "Nsopọ si olupin…",
+    "connected": "Ti sopọ",
+    "reconnecting": "N tun so pọ…",
+    "disconnected_code": "Ti ge asopọ: koodu _PH_0__{reasonPart}",
+    "ws_error": "Aṣiṣe asopọ (WebSocket)"
+  },
+  "game": {
+    "header": "Ere",
+    "moves": "Awọn gbigbe",
+    "flip": "Ọkọ isipade",
+    "draw_offer": "Fa?",
+    "draw_offer_sent": "Fa ti a nṣe",
+    "claim_draw": "iyaworan nipe",
+    "claim_threefold": "Iyaworan (ilọpo mẹta)",
+    "claim_fifty": "iyaworan (50-gbe)",
+    "resign": "Fi silẹ",
+    "resign_confirm": "Jẹrisi ikọsilẹ bi?",
+    "you_white": "Iwọ (funfun)",
+    "you_black": "Iwọ (dudu)",
+    "opp_white": "alatako (funfun)",
+    "opp_black": "alatako (dudu)",
+    "white_name": "Funfun",
+    "black_name": "Dudu",
+    "white_won": "White gba",
+    "black_won": "Black gba",
+    "draw": "Yiya",
+    "draw_offer_waiting": "Fa ìfilọ rán ati ki o nduro fun esi.",
+    "draw_offer_received": "Alatako funni a iyaworan. Tẹ \"Fa?\" lati gba.",
+    "opp_disconnected": "Ti ge asopọ alatako. Nduro fun atunsopọ ({sec}s)..."
+  },
+  "result": {
+    "title": "Ere ti pari",
+    "back_to_lobby": "Pada si ibebe",
+    "you_win": "O bori.",
+    "you_lose": "O padanu.",
+    "white_win": "White AamiEye.",
+    "black_win": "Black bori.",
+    "draw": "Yiya."
+  },
+  "reasons": {
+    "checkmate": "Ṣayẹwo.",
+    "timeout": "Akoko jade.",
+    "stalemate": "Stalemate.",
+    "insufficient_material": "Iyaworan nipa insufficient ohun elo.",
+    "draw_agreement": "Fa nipasẹ adehun.",
+    "draw_claim_threefold": "Fa so: mẹta atunwi.",
+    "draw_claim_fifty_move": "Fa so: 50-gbe ofin.",
+    "draw_auto_fivefold": "Iyaworan aifọwọyi: atunwi igba marun.",
+    "draw_auto_75move": "Iyaworan aifọwọyi: Ofin 75-gbe.",
+    "disconnect_forfeit": "Alatako ti ge asopọ ko si pada.",
+    "disconnect_turn_timeout": "Alatako ko pada laarin iṣẹju-aaya 10 ni akoko wọn.",
+    "resign": "Ṣẹgun nipasẹ ifisilẹ."
+  },
+  "build": {
+    "label": "Ẹya: _PH_0__ · A fi ranṣẹ: {deployedAt}",
+    "unknown": "aimọ"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

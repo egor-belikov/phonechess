@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "在 Telegram 中打开智能手机上的应用程序。",
+    "unsupported": "不支持平板电脑和台式机。"
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "选择时间控制",
+    "queue_count_you": "{n} 在队列中（包括您在内）",
+    "queue_count": "{n} 在队列中"
+  },
+  "status": {
+    "connecting": "正在连接到服务器...",
+    "connected": "已连接",
+    "reconnecting": "正在重新连接...",
+    "disconnected_code": "已断开连接：代码 {code}{reasonPart}",
+    "ws_error": "连接错误（WebSocket）"
+  },
+  "game": {
+    "header": "游戏",
+    "moves": "动作",
+    "flip": "翻板",
+    "draw_offer": "画？",
+    "draw_offer_sent": "提供抽奖",
+    "claim_draw": "索赔抽签",
+    "claim_threefold": "领取抽奖（3倍）",
+    "claim_fifty": "领取抽奖（50步）",
+    "resign": "辞职",
+    "resign_confirm": "确认辞职？",
+    "you_white": "你（白）",
+    "you_black": "你（黑）",
+    "opp_white": "对手（白）",
+    "opp_black": "对手（黑）",
+    "white_name": "白色的",
+    "black_name": "黑色的",
+    "white_won": "白赢",
+    "black_won": "黑棋赢了",
+    "draw": "画",
+    "draw_offer_waiting": "抽奖报价已发送并等待回复。",
+    "draw_offer_received": "对手提出了平局。点击“画画？”接受。",
+    "opp_disconnected": "对方断线。正在等待重新连接 ({sec}s)..."
+  },
+  "result": {
+    "title": "游戏结束",
+    "back_to_lobby": "返回大厅",
+    "you_win": "你赢了。",
+    "you_lose": "你输了。",
+    "white_win": "白棋获胜。",
+    "black_win": "黑方获胜。",
+    "draw": "画。"
+  },
+  "reasons": {
+    "checkmate": "将死。",
+    "timeout": "暂停。",
+    "stalemate": "僵局。",
+    "insufficient_material": "用不足的材料来绘制。",
+    "draw_agreement": "按协议绘制。",
+    "draw_claim_threefold": "抽奖声称：三倍重复。",
+    "draw_claim_fifty_move": "平局要求：50步规则。",
+    "draw_auto_fivefold": "自动绘制：五次重复。",
+    "draw_auto_75move": "自动抽牌：75步规则。",
+    "disconnect_forfeit": "对方断线并没有返回。",
+    "disconnect_turn_timeout": "对手在轮到他们的10秒内没有回来。",
+    "resign": "以辞职取胜。"
+  },
+  "build": {
+    "label": "版本：{version} · 部署：{deployedAt}",
+    "unknown": "未知"
+  },
+  "time": {
+    "sec_short": "秒",
+    "ms_short": "毫秒"
+  }
+}

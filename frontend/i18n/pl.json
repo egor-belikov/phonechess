@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Otwórz aplikację na swoim smartfonie w Telegramie.",
+    "unsupported": "Tablety i komputery stacjonarne nie są obsługiwane."
+  },
+  "lobby": {
+    "title": "TelefonSzachy",
+    "subtitle": "Wybierz kontrolę czasu",
+    "queue_count_you": "{n} w kolejce (włącznie z Tobą)",
+    "queue_count": "{n} w kolejce"
+  },
+  "status": {
+    "connecting": "Łączę się z serwerem…",
+    "connected": "Połączono",
+    "reconnecting": "Ponowne łączenie…",
+    "disconnected_code": "Rozłączono: kod {code}{reasonPart}",
+    "ws_error": "Błąd połączenia (WebSocket)"
+  },
+  "game": {
+    "header": "Gra",
+    "moves": "Porusza się",
+    "flip": "Odwróć tablicę",
+    "draw_offer": "Narysuj?",
+    "draw_offer_sent": "Oferowany remis",
+    "claim_draw": "Zgłoś remis",
+    "claim_threefold": "Odbierz remis (3-krotny)",
+    "claim_fifty": "Zgłoś remis (50 ruchów)",
+    "resign": "Zrezygnuj",
+    "resign_confirm": "Potwierdzić rezygnację?",
+    "you_white": "Ty (biały)",
+    "you_black": "Ty (czarny)",
+    "opp_white": "Przeciwnik (biały)",
+    "opp_black": "Przeciwnik (czarny)",
+    "white_name": "Biały",
+    "black_name": "Czarny",
+    "white_won": "Białe wygrały",
+    "black_won": "Czarny wygrał",
+    "draw": "Narysuj",
+    "draw_offer_waiting": "Oferta losowania wysłana i czekam na odpowiedź.",
+    "draw_offer_received": "Przeciwnik zaproponował remis. Kliknij „Rysuj?” zaakceptować.",
+    "opp_disconnected": "Przeciwnik rozłączył się. Oczekiwanie na ponowne połączenie ({sec}s)..."
+  },
+  "result": {
+    "title": "Gra zakończona",
+    "back_to_lobby": "Powrót do lobby",
+    "you_win": "Wygrałeś.",
+    "you_lose": "Przegrałeś.",
+    "white_win": "Białe wygrywają.",
+    "black_win": "Czarny wygrywa.",
+    "draw": "Narysuj."
+  },
+  "reasons": {
+    "checkmate": "Mat.",
+    "timeout": "Limit czasu.",
+    "stalemate": "Impas.",
+    "insufficient_material": "Rysuj z powodu niewystarczającej ilości materiału.",
+    "draw_agreement": "Rysuj zgodnie z umową.",
+    "draw_claim_threefold": "Zgłoszono remis: potrójne powtórzenie.",
+    "draw_claim_fifty_move": "Ogłoszono remis: zasada 50 ruchów.",
+    "draw_auto_fivefold": "Losowanie automatyczne: pięciokrotne powtórzenie.",
+    "draw_auto_75move": "Automatyczne losowanie: zasada 75 ruchów.",
+    "disconnect_forfeit": "Przeciwnik rozłączył się i nie wrócił.",
+    "disconnect_turn_timeout": "Przeciwnik nie wrócił w ciągu 10 sekund swojej tury.",
+    "resign": "Wygrać przez rezygnację."
+  },
+  "build": {
+    "label": "Wersja: {version} · Wdrożony: {deployedAt}",
+    "unknown": "nieznany"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "pani"
+  }
+}

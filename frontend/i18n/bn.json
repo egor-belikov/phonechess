@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "টেলিগ্রামে আপনার স্মার্টফোনে অ্যাপটি খুলুন।",
+    "unsupported": "ট্যাবলেট এবং ডেস্কটপ সমর্থিত নয়।"
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "সময় নিয়ন্ত্রণ চয়ন করুন",
+    "queue_count_you": "{n} সারিতে (আপনি অন্তর্ভুক্ত করেছেন)",
+    "queue_count": "{n} সারিবদ্ধ"
+  },
+  "status": {
+    "connecting": "সার্ভারে সংযুক্ত হচ্ছে...",
+    "connected": "সংযুক্ত",
+    "reconnecting": "পুনরায় সংযোগ করা হচ্ছে...",
+    "disconnected_code": "সংযোগ বিচ্ছিন্ন: কোড {code}PH_1__",
+    "ws_error": "সংযোগ ত্রুটি (ওয়েবসকেট)"
+  },
+  "game": {
+    "header": "খেলা",
+    "moves": "নড়াচড়া করে",
+    "flip": "ফ্লিপ বোর্ড",
+    "draw_offer": "আঁকা?",
+    "draw_offer_sent": "ড্র অফার করা হয়েছে",
+    "claim_draw": "ড্র দাবি করুন",
+    "claim_threefold": "দাবি ড্র (3-গুণ)",
+    "claim_fifty": "দাবি ড্র (50-চাল)",
+    "resign": "পদত্যাগ করুন",
+    "resign_confirm": "পদত্যাগ নিশ্চিত করবেন?",
+    "you_white": "তুমি (সাদা)",
+    "you_black": "তুমি (কালো)",
+    "opp_white": "প্রতিপক্ষ (সাদা)",
+    "opp_black": "প্রতিপক্ষ (কালো)",
+    "white_name": "সাদা",
+    "black_name": "কালো",
+    "white_won": "সাদা জিতেছে",
+    "black_won": "কালো জিতেছে",
+    "draw": "আঁকা",
+    "draw_offer_waiting": "ড্র অফার পাঠানো হয়েছে এবং প্রতিক্রিয়ার জন্য অপেক্ষা করছে।",
+    "draw_offer_received": "প্রতিপক্ষ একটি ড্র প্রস্তাব. \"আঁকে?\" গ্রহণ করতে",
+    "opp_disconnected": "প্রতিপক্ষের সংযোগ বিচ্ছিন্ন। পুনরায় সংযোগের জন্য অপেক্ষা করা হচ্ছে ({sec}s)..."
+  },
+  "result": {
+    "title": "খেলা শেষ",
+    "back_to_lobby": "লবিতে ফিরে যান",
+    "you_win": "তুমি জিতেছ।",
+    "you_lose": "তুমি হেরেছ।",
+    "white_win": "সাদা জয়।",
+    "black_win": "কালো জিতেছে।",
+    "draw": "আঁকা"
+  },
+  "reasons": {
+    "checkmate": "চেকমেট",
+    "timeout": "টাইম আউট।",
+    "stalemate": "অচলাবস্থা।",
+    "insufficient_material": "অপর্যাপ্ত উপাদান দ্বারা আঁকা.",
+    "draw_agreement": "চুক্তি দ্বারা আঁকা.",
+    "draw_claim_threefold": "ড্র দাবি করেছে: তিনগুণ পুনরাবৃত্তি।",
+    "draw_claim_fifty_move": "ড্র দাবি করেছে: 50-চালানোর নিয়ম।",
+    "draw_auto_fivefold": "স্বয়ংক্রিয় ড্র: পাঁচগুণ পুনরাবৃত্তি।",
+    "draw_auto_75move": "স্বয়ংক্রিয় ড্র: 75-চালানোর নিয়ম।",
+    "disconnect_forfeit": "প্রতিপক্ষ সংযোগ বিচ্ছিন্ন করে ফিরে আসেনি।",
+    "disconnect_turn_timeout": "10 সেকেন্ডের মধ্যে তাদের পালা ফিরে আসেনি প্রতিপক্ষ।",
+    "resign": "পদত্যাগ করে জয়ী।"
+  },
+  "build": {
+    "label": "সংস্করণ: {version} · স্থাপন করা হয়েছে: {deployedAt}",
+    "unknown": "অজানা"
+  },
+  "time": {
+    "sec_short": "সে",
+    "ms_short": "মি.সে."
+  }
+}

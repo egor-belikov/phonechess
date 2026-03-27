@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Ouvrez l'application sur votre smartphone dans Telegram.",
+    "unsupported": "Les tablettes et les ordinateurs de bureau ne sont pas pris en charge."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Choisissez le contrôle du temps",
+    "queue_count_you": "{n} dans la file d'attente (vous inclus)",
+    "queue_count": "{n} dans la file d'attente"
+  },
+  "status": {
+    "connecting": "Connexion au serveur…",
+    "connected": "Connecté",
+    "reconnecting": "Reconnexion…",
+    "disconnected_code": "Déconnecté : code {code}{reasonPart}",
+    "ws_error": "Erreur de connexion (WebSocket)"
+  },
+  "game": {
+    "header": "Jeu",
+    "moves": "Se déplace",
+    "flip": "Tableau à rabat",
+    "draw_offer": "Dessiner ?",
+    "draw_offer_sent": "Tirage offert",
+    "claim_draw": "Tirage au sort",
+    "claim_threefold": "Tirage au sort (3 fois)",
+    "claim_fifty": "Tirage au sort (50 coups)",
+    "resign": "Démissionner",
+    "resign_confirm": "Confirmer sa démission ?",
+    "you_white": "Toi (blanc)",
+    "you_black": "Toi (noir)",
+    "opp_white": "Adversaire (blanc)",
+    "opp_black": "Adversaire (noir)",
+    "white_name": "Blanc",
+    "black_name": "Noir",
+    "white_won": "Les blancs ont gagné",
+    "black_won": "Les noirs ont gagné",
+    "draw": "Dessiner",
+    "draw_offer_waiting": "Offre de tirage envoyée et en attente de réponse.",
+    "draw_offer_received": "L'adversaire a proposé un match nul. Appuyez sur « Dessiner ? » accepter.",
+    "opp_disconnected": "Adversaire déconnecté. En attente de reconnexion ({sec}s)..."
+  },
+  "result": {
+    "title": "Jeu terminé",
+    "back_to_lobby": "Retour au lobby",
+    "you_win": "Vous avez gagné.",
+    "you_lose": "Vous avez perdu.",
+    "white_win": "Les blancs gagnent.",
+    "black_win": "Les noirs gagnent.",
+    "draw": "Dessine."
+  },
+  "reasons": {
+    "checkmate": "Échec et mat.",
+    "timeout": "Temps mort.",
+    "stalemate": "Impasse.",
+    "insufficient_material": "Dessiner par manque de matière.",
+    "draw_agreement": "Tirage au sort par accord.",
+    "draw_claim_threefold": "Tirage au sort réclamé : triple répétition.",
+    "draw_claim_fifty_move": "Match nul réclamé : règle des 50 coups.",
+    "draw_auto_fivefold": "Tirage automatique : répétition quintuple.",
+    "draw_auto_75move": "Tirage automatique : règle des 75 coups.",
+    "disconnect_forfeit": "L'adversaire s'est déconnecté et n'est pas revenu.",
+    "disconnect_turn_timeout": "L'adversaire n'est pas revenu dans les 10 secondes suivant son tour.",
+    "resign": "Gagner par démission."
+  },
+  "build": {
+    "label": "Version : {version} · Déployé : {deployedAt}",
+    "unknown": "inconnu"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

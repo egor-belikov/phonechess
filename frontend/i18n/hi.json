@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "अपने स्मार्टफोन पर टेलीग्राम में ऐप खोलें।",
+    "unsupported": "टेबलेट और डेस्कटॉप समर्थित नहीं हैं."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "समय नियंत्रण चुनें",
+    "queue_count_you": "{n} कतार में (आपने शामिल किया)",
+    "queue_count": "{n} कतार में"
+  },
+  "status": {
+    "connecting": "सर्वर से कनेक्ट हो रहा है...",
+    "connected": "जुड़ा हुआ",
+    "reconnecting": "पुनः कनेक्ट हो रहा है...",
+    "disconnected_code": "डिस्कनेक्ट किया गया: कोड {code}{reasonPart}",
+    "ws_error": "कनेक्शन त्रुटि (वेबसॉकेट)"
+  },
+  "game": {
+    "header": "खेल",
+    "moves": "चलता है",
+    "flip": "फ्लिप बोर्ड",
+    "draw_offer": "ड्रा?",
+    "draw_offer_sent": "ड्रा की पेशकश की गई",
+    "claim_draw": "दावा ड्रा",
+    "claim_threefold": "दावा ड्रा (तीन गुना)",
+    "claim_fifty": "दावा ड्रा (50-चाल)",
+    "resign": "इस्तीफा दे दो",
+    "resign_confirm": "इस्तीफे की पुष्टि करें?",
+    "you_white": "आप (श्वेत)",
+    "you_black": "आप (काला)",
+    "opp_white": "प्रतिद्वंद्वी (श्वेत)",
+    "opp_black": "प्रतिद्वंद्वी (काला)",
+    "white_name": "सफ़ेद",
+    "black_name": "काला",
+    "white_won": "व्हाइट जीत गया",
+    "black_won": "ब्लैक जीत गया",
+    "draw": "ड्रा",
+    "draw_offer_waiting": "ड्रा प्रस्ताव भेज दिया गया है और प्रतिक्रिया की प्रतीक्षा है।",
+    "draw_offer_received": "प्रतिद्वंद्वी ने ड्रा की पेशकश की. \"ड्रा?\" पर टैप करें कबूल करना।",
+    "opp_disconnected": "प्रतिद्वंद्वी अलग हो गया. पुनः कनेक्ट होने की प्रतीक्षा में ({sec}s)..."
+  },
+  "result": {
+    "title": "खेल ख़त्म",
+    "back_to_lobby": "लॉबी पर वापस जाएँ",
+    "you_win": "आप जीत गये.",
+    "you_lose": "तुम हार गए.",
+    "white_win": "सफेद जीतता है.",
+    "black_win": "ब्लैक जीतता है.",
+    "draw": "ड्रा."
+  },
+  "reasons": {
+    "checkmate": "शह और मात।",
+    "timeout": "समय समाप्त.",
+    "stalemate": "गतिरोध.",
+    "insufficient_material": "अपर्याप्त सामग्री द्वारा ड्रा करें.",
+    "draw_agreement": "सहमति से ड्रा करें.",
+    "draw_claim_threefold": "दावा किया गया ड्रा: तीन गुना दोहराव।",
+    "draw_claim_fifty_move": "ड्रा का दावा: 50-चाल नियम।",
+    "draw_auto_fivefold": "स्वचालित ड्रा: पाँच गुना दोहराव।",
+    "draw_auto_75move": "स्वचालित ड्रा: 75-चाल नियम।",
+    "disconnect_forfeit": "प्रतिद्वंद्वी ने संपर्क तोड़ दिया और वापस नहीं लौटा।",
+    "disconnect_turn_timeout": "प्रतिद्वंद्वी अपनी बारी आने पर 10 सेकंड के भीतर वापस नहीं लौटे।",
+    "resign": "इस्तीफे से जीतें."
+  },
+  "build": {
+    "label": "संस्करण: {version} · तैनात: {deployedAt}",
+    "unknown": "अज्ञात"
+  },
+  "time": {
+    "sec_short": "से",
+    "ms_short": "मि.से."
+  }
+}

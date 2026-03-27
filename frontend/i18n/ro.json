@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Deschideți aplicația pe smartphone în Telegram.",
+    "unsupported": "Tabletele și desktopul nu sunt acceptate."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Alegeți controlul timpului",
+    "queue_count_you": "{n} în coadă (ai inclus)",
+    "queue_count": "{n} în coadă"
+  },
+  "status": {
+    "connecting": "Se conectează la server...",
+    "connected": "Conectat",
+    "reconnecting": "Se reconecta...",
+    "disconnected_code": "Deconectat: cod {code}{reasonPart}",
+    "ws_error": "Eroare de conectare (WebSocket)"
+  },
+  "game": {
+    "header": "Joc",
+    "moves": "Mișcări",
+    "flip": "Flip board",
+    "draw_offer": "Remiză?",
+    "draw_offer_sent": "Remiză oferită",
+    "claim_draw": "Tragere la sorți",
+    "claim_threefold": "Tragere la sorti (de trei ori)",
+    "claim_fifty": "Tragere la sorti (50 de mutari)",
+    "resign": "Demisia",
+    "resign_confirm": "Confirmați demisia?",
+    "you_white": "tu (alb)",
+    "you_black": "tu (negru)",
+    "opp_white": "Adversar (alb)",
+    "opp_black": "Adversar (negru)",
+    "white_name": "alb",
+    "black_name": "negru",
+    "white_won": "Albul a câștigat",
+    "black_won": "Negrul a câștigat",
+    "draw": "Desenați",
+    "draw_offer_waiting": "Trage oferta trimisă și așteaptă răspuns.",
+    "draw_offer_received": "Adversarul a oferit o remiză. Atingeți „Desenați?” a accepta.",
+    "opp_disconnected": "Adversarul a fost deconectat. Se așteaptă reconectarea ({sec}s)..."
+  },
+  "result": {
+    "title": "Jocul terminat",
+    "back_to_lobby": "Înapoi la lobby",
+    "you_win": "Ai câștigat.",
+    "you_lose": "Ai pierdut.",
+    "white_win": "Albul câștigă.",
+    "black_win": "Negrul câștigă.",
+    "draw": "Desenați."
+  },
+  "reasons": {
+    "checkmate": "șah mat.",
+    "timeout": "Timp expirat.",
+    "stalemate": "Impas.",
+    "insufficient_material": "Desenați cu material insuficient.",
+    "draw_agreement": "Desenați prin acord.",
+    "draw_claim_threefold": "Extragerea pretinsă: repetare triplă.",
+    "draw_claim_fifty_move": "Remiză revendicată: regula celor 50 de mișcări.",
+    "draw_auto_fivefold": "Extragere automată: repetare de cinci ori.",
+    "draw_auto_75move": "Extragere automată: regulă cu 75 de mișcări.",
+    "disconnect_forfeit": "Adversarul s-a deconectat și nu s-a mai întors.",
+    "disconnect_turn_timeout": "Adversarul nu s-a întors în 10 secunde la rândul său.",
+    "resign": "Câștigă prin demisie."
+  },
+  "build": {
+    "label": "Versiune: {version} · Implementat: {deployedAt}",
+    "unknown": "necunoscut"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

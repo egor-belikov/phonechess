@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Buka aplikasi pada telefon pintar anda dalam Telegram.",
+    "unsupported": "Tablet dan desktop tidak disokong."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Pilih kawalan masa",
+    "queue_count_you": "{n} dalam baris gilir (anda termasuk)",
+    "queue_count": "{n} dalam baris gilir"
+  },
+  "status": {
+    "connecting": "Menyambung ke pelayan…",
+    "connected": "Bersambung",
+    "reconnecting": "Menyambung semula…",
+    "disconnected_code": "Diputuskan sambungan: kod {code}{reasonPart}",
+    "ws_error": "Ralat sambungan (WebSocket)"
+  },
+  "game": {
+    "header": "Permainan",
+    "moves": "Bergerak",
+    "flip": "Papan terbalik",
+    "draw_offer": "Lukis?",
+    "draw_offer_sent": "Cabutan ditawarkan",
+    "claim_draw": "Cabutan tuntutan",
+    "claim_threefold": "Cabutan tuntutan (3 kali ganda)",
+    "claim_fifty": "Cabutan tuntutan (50 langkah)",
+    "resign": "letak jawatan",
+    "resign_confirm": "Sahkan letak jawatan?",
+    "you_white": "awak (putih)",
+    "you_black": "awak (hitam)",
+    "opp_white": "Lawan (putih)",
+    "opp_black": "Lawan (hitam)",
+    "white_name": "putih",
+    "black_name": "Hitam",
+    "white_won": "Putih menang",
+    "black_won": "Hitam menang",
+    "draw": "Lukis",
+    "draw_offer_waiting": "Cabutan tawaran dihantar dan menunggu jawapan.",
+    "draw_offer_received": "Lawan menawarkan keputusan seri. Ketik \"Lukis?\" untuk menerima.",
+    "opp_disconnected": "Lawan terputus sambungan. Menunggu untuk menyambung semula ({sec}s)..."
+  },
+  "result": {
+    "title": "Permainan selesai",
+    "back_to_lobby": "Kembali ke lobi",
+    "you_win": "Awak menang.",
+    "you_lose": "awak kalah.",
+    "white_win": "Putih menang.",
+    "black_win": "Hitam menang.",
+    "draw": "Lukis."
+  },
+  "reasons": {
+    "checkmate": "Checkmate.",
+    "timeout": "Masa tamat.",
+    "stalemate": "kebuntuan.",
+    "insufficient_material": "Lukis dengan bahan yang tidak mencukupi.",
+    "draw_agreement": "Lukis mengikut persetujuan.",
+    "draw_claim_threefold": "Cabutan dituntut: ulangan tiga kali ganda.",
+    "draw_claim_fifty_move": "Cabutan dituntut: peraturan 50 langkah.",
+    "draw_auto_fivefold": "Cabutan automatik: ulangan lima kali ganda.",
+    "draw_auto_75move": "Cabutan automatik: peraturan 75-gerakan.",
+    "disconnect_forfeit": "Lawan terputus dan tidak kembali.",
+    "disconnect_turn_timeout": "Lawan tidak kembali dalam masa 10 saat pada giliran mereka.",
+    "resign": "Menang dengan meletakkan jawatan."
+  },
+  "build": {
+    "label": "Versi: {version} · Digunakan: {deployedAt}",
+    "unknown": "tidak diketahui"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

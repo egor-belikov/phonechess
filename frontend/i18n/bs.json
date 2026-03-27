@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Otvorite aplikaciju na svom pametnom telefonu u Telegramu.",
+    "unsupported": "Tableti i desktop računari nisu podržani."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Odaberite kontrolu vremena",
+    "queue_count_you": "{n} u redu čekanja (uključili ste)",
+    "queue_count": "{n} u redu čekanja"
+  },
+  "status": {
+    "connecting": "Povezivanje na server…",
+    "connected": "Povezano",
+    "reconnecting": "Ponovno povezivanje…",
+    "disconnected_code": "Prekinuta: kod {code}{reasonPart}",
+    "ws_error": "Greška veze (WebSocket)"
+  },
+  "game": {
+    "header": "Igra",
+    "moves": "Pokreti",
+    "flip": "Flip board",
+    "draw_offer": "Draw?",
+    "draw_offer_sent": "Ponuđeno izvlačenje",
+    "claim_draw": "Izvlačenje potraživanja",
+    "claim_threefold": "Izvlačenje zahtjeva (3 puta)",
+    "claim_fifty": "Izvlačenje zahtjeva (50 poteza)",
+    "resign": "Dajte ostavku",
+    "resign_confirm": "Potvrditi ostavku?",
+    "you_white": "ti (bijeli)",
+    "you_black": "ti (crni)",
+    "opp_white": "Protivnik (bijeli)",
+    "opp_black": "Protivnik (crni)",
+    "white_name": "Bijelo",
+    "black_name": "Crna",
+    "white_won": "Beli su pobedili",
+    "black_won": "Crni je pobedio",
+    "draw": "Draw",
+    "draw_offer_waiting": "Ponuda za izvlačenje poslana i čeka se odgovor.",
+    "draw_offer_received": "Protivnik je ponudio remi. Dodirnite \"Draw?\" prihvatiti.",
+    "opp_disconnected": "Protivnik je prekinut. Čeka se ponovno povezivanje ({sec}s)..."
+  },
+  "result": {
+    "title": "Igra je gotova",
+    "back_to_lobby": "Nazad u lobi",
+    "you_win": "Pobijedio si.",
+    "you_lose": "Izgubio si.",
+    "white_win": "Bijeli pobjeđuje.",
+    "black_win": "Crni pobeđuje.",
+    "draw": "Draw."
+  },
+  "reasons": {
+    "checkmate": "Šah-mat.",
+    "timeout": "Time out.",
+    "stalemate": "Zastoj.",
+    "insufficient_material": "Crtajte prema nedostatku materijala.",
+    "draw_agreement": "Izvlačenje po dogovoru.",
+    "draw_claim_threefold": "Tvrdi se remi: trostruko ponavljanje.",
+    "draw_claim_fifty_move": "Nerešeno: pravilo 50 poteza.",
+    "draw_auto_fivefold": "Automatsko izvlačenje: petostruko ponavljanje.",
+    "draw_auto_75move": "Automatsko izvlačenje: pravilo 75 poteza.",
+    "disconnect_forfeit": "Protivnik se isključio i nije se vratio.",
+    "disconnect_turn_timeout": "Protivnik se nije vratio u roku od 10 sekundi na svom okretu.",
+    "resign": "Pobjeda ostavkom."
+  },
+  "build": {
+    "label": "Verzija: {version} · Primijenjeno: {deployedAt}",
+    "unknown": "nepoznato"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

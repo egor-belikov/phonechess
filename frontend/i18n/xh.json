@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Vula usetyenziso kwi-smartphone yakho kwiTelegram.",
+    "unsupported": "Iitafile kunye nedesktop azixhaswanga."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Khetha ulawulo lwexesha",
+    "queue_count_you": "{n} emgceni (uqukiwe)",
+    "queue_count": "{n} emgceni"
+  },
+  "status": {
+    "connecting": "Iqhagamshela kwiseva...",
+    "connected": "Iqhagamshelwe",
+    "reconnecting": "Iqhagamshela kwakhona...",
+    "disconnected_code": "Akudityaniswanga: ikhowudi {code}PH_1__",
+    "ws_error": "Impazamo yoqhagamshelwano (WebSocket)"
+  },
+  "game": {
+    "header": "Umdlalo",
+    "moves": "Iyashukuma",
+    "flip": "Flip ibhodi",
+    "draw_offer": "Zoba?",
+    "draw_offer_sent": "Izoba inikezelwe",
+    "claim_draw": "Utsalo lwebango",
+    "claim_threefold": "Utsalo lwebango (3-fold)",
+    "claim_fifty": "Utsalo lwebango (50-ntshukumo)",
+    "resign": "Ukurhoxa",
+    "resign_confirm": "Qinisekisa ukurhoxa?",
+    "you_white": "Wena (mhlophe)",
+    "you_black": "Wena (mnyama)",
+    "opp_white": "Umchasi (mhlophe)",
+    "opp_black": "Umchasi (omnyama)",
+    "white_name": "Mhlophe",
+    "black_name": "Mnyama",
+    "white_won": "Umhlophe uphumelele",
+    "black_won": "Umnyama uphumelele",
+    "draw": "Zoba",
+    "draw_offer_waiting": "Zoba umnikelo othunyelwe kwaye ulindele impendulo.",
+    "draw_offer_received": "Umchasi unikeze umzobo. Cinezela \"Zoba?\" ukwamkela.",
+    "opp_disconnected": "Umchasi uqhawulwe. Ilinde ukuqhagamshelwa kwakhona ({sec}s)..."
+  },
+  "result": {
+    "title": "Umdlalo ugqityiwe",
+    "back_to_lobby": "Buyela kwi-lobby",
+    "you_win": "Uphumelele.",
+    "you_lose": "Ulahlekile.",
+    "white_win": "Uloyiso olumhlophe.",
+    "black_win": "Omnyama uyaphumelela.",
+    "draw": "Zoba."
+  },
+  "reasons": {
+    "checkmate": "Checkmate.",
+    "timeout": "Ixesha liphelile.",
+    "stalemate": "Isigxina.",
+    "insufficient_material": "Zoba ngezinto ezingonelanga.",
+    "draw_agreement": "Zoba ngesivumelwano.",
+    "draw_claim_threefold": "Zoba ibango: uphinda-phinda kathathu.",
+    "draw_claim_fifty_move": "Yenza ibango: 50-intshukumo yomthetho.",
+    "draw_auto_fivefold": "Uzoba oluzenzekelayo: ukuphindaphinda kahlanu.",
+    "draw_auto_75move": "Umzobo ozenzekelayo: umthetho we-75-move.",
+    "disconnect_forfeit": "Umchasi uqhawulwe kwaye akabuyanga.",
+    "disconnect_turn_timeout": "Umchasi akabuyanga kwimizuzwana eyi-10 kwithuba labo.",
+    "resign": "Phumelela ngokurhoxa."
+  },
+  "build": {
+    "label": "Uguqulelo: {version} · Isetyenziswe: {deployedAt}",
+    "unknown": "ayaziwa"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}

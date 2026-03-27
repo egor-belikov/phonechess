@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Telegram-да смартфондағы қолданбаны ашыңыз.",
+    "unsupported": "Планшеттерге және жұмыс үстеліне қолдау көрсетілмейді."
+  },
+  "lobby": {
+    "title": "PhoneChess",
+    "subtitle": "Уақытты басқаруды таңдаңыз",
+    "queue_count_you": "{n} кезекте (сіз қостыңыз)",
+    "queue_count": "{n} кезекте"
+  },
+  "status": {
+    "connecting": "Серверге қосылуда…",
+    "connected": "Қосылды",
+    "reconnecting": "Қайта қосылуда…",
+    "disconnected_code": "Ажыратылды: код {code}{reasonPart}",
+    "ws_error": "Қосылым қатесі (WebSocket)"
+  },
+  "game": {
+    "header": "Ойын",
+    "moves": "Жылжыды",
+    "flip": "Тақтаны айналдыру",
+    "draw_offer": "Сурет салу?",
+    "draw_offer_sent": "Ұтыс ойыны ұсынылды",
+    "claim_draw": "Ұтыс ойыны",
+    "claim_threefold": "Ұтыс ойыны (3 есе)",
+    "claim_fifty": "Ұтыс ойыны (50 қозғалыс)",
+    "resign": "Отставкаға кету",
+    "resign_confirm": "Отставканы растау керек пе?",
+    "you_white": "Сіз (ақ)",
+    "you_black": "Сіз (қара)",
+    "opp_white": "Қарсылас (ақ)",
+    "opp_black": "Қарсылас (қара)",
+    "white_name": "Ақ",
+    "black_name": "Қара",
+    "white_won": "Ақ жеңді",
+    "black_won": "Қара жеңді",
+    "draw": "Сурет салу",
+    "draw_offer_waiting": "Ұсыныс жіберілді және жауап күтілуде.",
+    "draw_offer_received": "Қарсылас тең ойынды ұсынды. «Сурет?» түймесін түртіңіз. қабылдау.",
+    "opp_disconnected": "Қарсылас ажыратылды. Қайта қосылуды күтуде ({sec}с)..."
+  },
+  "result": {
+    "title": "Ойын аяқталды",
+    "back_to_lobby": "Лобби дегенге қайта келу",
+    "you_win": "Сіз жеңдіңіз.",
+    "you_lose": "Сіз жеңілдіңіз.",
+    "white_win": "Ақ жеңеді.",
+    "black_win": "Қара жеңеді.",
+    "draw": "Сурет салу."
+  },
+  "reasons": {
+    "checkmate": "Шамат.",
+    "timeout": "Уақыт бітті.",
+    "stalemate": "Тығырықтау.",
+    "insufficient_material": "Материалдың жеткіліксіздігі бойынша сурет салу.",
+    "draw_agreement": "Келісім бойынша сызу.",
+    "draw_claim_threefold": "Ұтыс ойыны: үш рет қайталау.",
+    "draw_claim_fifty_move": "Мәлімделген ұтыс: 50 қозғалыс ережесі.",
+    "draw_auto_fivefold": "Автоматты тарту: бес рет қайталау.",
+    "draw_auto_75move": "Автоматты ұтыс: 75 қозғалыс ережесі.",
+    "disconnect_forfeit": "Қарсылас байланысын үзіп, қайтып оралмады.",
+    "disconnect_turn_timeout": "Қарсылас өз кезегінде 10 секунд ішінде оралмады.",
+    "resign": "Отставкаға кету арқылы жеңіңіз."
+  },
+  "build": {
+    "label": "Нұсқа: {version} · Қолданылған: {deployedAt}",
+    "unknown": "белгісіз"
+  },
+  "time": {
+    "sec_short": "с",
+    "ms_short": "мс"
+  }
+}

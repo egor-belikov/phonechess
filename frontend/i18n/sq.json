@@ -1,0 +1,74 @@
+{
+  "mobile": {
+    "open_on_phone": "Hapni aplikacionin në smartphone tuaj në Telegram.",
+    "unsupported": "Tabletat dhe desktopi nuk mbështeten."
+  },
+  "lobby": {
+    "title": "Phone Shah",
+    "subtitle": "Zgjidhni kontrollin e kohës",
+    "queue_count_you": "{n} në radhë (ju keni përfshirë)",
+    "queue_count": "{n} në radhë"
+  },
+  "status": {
+    "connecting": "Po lidhet me serverin…",
+    "connected": "Lidhur",
+    "reconnecting": "Po rilidhet…",
+    "disconnected_code": "E shkëputur: kodi {code}{reasonPart}",
+    "ws_error": "Gabim lidhjeje (WebSocket)"
+  },
+  "game": {
+    "header": "Lojë",
+    "moves": "Lëviz",
+    "flip": "Kthejeni dërrasën",
+    "draw_offer": "Vizatoni?",
+    "draw_offer_sent": "Barazimi ofrohet",
+    "claim_draw": "Barazimi i pretendimit",
+    "claim_threefold": "Shorti i pretendimit (3-fish)",
+    "claim_fifty": "Shorti i pretendimit (50-lëvizje)",
+    "resign": "Dorëheqja",
+    "resign_confirm": "Konfirmoni dorëheqjen?",
+    "you_white": "Ju (e bardhë)",
+    "you_black": "Ti (i zi)",
+    "opp_white": "Kundërshtari (i bardhë)",
+    "opp_black": "Kundërshtari (i zi)",
+    "white_name": "E bardha",
+    "black_name": "E zezë",
+    "white_won": "E bardha fitoi",
+    "black_won": "E zeza fitoi",
+    "draw": "Vizatoni",
+    "draw_offer_waiting": "Oferta e tërheqjes është dërguar dhe në pritje të përgjigjes.",
+    "draw_offer_received": "Kundërshtari ofroi një barazim. Trokit \"Vizato?\" për të pranuar.",
+    "opp_disconnected": "Kundërshtari u shkëput. Në pritje të rilidhjes ({sec}s)..."
+  },
+  "result": {
+    "title": "Loja mbaroi",
+    "back_to_lobby": "Kthehu në holl",
+    "you_win": "Ju fituat.",
+    "you_lose": "Ke humbur.",
+    "white_win": "E bardha fiton.",
+    "black_win": "E zeza fiton.",
+    "draw": "Vizatoni."
+  },
+  "reasons": {
+    "checkmate": "mat shah.",
+    "timeout": "Koha jashtë.",
+    "stalemate": "Bllokim.",
+    "insufficient_material": "Vizatoni me material të pamjaftueshëm.",
+    "draw_agreement": "Vizatoni me marrëveshje.",
+    "draw_claim_threefold": "Barazimi i pretenduar: përsëritje e trefishtë.",
+    "draw_claim_fifty_move": "Barazimi i pretenduar: Rregulli me 50 lëvizje.",
+    "draw_auto_fivefold": "Vizatim automatik: përsëritje pesëfish.",
+    "draw_auto_75move": "Barazimi automatik: Rregulli me 75 lëvizje.",
+    "disconnect_forfeit": "Kundërshtari u shkëput dhe nuk u kthye.",
+    "disconnect_turn_timeout": "Kundërshtari nuk u kthye brenda 10 sekondave në radhën e tij.",
+    "resign": "Fito me dorëheqje."
+  },
+  "build": {
+    "label": "Versioni: {version} · Vendosur: {deployedAt}",
+    "unknown": "i panjohur"
+  },
+  "time": {
+    "sec_short": "s",
+    "ms_short": "ms"
+  }
+}
