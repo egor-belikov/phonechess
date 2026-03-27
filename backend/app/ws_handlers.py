@@ -128,11 +128,14 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
         if not invite_key or not conn:
             await manager.send_to_user(user_id, {"type": "private_invite_invalid"})
             return True
+        logger.info("WS: open_private_link user_id=%s invite_key=%s", user_id, invite_key)
         opened = join_private_invite(invite_key, user_id, conn.telegram_id, conn.username or "")
         if not opened:
+            logger.info("WS: open_private_link result user_id=%s invite_key=%s status=invalid_none", user_id, invite_key)
             await manager.send_to_user(user_id, {"type": "private_invite_invalid"})
             return True
         status = opened.get("status")
+        logger.info("WS: open_private_link result user_id=%s invite_key=%s status=%s", user_id, invite_key, status)
         if status == "invalid":
             await manager.send_to_user(user_id, {"type": "private_invite_invalid"})
             return True

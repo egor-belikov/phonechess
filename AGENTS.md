@@ -163,19 +163,19 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - in-game latency UX: add live ping indicator under the board.
+  - private invite deep-link reliability fix + waiting-room lobby UX tightening.
 - Files changed:
   - `backend/app/ws_handlers.py`
-  - `frontend/index.html`
-  - `frontend/styles/main.css`
   - `frontend/app.js`
-  - `frontend/i18n/en.json`
-  - `frontend/i18n/ru.json`
   - `AGENTS.md`
 - Behavior changes:
-  - game screen now renders a small `Ping: N ms` label directly below the chessboard;
-  - ping is measured by WebSocket round-trip (`ping` client message / `pong` server reply) every 3 seconds;
-  - indicator updates live while connected and resets to placeholder when disconnected or when leaving the game screen.
+  - opening private links now resolves invite key not only from Telegram `initDataUnsafe.start_param`, but also from URL query/hash fallbacks (`tgWebAppStartParam`, `startapp`, `start_param`, `start`);
+  - this ensures guest clients that open direct `/?startapp=private_<key>` URLs are auto-routed into private waiting-room flow instead of staying in plain lobby;
+  - while user is in private waiting room, lobby matchmaking controls are hidden to avoid conflicting actions and UX confusion.
+- Debug/observability:
+  - added explicit backend logs for private link flow:
+    - `open_private_link` received (`user_id`, `invite_key`);
+    - `open_private_link` result status for easier production diagnosis.
 - Safety invariants preserved:
-  - ping endpoint is read-only and does not alter queue/game state;
-  - existing game protocol and move/timer authority remain unchanged.
+  - private-game match still starts only via backend invite status checks;
+  - additional start-param parsing is read-only and does not alter auth/queue semantics.

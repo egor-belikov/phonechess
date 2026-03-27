@@ -189,6 +189,22 @@
       const p = tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param;
       if (typeof p === 'string' && p) return p;
     } catch (e) {}
+    try {
+      const u = new URL(window.location.href);
+      const direct =
+        u.searchParams.get('tgWebAppStartParam') ||
+        u.searchParams.get('startapp') ||
+        u.searchParams.get('start_param') ||
+        u.searchParams.get('start');
+      if (direct) return direct;
+      const hash = new URLSearchParams((u.hash || '').replace(/^#/, ''));
+      const fromHash =
+        hash.get('tgWebAppStartParam') ||
+        hash.get('startapp') ||
+        hash.get('start_param') ||
+        hash.get('start');
+      if (fromHash) return fromHash;
+    } catch (e) {}
     return '';
   }
 
@@ -320,6 +336,8 @@
     privateWaitingState = null;
     if (!privateWaitingPanelEl) return;
     privateWaitingPanelEl.classList.remove('active');
+    if (lobbyButtons) lobbyButtons.style.display = '';
+    if (btnPrivateGame) btnPrivateGame.style.display = '';
   }
 
   function showPrivateWaitingPanel(payload) {
@@ -328,6 +346,8 @@
     const role = payload && payload.role === 'guest' ? 'guest' : 'creator';
     const hasOpponent = !!(payload && payload.has_opponent);
     privateWaitingPanelEl.classList.add('active');
+    if (lobbyButtons) lobbyButtons.style.display = 'none';
+    if (btnPrivateGame) btnPrivateGame.style.display = 'none';
     if (privateWaitingTitleEl) privateWaitingTitleEl.textContent = t('lobby.private_room_title');
     if (role === 'creator') {
       privateWaitingTextEl.textContent = hasOpponent ? t('lobby.private_room_creator_ready') : t('lobby.private_room_creator_wait');
