@@ -617,6 +617,9 @@ async def _schedule_disconnect_forfeit(game_id: str, disconnected_user_id: str) 
         g = get_game_for_user(game_id, disconnected_user_id)
         if not g or g.result is not None:
             return
+        # Bot has no WebSocket; never treat it as a disconnected human.
+        if g.is_bot_game and g.bot_user_id and disconnected_user_id == g.bot_user_id:
+            return
         materialize_live_clocks(g)
         if g.result is not None:
             payload = {
@@ -670,6 +673,10 @@ def _cancel_disconnect_task(user_id: str) -> None:
 
 def _maybe_start_disconnect_task(g, user_id: str) -> None:
     if not g or g.result is not None:
+        return
+    # After a human move it is the bot's turn; turn_user_id is the bot. The bot is never
+    # "online" in manager, so we must not start a disconnect grace timer for it.
+    if g.is_bot_game and g.bot_user_id and user_id == g.bot_user_id:
         return
     if manager.has_user(user_id):
         _cancel_disconnect_task(user_id)
