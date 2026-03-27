@@ -39,7 +39,7 @@ def _column_exists(table: str, column: str) -> bool:
 def _ensure_schema_updates() -> None:
     alter_map = [
         ("users", "login_name", "VARCHAR(20)"),
-        ("users", "is_anonymous", "BOOLEAN NOT NULL DEFAULT 1"),
+        ("users", "is_anonymous", "BOOLEAN NOT NULL DEFAULT TRUE"),
         ("users", "blitz_rating", "INTEGER NOT NULL DEFAULT 1500"),
         ("users", "rapid_rating", "INTEGER NOT NULL DEFAULT 1500"),
         ("users", "games_played", "INTEGER NOT NULL DEFAULT 0"),
