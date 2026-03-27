@@ -361,11 +361,7 @@ def claim_draw(game_id: str, user_id: str, claim_type: str) -> dict | None:
     is_white_turn = board.turn == chess.WHITE
     if (is_white_turn and user_id != g.white_id) or ((not is_white_turn) and user_id != g.black_id):
         return None
-    if claim_type == "threefold" and board.can_claim_threefold_repetition():
-        g.result = "1/2-1/2"
-        g.result_reason = "draw_claim_threefold"
-        g.result_detail = "Ничья по заявке: троекратное повторение позиции."
-    elif claim_type == "fifty_move" and board.can_claim_fifty_moves():
+    if claim_type == "fifty_move" and board.can_claim_fifty_moves():
         g.result = "1/2-1/2"
         g.result_reason = "draw_claim_fifty_move"
         g.result_detail = "Ничья по заявке: 50 ходов без взятия и хода пешкой."

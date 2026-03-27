@@ -25,6 +25,7 @@
     "claim_draw": "Claim draw",
     "claim_threefold": "Claim draw (3-fold)",
     "claim_fifty": "Claim draw (50-move)",
+    "fifty_counter": "{n}/50 moves to automatic draw",
     "resign": "Resign",
     "resign_confirm": "Confirm resign?",
     "you_white": "You (white)",

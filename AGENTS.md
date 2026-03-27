@@ -163,22 +163,21 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - result modal redesign + endgame clock/disconnect UX refinement + i18n key expansion with locale backfill.
+  - draw-rule simplification (claim only by 50-move rule), 50-move progress indicator, and i18n scope reduction to 30 target Telegram languages.
 - Files changed:
+  - `backend/app/pairing.py`
   - `frontend/app.js`
-  - `frontend/index.html`
-  - `frontend/styles/main.css`
   - `frontend/i18n/en.json`
   - `frontend/i18n/ru.json`
-  - `frontend/i18n/*.json` (all non-`en`/`ru` locales updated for new result keys)
+  - `frontend/i18n/tl.json` (Tagalog locale file)
+  - `frontend/i18n/*.json` (reduced locale set: removed non-target languages, kept only 30)
   - `AGENTS.md`
 - Behavior changes:
-  - game result modal now renders winner header by composable i18n parts (`{color} won`) and separate subtitle (`on time`, `by checkmate`, etc.), rather than a single hardcoded sentence.
-  - modal card now receives winner-color visual accent (`white`/`black`/`draw`) while keeping existing app visual language.
-  - low-time clock formatting changed to chess-like tenths under 20s and exact `0:00` on flag fall; flagged clock gets dedicated red state.
-  - opponent-disconnect alert now uses debounce (~700ms) to prevent short reconnect flicker during transient network/VPN blips.
-  - RU locale normalized for chess terms (`Пат`, `Победа по времени`, `Победа по сдаче`), and EN+RU are treated as reference locales.
-  - auto-translation rerun for expanded result-key set: non-reference locales were refreshed/filled for new keys, preserving placeholders and key completeness.
+  - manual draw claim route now accepts only `fifty_move`; client no longer requests/uses threefold claim path.
+  - 75-move draw remains automatic on backend (no player claim action needed), while 50-move remains a claim flow.
+  - client now shows a visible `N/50` counter when halfmove clock reaches at least 40 (20 full moves toward 50-move draw); counter disappears automatically if chain is reset by pawn move/capture.
+  - language support narrowed to product-approved 30 locales; `fil` migration is represented by `tl` locale file and language normalization maps `fil` -> `tl`.
+  - unsupported/extra locale JSON files removed to keep translation surface aligned with current launch scope.
 - Safety invariants preserved:
   - backend remains the source of truth for move legality;
   - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.

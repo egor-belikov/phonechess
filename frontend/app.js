@@ -34,16 +34,9 @@
 
   const TIME_CONTROLS = ['3+0', '3+2', '5+0', '5+3', '10+0', '15+10'];
   const SUPPORTED_LANGS = [
-    'en', 'zh', 'hi', 'es', 'fr', 'ar', 'bn', 'pt', 'ru', 'ur',
-    'id', 'de', 'ja', 'sw', 'mr', 'te', 'tr', 'ta', 'yue', 'vi',
-    'ko', 'fa', 'ha', 'th', 'it', 'gu', 'pl', 'uk', 'ml', 'kn',
-    'or', 'my', 'pa', 'nl', 'ro', 'el', 'hu', 'cs', 'sv', 'he',
-    'sr', 'az', 'be', 'bg', 'da', 'fi', 'no', 'sk', 'hr', 'lt',
-    'sl', 'et', 'lv', 'is', 'ga', 'cy', 'mt', 'sq', 'mk', 'bs',
-    'af', 'am', 'hy', 'ka', 'kk', 'ky', 'uz', 'tk', 'tg', 'mn',
-    'ne', 'si', 'ps', 'sd', 'lo', 'km', 'ms', 'jv', 'su', 'fil',
-    'ceb', 'yo', 'ig', 'zu', 'xh', 'so', 'mg', 'sn', 'rw', 'ny',
-    'co', 'fy', 'lb', 'eu', 'gl', 'ca', 'la', 'mi', 'haw', 'sm'
+    'en', 'ru', 'hi', 'id', 'pt', 'es', 'ar', 'fa', 'uz', 'uk',
+    'fr', 'vi', 'tr', 'it', 'de', 'ms', 'bn', 'kk', 'zh', 'th',
+    'pl', 'ko', 'ja', 'ur', 'ta', 'tl', 'nl', 'ro', 'az', 'am'
   ];
   const FILES = 'abcdefgh';
   const PREMOVE_COLORS = ['#4f8cff', '#ff9f43', '#22c55e', '#e879f9', '#f43f5e', '#14b8a6'];
@@ -170,7 +163,10 @@
     if (SUPPORTED_LANGS.indexOf(normalized) !== -1) return normalized;
     if (SUPPORTED_LANGS.indexOf(base) !== -1) return base;
     // Common aliases: keep mapping explicit for predictable behavior.
+    if (normalized === 'pt-br') return 'pt';
+    if (normalized === 'zh-cn' || normalized === 'zh-hans') return 'zh';
     if (base === 'zh') return 'zh';
+    if (base === 'fil') return 'tl';
     if (base === 'iw') return 'he';
     if (base === 'in') return 'id';
     if (base === 'mo') return 'ro';
@@ -309,7 +305,7 @@
     if (clockTopLabel) clockTopLabel.textContent = isWhite ? t('game.opp_black') : t('game.opp_white');
     if (clockBottomLabel) clockBottomLabel.textContent = isWhite ? t('game.you_white') : t('game.you_black');
     if (gameYourSideEl) {
-      gameYourSideEl.textContent = '';
+      gameYourSideEl.textContent = fiftyMoveCounterText();
     }
     if (clockTop) {
       clockTop.textContent = formatClock(topMs);
@@ -466,19 +462,21 @@
     if (!gameFen) return null;
     const ourTurn = turnFromFen(gameFen) === myColor;
     if (!ourTurn) return null;
-    let threefold = false;
-    try {
-      const c = new Chess(gameFen);
-      if (typeof c.in_threefold_repetition === 'function') {
-        threefold = !!c.in_threefold_repetition();
-      }
-    } catch (e) {}
     const parts = gameFen.split(' ');
     const halfMoveClock = parts.length >= 5 ? parseInt(parts[4], 10) : 0;
     const fifty = Number.isFinite(halfMoveClock) && halfMoveClock >= 100;
-    if (threefold) return 'threefold';
     if (fifty) return 'fifty_move';
     return null;
+  }
+
+  function fiftyMoveCounterText() {
+    if (!gameFen || gameResult) return '';
+    const parts = gameFen.split(' ');
+    const halfMoveClock = parts.length >= 5 ? parseInt(parts[4], 10) : 0;
+    if (!Number.isFinite(halfMoveClock) || halfMoveClock < 40) return '';
+    const fullMoves = Math.floor(halfMoveClock / 2);
+    const text = t('game.fifty_counter', { n: fullMoves });
+    return text === 'game.fifty_counter' ? (fullMoves + '/50') : text;
   }
 
   function updateClaimDrawButton() {
@@ -498,7 +496,7 @@
       return;
     }
     btnClaimDraw.style.display = '';
-    btnClaimDraw.textContent = claimType === 'threefold' ? t('game.claim_threefold') : t('game.claim_fifty');
+    btnClaimDraw.textContent = t('game.claim_fifty');
   }
 
   function tickClocks() {
