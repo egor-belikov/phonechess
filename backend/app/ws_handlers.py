@@ -249,7 +249,7 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                 "black_remaining_ms": game.black_remaining_ms,
                 "color": color,
                 "is_bot_game": True,
-                "no_clock_user_id": user_id,
+                "no_clock_user_id": None,
             },
         )
         _start_unstarted_abort_timer(game.id)

@@ -550,25 +550,27 @@
     const ourTurn = turnColor === myColor;
     const topIsActive = isWhite ? turnColor === 'black' : turnColor === 'white';
     const bottomIsActive = !topIsActive;
-    const ourNoClock = !!(isBotGame && noClockUserId && myTelegramId && String(noClockUserId) === String(myTelegramId));
+    const ourNoClock =
+      isBotGame ||
+      !!(noClockUserId && myTelegramId && String(noClockUserId) === String(myTelegramId));
     if (clockTopLabel) clockTopLabel.textContent = isWhite ? t('game.opp_black') : t('game.opp_white');
     if (clockBottomLabel) clockBottomLabel.textContent = isWhite ? t('game.you_white') : t('game.you_black');
     if (gameYourSideEl) {
       gameYourSideEl.textContent = fiftyMoveCounterText();
     }
     if (clockTop) {
-      const topNoClock = !!(isBotGame && noClockUserId && !ourNoClock);
+      const topNoClock = isBotGame;
       clockTop.textContent = topNoClock ? '∞' : formatClock(topMs);
-      clockTop.classList.toggle('low-time', topMs < 20000 && topMs > 0);
+      clockTop.classList.toggle('low-time', !isBotGame && topMs < 20000 && topMs > 0);
       clockTop.classList.toggle('opp-turn', topIsActive && !gameResult);
-      clockTop.classList.toggle('flagged', topMs <= 0);
+      clockTop.classList.toggle('flagged', !isBotGame && topMs <= 0);
     }
     if (clockBottom) {
       const bottomNoClock = ourNoClock;
       clockBottom.textContent = bottomNoClock ? '∞' : formatClock(bottomMs);
-      clockBottom.classList.toggle('low-time', bottomMs < 20000 && bottomMs > 0);
+      clockBottom.classList.toggle('low-time', !isBotGame && bottomMs < 20000 && bottomMs > 0);
       clockBottom.classList.toggle('our-turn', bottomIsActive && ourTurn && !gameResult);
-      clockBottom.classList.toggle('flagged', bottomMs <= 0);
+      clockBottom.classList.toggle('flagged', !isBotGame && bottomMs <= 0);
     }
   }
 
@@ -888,7 +890,7 @@
     const fen = gameFen;
     if (!fen) return;
     const turn = fen.includes(' w ') ? 'white' : 'black';
-    if (lastClockTick > 0) {
+    if (lastClockTick > 0 && !isBotGame) {
       const elapsed = Math.min(now - lastClockTick, 1000);
       if (turn === 'white') whiteRemainingMs = Math.max(0, whiteRemainingMs - elapsed);
       else blackRemainingMs = Math.max(0, blackRemainingMs - elapsed);
@@ -1361,10 +1363,12 @@
       if (!m) return;
       const now = Date.now();
       const elapsed = lastClockTick > 0 ? Math.max(0, now - lastClockTick) : 0;
-      if (myColor === 'white') {
-        whiteRemainingMs = Math.max(0, whiteRemainingMs - elapsed);
-      } else if (myColor === 'black') {
-        blackRemainingMs = Math.max(0, blackRemainingMs - elapsed);
+      if (!isBotGame) {
+        if (myColor === 'white') {
+          whiteRemainingMs = Math.max(0, whiteRemainingMs - elapsed);
+        } else if (myColor === 'black') {
+          blackRemainingMs = Math.max(0, blackRemainingMs - elapsed);
+        }
       }
       gameFen = c.fen();
       lastMove = { from: fromSq, to: toSq };
@@ -1560,16 +1564,16 @@
     if (replayMode) return;
     console.log('[PhoneChess] applyGameState', { hasFen: !!data.fen, moves: data.moves?.length, result: data.result });
     gameFen = data.fen || gameFen;
+    if (data.is_bot_game !== undefined) isBotGame = !!data.is_bot_game;
     whiteRemainingMs = data.white_remaining_ms != null ? data.white_remaining_ms : whiteRemainingMs;
     blackRemainingMs = data.black_remaining_ms != null ? data.black_remaining_ms : blackRemainingMs;
-    if (data.server_time_ms != null && gameFen && !gameResult) {
+    if (data.server_time_ms != null && gameFen && !gameResult && !isBotGame) {
       const lag = Math.max(0, Math.min(2000, Date.now() - data.server_time_ms));
       const turnColor = gameFen.includes(' b ') ? 'black' : 'white';
       if (turnColor === 'white') whiteRemainingMs = Math.max(0, whiteRemainingMs - lag);
       else blackRemainingMs = Math.max(0, blackRemainingMs - lag);
     }
     if (data.moves) gameMoves = data.moves;
-    if (data.is_bot_game !== undefined) isBotGame = !!data.is_bot_game;
     if (data.no_clock_user_id !== undefined) noClockUserId = data.no_clock_user_id || null;
     if (data.result !== undefined) gameResult = data.result;
     if (data.result_reason !== undefined) resultReason = data.result_reason;

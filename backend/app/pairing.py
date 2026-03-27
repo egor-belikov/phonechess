@@ -83,6 +83,15 @@ _private_invites_mem: dict[str, str] = {}
 BOT_USER_ID = "__bot_weak__"
 
 BLITZ_KEYS = {"3+0", "3+2", "5+0", "5+3"}
+
+
+def _side_clock_runs(g: Game, side_user_id: str) -> bool:
+    """Whether this side's clock counts down. Bot games are untimed for both players."""
+    if g.is_bot_game:
+        return False
+    if g.no_clock_user_id and side_user_id == g.no_clock_user_id:
+        return False
+    return True
 RAPID_KEYS = {"10+0", "15+10"}
 
 
@@ -321,7 +330,7 @@ def create_bot_game(time_control_key: str, user_id: str, telegram_id: int, usern
         g.human_user_id = human.user_id
         g.bot_user_id = bot.user_id
     g.is_bot_game = True
-    g.no_clock_user_id = g.human_user_id
+    g.no_clock_user_id = None
     _games[g.id] = g
     return g
 
@@ -651,8 +660,8 @@ def _apply_result(g: Game, board: Board) -> None:
         g.result_reason = "draw_auto_75move"
         g.result_detail = "Ничья автоматически: 75 ходов без взятия и хода пешкой."
     elif (
-        (g.white_id != g.no_clock_user_id and g.white_remaining_ms <= 0)
-        or (g.black_id != g.no_clock_user_id and g.black_remaining_ms <= 0)
+        (_side_clock_runs(g, g.white_id) and g.white_remaining_ms <= 0)
+        or (_side_clock_runs(g, g.black_id) and g.black_remaining_ms <= 0)
     ):
         g.result = "0-1" if g.white_remaining_ms <= 0 else "1-0"
         g.result_reason = "timeout"
@@ -668,10 +677,10 @@ def _live_remaining_ms(g: Game) -> tuple[int, int]:
     elapsed = int(max(0.0, now - g.last_clock_at) * 1000)
     board = Board(g.fen)
     if board.turn == chess.WHITE:
-        if g.white_clock_started and g.white_id != g.no_clock_user_id:
+        if g.white_clock_started and _side_clock_runs(g, g.white_id):
             white = max(0, white - elapsed)
     else:
-        if g.black_clock_started and g.black_id != g.no_clock_user_id:
+        if g.black_clock_started and _side_clock_runs(g, g.black_id):
             black = max(0, black - elapsed)
     return white, black
 
@@ -686,7 +695,10 @@ def materialize_live_clocks(g: Game) -> None:
     g.white_remaining_ms = white
     g.black_remaining_ms = black
     g.last_clock_at = time.monotonic()
-    if ((g.white_id != g.no_clock_user_id and white <= 0) or (g.black_id != g.no_clock_user_id and black <= 0)):
+    if (
+        (_side_clock_runs(g, g.white_id) and white <= 0)
+        or (_side_clock_runs(g, g.black_id) and black <= 0)
+    ):
         g.result = "0-1" if white <= 0 else "1-0"
         g.result_reason = "timeout"
         g.result_detail = None
@@ -842,7 +854,7 @@ def apply_move(
     inc_ms = tc["increment_seconds"] * 1000
     move_no = (len(g.moves) // 2) + 1
     if board.turn == chess.WHITE:
-        if g.white_clock_started and g.white_id != g.no_clock_user_id:
+        if g.white_clock_started and _side_clock_runs(g, g.white_id):
             white_used = min(g.white_remaining_ms, elapsed_ms)
         else:
             white_used = 0
@@ -852,7 +864,7 @@ def apply_move(
         if not g.black_clock_started:
             g.black_clock_started = True
     else:
-        if g.black_clock_started and g.black_id != g.no_clock_user_id:
+        if g.black_clock_started and _side_clock_runs(g, g.black_id):
             black_used = min(g.black_remaining_ms, elapsed_ms)
         else:
             black_used = 0
