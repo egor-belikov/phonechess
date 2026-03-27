@@ -47,6 +47,10 @@ This file is the operational guide for AI agents working in `phonechess`.
   - colored markers with per-step numbering;
   - preview board position reflects chained premoves.
 - Build info badge at bottom: `version + deployed_at`.
+- Pairing safety:
+  - duplicate queue entries for same `user_id` are ignored;
+  - self-match for the same `user_id` is forbidden;
+  - if `matched` event cannot be delivered to both players, pairing is rolled back and both are re-queued.
 
 ## Core Functional Expectations
 

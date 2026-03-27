@@ -35,6 +35,8 @@ class Game:
     black_id: str
     white_username: str
     black_username: str
+    white_telegram_id: int
+    black_telegram_id: int
     fen: str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     moves: list[MoveRecord] = field(default_factory=list)
     is_private: bool = False
@@ -75,9 +77,18 @@ def join_queue(time_control_key: str, user_id: str, telegram_id: int, username: 
     if time_control_key not in TIME_CONTROL_KEYS:
         return None
     queue = _queues[time_control_key]
+    # Prevent duplicate queue entries for the same user.
+    for p in queue:
+        if p.user_id == user_id:
+            return None
     player = QueuedPlayer(user_id=user_id, telegram_id=telegram_id, username=username)
     if queue:
-        opponent = queue.pop(0)
+        # Match only against another user (never self-match).
+        opponent_idx = next((i for i, p in enumerate(queue) if p.user_id != user_id), -1)
+        if opponent_idx == -1:
+            queue.append(player)
+            return None
+        opponent = queue.pop(opponent_idx)
         if random.random() < 0.5:
             game = _create_game(time_control_key, player, opponent)
         else:
@@ -112,9 +123,26 @@ def _create_game(time_control_key: str, white: QueuedPlayer, black: QueuedPlayer
         black_id=black.user_id,
         white_username=white.username or f"user_{white.user_id[:8]}",
         black_username=black.username or f"user_{black.user_id[:8]}",
+        white_telegram_id=white.telegram_id,
+        black_telegram_id=black.telegram_id,
     )
     g._init_clocks()
     return g
+
+
+def abort_game_and_requeue(game_id: str) -> bool:
+    """
+    Cancel created game and return both players to the queue.
+    Used when one of players didn't receive matched event.
+    """
+    g = _games.pop(game_id, None)
+    if not g:
+        return False
+    q = _queues[g.time_control_key]
+    # Put players back to front so they can be matched again quickly.
+    q.insert(0, QueuedPlayer(g.black_id, g.black_telegram_id, g.black_username))
+    q.insert(0, QueuedPlayer(g.white_id, g.white_telegram_id, g.white_username))
+    return True
 
 
 def get_game(game_id: str) -> Game | None:

@@ -13,6 +13,7 @@ from .auth import validate_init_data
 from .config import get_config
 from .pairing import (
     apply_move,
+    abort_game_and_requeue,
     game_state_payload,
     get_game_for_user,
     get_queue_counts,
@@ -69,8 +70,11 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
             }
             white_payload = {**base, "color": "white"}
             black_payload = {**base, "color": "black"}
-            await manager.send_to_user(game.white_id, white_payload)
-            await manager.send_to_user(game.black_id, black_payload)
+            sent_white = await manager.send_to_user(game.white_id, white_payload)
+            sent_black = await manager.send_to_user(game.black_id, black_payload)
+            # If one side didn't receive "matched", rollback this pairing.
+            if not (sent_white and sent_black):
+                abort_game_and_requeue(game.id)
         await manager.broadcast_queue_counts()
         return True
     if t == "leave_queue":
