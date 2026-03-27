@@ -163,17 +163,17 @@ From repo root:
 ## Latest Commit Details (2026-03-27)
 
 - Scope:
-  - premove target permissiveness refinement + board coordinate labels.
+  - websocket resiliency fixes for multi-tab + unstable network (VPN flaps), and clock resync hardening.
 - Files changed:
+  - `backend/app/ws_manager.py`
+  - `backend/app/ws_handlers.py`
   - `frontend/app.js`
-  - `frontend/styles/main.css`
   - `AGENTS.md`
 - Behavior changes:
-  - premove pseudo-target generation now allows selecting squares occupied by own pieces in preview state;
-  - for sliding pieces (bishop/rook/queen), premove targets are available even behind currently occupied intermediate squares, so future-open lines can be queued in advance;
-  - this enables conditional recapture/line-opening planning in premove chains;
-  - preview pseudo-move application already replaces piece on target square, so chain board state remains coherent;
-  - board now renders subtle algebraic coordinates (`a-h`, `1-8`) directly on edge squares for move readability.
+  - server now supports multiple simultaneous websocket connections per user (adjacent tabs stay in one consistent game state instead of replacing each other);
+  - disconnect/offline handling now triggers only when last user tab disconnects; one tab closing no longer starts false disconnect-forfeit flow;
+  - frontend now performs periodic `subscribe_game` state sync every ~5s during active games and immediately after reconnect auth, reducing timer drift after VPN reconnects;
+  - opponent-disconnect banner countdown now decrements smoothly and stays aligned with server grace window updates.
 - Safety invariants preserved:
   - backend remains the source of truth for move legality;
   - premove execution still sends `premove: true` and keeps existing chain-clear semantics on illegal first premove.

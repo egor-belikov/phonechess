@@ -23,7 +23,7 @@ class Connection:
 
 class WSManager:
     def __init__(self):
-        self._by_user: dict[str, Connection] = {}
+        self._by_user: dict[str, list[Connection]] = {}
         self._all: list[Connection] = []
 
     async def connect(
@@ -33,41 +33,62 @@ class WSManager:
         telegram_id: int,
         username: str,
     ) -> None:
-        if user_id in self._by_user:
-            old = self._by_user[user_id]
-            self._all.remove(old)
-            try:
-                await old.ws.close(code=4000)
-            except Exception:
-                pass
         conn = Connection(ws, user_id, telegram_id, username)
-        self._by_user[user_id] = conn
+        self._by_user.setdefault(user_id, []).append(conn)
         self._all.append(conn)
-        logger.info("WS: connect user_id=%s (total=%d)", user_id, len(self._all))
+        logger.info("WS: connect user_id=%s (conns=%d total=%d)", user_id, len(self._by_user[user_id]), len(self._all))
 
-    def disconnect(self, user_id: str, ws: WebSocket | None = None) -> None:
-        if user_id not in self._by_user:
-            return
-        conn = self._by_user[user_id]
-        # Protect active replacement connection: old socket may disconnect later.
-        if ws is not None and conn.ws is not ws:
-            logger.info("WS: skip stale disconnect user_id=%s", user_id)
-            return
-        self._by_user.pop(user_id, None)
-        if conn in self._all:
-            self._all.remove(conn)
-        logger.info("WS: disconnect user_id=%s (remaining=%d)", user_id, len(self._all))
+    def disconnect(self, user_id: str, ws: WebSocket | None = None) -> bool:
+        """
+        Disconnect connection(s) for user.
+        Returns True if user has no active connections left.
+        """
+        conns = self._by_user.get(user_id)
+        if not conns:
+            return True
+        removed: list[Connection] = []
+        if ws is None:
+            removed = list(conns)
+            self._by_user.pop(user_id, None)
+        else:
+            for c in conns:
+                if c.ws is ws:
+                    removed.append(c)
+                    break
+            if removed:
+                conns.remove(removed[0])
+            if not conns:
+                self._by_user.pop(user_id, None)
+        for c in removed:
+            if c in self._all:
+                self._all.remove(c)
+        remaining = len(self._by_user.get(user_id, []))
+        logger.info("WS: disconnect user_id=%s removed=%d remaining_user=%d total=%d", user_id, len(removed), remaining, len(self._all))
+        return remaining == 0
+
+    def has_user(self, user_id: str) -> bool:
+        conns = self._by_user.get(user_id)
+        return bool(conns)
+
+    def get_any_connection(self, user_id: str) -> Connection | None:
+        conns = self._by_user.get(user_id)
+        if not conns:
+            return None
+        return conns[0]
 
     async def send_to_user(self, user_id: str, payload: dict[str, Any]) -> bool:
-        conn = self._by_user.get(user_id)
-        if not conn:
+        conns = list(self._by_user.get(user_id, []))
+        if not conns:
             return False
-        try:
-            await conn.ws.send_json(payload)
-            return True
-        except Exception as e:
-            logger.warning("send_to_user %s: %s", user_id, e)
-            return False
+        sent = False
+        for conn in conns:
+            try:
+                await conn.ws.send_json(payload)
+                sent = True
+            except Exception as e:
+                logger.warning("send_to_user %s: %s", user_id, e)
+                self.disconnect(user_id, conn.ws)
+        return sent
 
     async def broadcast_queue_counts(self) -> None:
         counts = get_queue_counts()

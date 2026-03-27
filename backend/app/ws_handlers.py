@@ -55,7 +55,7 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
         time_control = data.get("time_control")
         if time_control not in get_queue_counts():
             return True
-        conn = manager._by_user.get(user_id)
+        conn = manager.get_any_connection(user_id)
         if not conn:
             return True
         game = join_queue(
@@ -217,7 +217,7 @@ async def _schedule_disconnect_forfeit(game_id: str, disconnected_user_id: str) 
         if not g or g.result is not None:
             return
         # User returned in time.
-        if manager._by_user.get(disconnected_user_id):
+        if manager.has_user(disconnected_user_id):
             return
         update = forfeit_disconnected_player(game_id, disconnected_user_id)
         if not update:
@@ -303,9 +303,9 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
         logger.exception("WS: error user_id=%s: %s", user_id, e)
     finally:
         if user_id:
-            active_conn = manager._by_user.get(user_id)
-            if active_conn is not None and active_conn.ws is not ws:
-                logger.info("WS: skip stale finalizer user_id=%s", user_id)
+            is_last = manager.disconnect(user_id, ws)
+            if not is_last:
+                logger.info("WS: user_id=%s still has active tabs", user_id)
                 return
             active = get_active_game_for_user(user_id)
             if active and active.result is None:
@@ -327,6 +327,5 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
                     _schedule_disconnect_forfeit(active.id, user_id)
                 )
             leave_all_queues(user_id)
-            manager.disconnect(user_id, ws)
             await manager.broadcast_queue_counts()
-            logger.info("WS: disconnected user_id=%s", user_id)
+            logger.info("WS: fully offline user_id=%s", user_id)

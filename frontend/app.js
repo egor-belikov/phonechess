@@ -89,6 +89,7 @@
   let drawOfferPly = null;
   let opponentDisconnected = false;
   let opponentDisconnectGraceSeconds = 0;
+  let lastStateSyncAt = 0;
 
   const $ = (id) => document.getElementById(id);
   const lobbyButtons = $('lobby-buttons');
@@ -272,7 +273,8 @@
   function updateGameAlert() {
     if (!gameAlertEl) return;
     if (opponentDisconnected && !gameResult) {
-      gameAlertEl.textContent = 'Соперник отключился. Ждём переподключение (' + opponentDisconnectGraceSeconds + 'с)...';
+      const sec = Math.max(0, Math.ceil(opponentDisconnectGraceSeconds));
+      gameAlertEl.textContent = 'Соперник отключился. Ждём переподключение (' + sec + 'с)...';
       gameAlertEl.className = 'game-alert active warning';
       return;
     }
@@ -372,8 +374,16 @@
       const elapsed = Math.min(now - lastClockTick, 1000);
       if (turn === 'white') whiteRemainingMs = Math.max(0, whiteRemainingMs - elapsed);
       else blackRemainingMs = Math.max(0, blackRemainingMs - elapsed);
+      if (opponentDisconnected && opponentDisconnectGraceSeconds > 0) {
+        opponentDisconnectGraceSeconds = Math.max(0, opponentDisconnectGraceSeconds - (elapsed / 1000));
+      }
     }
     lastClockTick = now;
+    if (currentGameId && ws && ws.readyState === WebSocket.OPEN && now - lastStateSyncAt >= 5000) {
+      ws.send(JSON.stringify({ type: 'subscribe_game', game_id: currentGameId }));
+      lastStateSyncAt = now;
+    }
+    updateGameAlert();
     updateClocksDisplay();
   }
 
@@ -1013,6 +1023,7 @@
     drawOfferPly = null;
     opponentDisconnected = false;
     opponentDisconnectGraceSeconds = 0;
+    lastStateSyncAt = 0;
     hidePromotionPicker();
     hideResultModal();
     updateClocksDisplay();
@@ -1063,6 +1074,10 @@
           }
           renderLobbyButtons(msg.counts);
           setWsStatus('Подключено', 'connected');
+          if (currentGameId && ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'subscribe_game', game_id: currentGameId }));
+            lastStateSyncAt = Date.now();
+          }
         } else if (msg.type === 'matched') {
           currentQueue = null;
           enterGame(msg);
