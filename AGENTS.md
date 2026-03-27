@@ -366,6 +366,7 @@ From repo root:
 
 ## Bot game: no disconnect timeout on bot turn (2026-03-27)
 
+- Release commit: `432c95b`.
 - Bug: after each human move, `make_move` called `_maybe_start_disconnect_task(g, turn_user_id(g))`. On the bot’s turn that user id is `bot_user_id`; the bot never has a WebSocket, so `manager.has_user` was false and a 10s grace timer started — the bot was forfeited as if offline (`disconnect_turn_timeout`).
 - Fix: in `backend/app/ws_handlers.py`, skip starting (and completing) disconnect-forfeit logic when the “disconnected” participant is `g.bot_user_id` in a bot game.
 - Human disconnect handling during bot games is unchanged (only the real human id is timed).
