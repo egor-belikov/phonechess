@@ -25,6 +25,7 @@ This file is the operational guide for AI agents working in `phonechess`.
 - `DEPLOY_DOCKER.md`, `DEPLOY_SUBDOMAIN.md`, `HOSTING.md` - deploy/infra docs.
 - `PROJECT_PLAN.md` - product requirements and milestones.
 - `scripts/update_build_meta.py` - updates build metadata + asset version tags.
+- `scripts/deploy.sh` - one-command release: build-meta update, commit/push, VPS deploy.
 
 ## Current Implemented Features (2026-03-27)
 
@@ -102,6 +103,8 @@ From repo root:
   - cache-busting tags in `frontend/index.html` for `app.js` and `main.css`;
   - fallback text in `#build-info`.
 - Frontend reads `/build-meta.json` with `cache: no-store`.
+- One-command path:
+  - `bash scripts/deploy.sh "Your detailed commit message"`
 
 ## Deployment Notes
 
