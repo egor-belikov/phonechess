@@ -455,3 +455,9 @@ From repo root:
   - Private match: two Telegram messages (game start) tracked per player; on end, both edited to same HTML summary (result + `<pre>` SAN block); non-private/bot games still receive a new `send_game_result_message` with HTML.
   - Tournament games do not update blitz/rapid Elo; completed tournaments persist participants (places, scores, `reward_rank` for top 3 where applicable).
 - **Env (optional):** `SWISS_MIN_PLAYERS`, `KO_MIN_PLAYERS`, `TOURNAMENT_INTERVAL_SEC`, `SWISS_MAX_ROUNDS`.
+
+## Production deploy (2026-04-01): tournaments + bot HTML edits (`7616fcd`)
+
+- **Application commit (short):** `7616fcd` — subject `feat: tournaments (Swiss/KO), private bot message edits, tournament history API` (full body in git log).
+- **Post-deploy on VPS:** `update_build_meta.py` stamped live `build-meta.json` with `version=7616fcd`, `deployed_at=2026-04-01 16:47:00 UTC`; `docker compose build app` + `docker compose up -d app` succeeded; immediate `/health` curl may return connection reset — retry after a few seconds (`{"status":"ok"}` confirmed).
+- **Canonical live values:** use `https://chess.apichatpong.online/build-meta.json` (not static examples in this file).
