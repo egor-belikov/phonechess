@@ -484,3 +484,4 @@ From repo root:
 
 - **Путь:** `git push origin main`; на VPS `egorvps:/root/my_projects/phonechess`: `git pull --ff-only`, `python3 scripts/update_build_meta.py`, `docker compose build app`, `docker compose up -d app`; при необходимости повторить `curl` к `/health` после краткого connection reset.
 - **Канонические live-значения:** `https://chess.apichatpong.online/build-meta.json` (`version` = короткий хеш коммита на сервере после `pull` + локальный пересчёт `update_build_meta.py`).
+- **VPS rollout (подтверждено):** после pull до `b285b31` серверный `update_build_meta.py` выставил live `version=b285b31`, `deployed_at=2026-04-01 20:43:47 UTC`; `docker compose build app` + `docker compose up -d app` прошли; немедленный `curl` к `127.0.0.1:8000/health` из скрипта дал connection reset; через несколько секунд внешний `https://chess.apichatpong.online/health` вернул `{"status":"ok"}`, `build-meta.json` совпал с указанными значениями.
