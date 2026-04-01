@@ -7,7 +7,7 @@
   <title>PhoneChess</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  <link rel="stylesheet" href="styles/main.css?v=20260401171716">
+  <link rel="stylesheet" href="styles/main.css?v=20260401204133">
 </head>
 <body>
   <!-- Блокировщик: только мобильный телефон (не планшет, не десктоп) -->
@@ -28,7 +28,7 @@
       </div>
       <button type="button" id="btn-bot-game" class="btn-private-game">Игра с ботом</button>
       <button type="button" id="btn-private-game" class="btn-private-game">Приватная игра</button>
-      <div id="tournament-panel" class="tournament-panel">
+      <div id="tournament-panel" class="tournament-panel tournament-ui-hidden" aria-hidden="true">
         <div class="tournament-title">Турниры</div>
         <label class="tournament-tc-label" for="tournament-tc-select">Контроль</label>
         <select id="tournament-tc-select" class="tournament-tc-select" aria-label="Контроль для турнира"></select>
@@ -67,8 +67,10 @@
           <input id="login-input" type="text" maxlength="20" placeholder="login_name" />
           <button type="button" id="btn-login-submit" class="btn-private-time-close">Сохранить логин</button>
         </div>
-        <div class="profile-section-title">Турниры</div>
-        <div id="profile-tournaments" class="move-list profile-tournaments"></div>
+        <div class="tournament-ui-hidden" aria-hidden="true">
+          <div class="profile-section-title">Турниры</div>
+          <div id="profile-tournaments" class="move-list profile-tournaments"></div>
+        </div>
         <div class="profile-section-title">Партии</div>
         <div id="profile-history" class="move-list"></div>
         <button type="button" id="btn-profile-close" class="btn-private-time-close">Закрыть</button>
@@ -140,7 +142,7 @@
       </div>
     </div>
   </div>
-  <div id="build-info" class="build-info">Версия: 854ad73 · Деплой: 2026-04-01 17:17:16 UTC</div>
-  <script src="app.js?v=20260401171716"></script>
+  <div id="build-info" class="build-info">Версия: 253fbe2 · Деплой: 2026-04-01 20:41:33 UTC</div>
+  <script src="app.js?v=20260401204133"></script>
 </body>
 </html>

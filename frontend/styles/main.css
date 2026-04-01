@@ -877,6 +877,11 @@ body.mobile-blocked #app {
   font-size: 0.9rem;
 }
 
+/* Временно скрыт UI турниров; убери класс .tournament-ui-hidden с разметки, чтобы вернуть */
+.tournament-ui-hidden {
+  display: none !important;
+}
+
 .tournament-panel {
   margin: 12px 0 8px;
   padding: 10px 12px;

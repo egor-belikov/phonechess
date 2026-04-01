@@ -469,3 +469,18 @@ From repo root:
 - **Docs:** `PROJECT_PLAN.md` §8 and «Что уже сделано» updated; `AGENTS.md` release notes for tournaments corrected to state Elo applies.
 - **Application commit (short):** `681c7c8` — subject `fix: apply Elo updates for tournament games` (see git log for body).
 - **Production deploy (confirmed):** VPS `git pull` to `681c7c8`, server `update_build_meta.py` stamped live `build-meta.json` with `version=681c7c8`, `deployed_at=2026-04-01 17:19:51 UTC`; `docker compose build app` + `docker compose up -d app`; `/health` OK after brief connection reset (retry).
+
+## UI (2026-04-01): скрыт блок турниров в лобби и профиле
+
+- **Scope:** временно скрыть весь пользовательский UI турниров (очередь Swiss/KO в лобби и секцию «Турниры» в модалке профиля); бэкенд и WS-протокол турниров не отключались.
+- **Реализация:**
+  - класс `.tournament-ui-hidden { display: none !important; }` в `frontend/styles/main.css` с комментарием, как вернуть блок;
+  - на `#tournament-panel` добавлены классы `tournament-ui-hidden` и `aria-hidden="true"`;
+  - заголовок «Турниры» и `#profile-tournaments` обёрнуты в `<div class="tournament-ui-hidden" aria-hidden="true">`.
+- **Файлы:** `frontend/index.html`, `frontend/styles/main.css`, плюс пересборка метаданных перед релизом (`frontend/build-meta.json`, `?v=` в `index.html`).
+- **Восстановление:** снять `tournament-ui-hidden` с разметки и удалить правило из CSS (или оставить класс пустым).
+
+## Production deploy (2026-04-01): скрытие UI турниров
+
+- **Путь:** `git push origin main`; на VPS `egorvps:/root/my_projects/phonechess`: `git pull --ff-only`, `python3 scripts/update_build_meta.py`, `docker compose build app`, `docker compose up -d app`; при необходимости повторить `curl` к `/health` после краткого connection reset.
+- **Канонические live-значения:** `https://chess.apichatpong.online/build-meta.json` (`version` = короткий хеш коммита на сервере после `pull` + локальный пересчёт `update_build_meta.py`).
