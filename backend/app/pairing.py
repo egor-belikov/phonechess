@@ -144,8 +144,6 @@ def _score_from_result(result: str, is_white: bool) -> float:
 def _apply_finished_game_ratings(g: Game) -> None:
     if not g.result:
         return
-    if g.tournament_id:
-        return
     if g.time_control_key in BLITZ_KEYS:
         field = "blitz_rating"
     elif g.time_control_key in RAPID_KEYS:

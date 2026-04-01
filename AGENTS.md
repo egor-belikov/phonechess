@@ -444,7 +444,7 @@ From repo root:
 - **Key files:**
   - `backend/app/tournaments.py` (new) — waiting rooms per time control, `asyncio` scheduler (`TOURNAMENT_INTERVAL_SEC`, default 1800), Swiss (min `SWISS_MIN_PLAYERS` default 8), KO (min `KO_MIN_PLAYERS` default 16, bo2 + tie-break, bronze + final), `schedule_on_game_finished` hook.
   - `backend/app/models.py` — `TournamentRecord`, `TournamentParticipantRecord`, `TournamentMatchRecord`.
-  - `backend/app/pairing.py` — `Game.tournament_id` / `tournament_match_id`, `create_tournament_game`, skip Elo when `tournament_id` set, `_maybe_tournament_hook`.
+  - `backend/app/pairing.py` — `Game.tournament_id` / `tournament_match_id`, `create_tournament_game`, `_maybe_tournament_hook` (Elo применяется как у обычных партий).
   - `backend/app/telegram_bot.py` — `format_game_finished_html`, `edit_webapp_message_html`, `send_game_result_message` with HTML; `send_webapp_message` returns `message_id`.
   - `backend/app/ws_handlers.py` — `_private_match_bot_messages`, edit-on-finish for private games; WS `join_tournament_waiting` / `leave_tournament_waiting`; `queue_counts` includes `tournament_waiting`; `matched` includes `tournament_id`.
   - `backend/app/ws_manager.py` — `broadcast_queue_counts` includes `tournament_waiting`.
@@ -453,7 +453,7 @@ From repo root:
   - `PROJECT_PLAN.md` — roadmap aligned with shipped features.
 - **Behavior notes:**
   - Private match: two Telegram messages (game start) tracked per player; on end, both edited to same HTML summary (result + `<pre>` SAN block); non-private/bot games still receive a new `send_game_result_message` with HTML.
-  - Tournament games do not update blitz/rapid Elo; completed tournaments persist participants (places, scores, `reward_rank` for top 3 where applicable).
+  - Tournament games **do** update blitz/rapid Elo via the same `_apply_finished_game_ratings` path as rated casual games; completed tournaments persist participants (places, scores, `reward_rank` for top 3 where applicable).
 - **Env (optional):** `SWISS_MIN_PLAYERS`, `KO_MIN_PLAYERS`, `TOURNAMENT_INTERVAL_SEC`, `SWISS_MAX_ROUNDS`.
 
 ## Production deploy (2026-04-01): tournaments + bot HTML edits (`7616fcd`)
@@ -461,3 +461,10 @@ From repo root:
 - **Application commit (short):** `7616fcd` — subject `feat: tournaments (Swiss/KO), private bot message edits, tournament history API` (full body in git log).
 - **Post-deploy on VPS:** `update_build_meta.py` stamped live `build-meta.json` with `version=7616fcd`, `deployed_at=2026-04-01 16:47:00 UTC`; `docker compose build app` + `docker compose up -d app` succeeded; immediate `/health` curl may return connection reset — retry after a few seconds (`{"status":"ok"}` confirmed).
 - **Canonical live values:** use `https://chess.apichatpong.online/build-meta.json` (not static examples in this file).
+
+## Hotfix (2026-04-01): tournament games apply Elo
+
+- **Scope:** tournament (`Game.tournament_id` set) outcomes must update blitz/rapid Elo and `games_played` like any other rated game for the same time control.
+- **Code change:** removed early return in `_apply_finished_game_ratings` that skipped when `g.tournament_id` was set (`backend/app/pairing.py`).
+- **Docs:** `PROJECT_PLAN.md` §8 and «Что уже сделано» updated; `AGENTS.md` release notes for tournaments corrected to state Elo applies.
+- **Deploy:** follow normal `scripts/update_build_meta.py` + `scripts/deploy.sh` flow; append production hash/`build-meta` line below after push.
