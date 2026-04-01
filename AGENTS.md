@@ -412,3 +412,28 @@ From repo root:
 - **Note:** After pull on the server, `update_build_meta.py` sets `version` to the short hash of the checked-out revision (may differ from the committed `build-meta.json` in git for the meta commit); treat `https://chess.apichatpong.online/build-meta.json` as authoritative for live `version` / `deployed_at`.
 - **Documentation follow-up:** a small `AGENTS.md` commit corrects the deploy hash line (`3da6820` → `e17183c`) after an intermediate amend left a stale short hash.
 - **VPS rollout (confirmed):** `egorvps:/root/my_projects/phonechess` fast-forwarded to `8ff8ac2` (tip of `main` after push). Server-side `update_build_meta.py` then stamped `version=8ff8ac2`, `deployed_at=2026-03-27 21:53:13 UTC`, `asset_tag=20260327215313`; `docker compose build app` and `docker compose up -d app` completed successfully. The deploy script’s immediate `curl` to `/health` hit a transient connection reset; a retry seconds later returned `{"status":"ok"}`. Live `build-meta.json` on the host matched the stamped values above.
+
+## Production deploy (2026-04-01): build-meta restamp + release documentation refresh
+
+- Scope:
+  - perform release deploy cycle with fresh build metadata and cache-busting asset tags; sync AGENTS release history with this rollout.
+- Files changed:
+  - `frontend/build-meta.json`
+  - `frontend/index.html`
+  - `AGENTS.md`
+- Build stamp produced locally before deploy:
+  - `version=74b3418`
+  - `deployed_at=2026-04-01 15:06:58 UTC`
+  - `asset_tag=20260401150658`
+- Behavior:
+  - no game logic or protocol changes;
+  - frontend static URLs refreshed (`main.css` and `app.js` query tags);
+  - build info fallback line in HTML updated to the same release stamp for cache coherency.
+- Deploy path used:
+  - `bash scripts/deploy.sh "<detailed release commit message>"`;
+  - script performs `git add -A`, commit (if needed), push to `origin/main`, then SSH deploy on `egorvps:/root/my_projects/phonechess` with:
+    - `git pull --ff-only`
+    - `python3 scripts/update_build_meta.py`
+    - `docker compose build app`
+    - `docker compose up -d app`
+    - post-deploy checks: `/health` and `/build-meta.json`.
