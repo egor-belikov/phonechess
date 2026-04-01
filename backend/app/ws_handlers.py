@@ -43,7 +43,12 @@ from .pairing import (
     create_private_rematch,
 )
 from .ws_manager import manager
-from .telegram_bot import send_webapp_message, send_game_result_message
+from .telegram_bot import (
+    edit_webapp_message_html,
+    format_game_finished_html,
+    send_webapp_message,
+    send_game_result_message,
+)
 from .uci_bot import pick_move_weak_uci
 from .config import get_config
 
@@ -55,6 +60,8 @@ _start_abort_tasks: dict[str, asyncio.Task] = {}
 _rematch_votes: dict[str, set[str]] = {}
 _bot_move_tasks: dict[str, asyncio.Task] = {}
 _result_notified_games: set[str] = set()
+# private match: Telegram message ids to edit on game end (both players)
+_private_match_bot_messages: dict[str, dict[str, tuple[int, int]]] = {}
 
 
 def _user_id(telegram_id: int) -> str:
@@ -103,28 +110,26 @@ def _start_unstarted_abort_timer(game_id: str) -> None:
     _start_abort_tasks[game_id] = asyncio.create_task(_schedule_unstarted_abort(game_id))
 
 
-def _build_result_message(g, reason: str | None, detail: str | None) -> str:
-    san_line = " ".join(m.san for m in (g.moves or []))
-    result = g.result or "?"
-    reason_txt = reason or "-"
-    detail_txt = detail or "-"
-    return (
-        "Партия завершена.\n"
-        f"Результат: {result}\n"
-        f"Причина: {reason_txt}\n"
-        f"Детали: {detail_txt}\n\n"
-        f"Ходы: {san_line or '—'}"
-    )
-
-
 def _notify_game_finished_once(g, reason: str | None, detail: str | None) -> None:
     if not g or not g.id or g.id in _result_notified_games:
         return
     _result_notified_games.add(g.id)
+    sans = [m.san for m in (g.moves or [])]
+    html_body = format_game_finished_html(g.result or "?", reason, detail, sans)
+    if getattr(g, "is_private", False) and g.id in _private_match_bot_messages:
+        stored = _private_match_bot_messages.pop(g.id, None)
+        if stored:
+            for role in ("white", "black"):
+                pair = stored.get(role)
+                if pair:
+                    cid, mid = pair
+                    if mid is not None:
+                        edit_webapp_message_html(int(cid), int(mid), html_body)
+        return
     for uid in (g.white_id, g.black_id):
         tid, started = get_user_notification_target(uid)
         if started and tid:
-            send_game_result_message(tid, _build_result_message(g, reason, detail))
+            send_game_result_message(tid, html_body)
 
 
 def _schedule_bot_move(game_id: str) -> None:
@@ -215,6 +220,7 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                 "black_remaining_ms": game.black_remaining_ms,
                 "is_bot_game": bool(game.is_bot_game),
                 "no_clock_user_id": game.no_clock_user_id,
+                "tournament_id": game.tournament_id,
             }
             white_payload = {**base, "color": "white"}
             black_payload = {**base, "color": "black"}
@@ -250,6 +256,7 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                 "color": color,
                 "is_bot_game": True,
                 "no_clock_user_id": None,
+                "tournament_id": None,
             },
         )
         _start_unstarted_abort_timer(game.id)
@@ -358,16 +365,23 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                             "black_remaining_ms": g.black_remaining_ms,
                             "is_bot_game": bool(g.is_bot_game),
                             "no_clock_user_id": g.no_clock_user_id,
+                            "tournament_id": g.tournament_id,
                         }
                         await manager.send_to_user(g.white_id, {**base, "color": "white"})
                         await manager.send_to_user(g.black_id, {**base, "color": "black"})
                         _start_unstarted_abort_timer(g.id)
                         cfg = get_config()
                         link = f"https://t.me/{cfg.bot_username}?startapp=private_{invite_key}" if cfg.bot_username else f"{cfg.telegram_webapp_url}?startapp=private_{invite_key}"
+                        msgs: dict[str, tuple[int, int]] = {}
                         for uid in (g.white_id, g.black_id):
                             tid, started = get_user_notification_target(uid)
                             if started and tid:
-                                send_webapp_message(tid, f"Приватная игра создана. Ссылка:\n{link}", link)
+                                mid = send_webapp_message(tid, f"Приватная игра создана. Ссылка:\n{link}", link)
+                                role = "white" if uid == g.white_id else "black"
+                                if mid is not None:
+                                    msgs[role] = (tid, mid)
+                        if len(msgs) == 2:
+                            _private_match_bot_messages[g.id] = msgs
             return True
         if status == "history":
             history = get_history_by_invite_key(invite_key)
@@ -396,6 +410,7 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                     "color": color,
                     "is_bot_game": bool(g.is_bot_game),
                     "no_clock_user_id": g.no_clock_user_id,
+                    "tournament_id": g.tournament_id,
                 },
             )
             return True
@@ -414,16 +429,44 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
             "black_remaining_ms": g.black_remaining_ms,
             "is_bot_game": bool(g.is_bot_game),
             "no_clock_user_id": g.no_clock_user_id,
+            "tournament_id": g.tournament_id,
         }
         await manager.send_to_user(g.white_id, {**base, "color": "white"})
         await manager.send_to_user(g.black_id, {**base, "color": "black"})
         _start_unstarted_abort_timer(g.id)
         cfg = get_config()
         link = f"https://t.me/{cfg.bot_username}?startapp=private_{invite_key}" if cfg.bot_username else f"{cfg.telegram_webapp_url}?startapp=private_{invite_key}"
+        msgs: dict[str, tuple[int, int]] = {}
         for uid in (g.white_id, g.black_id):
             tid, started = get_user_notification_target(uid)
             if started and tid:
-                send_webapp_message(tid, f"Приватная игра создана. Ссылка:\n{link}", link)
+                mid = send_webapp_message(tid, f"Приватная игра создана. Ссылка:\n{link}", link)
+                role = "white" if uid == g.white_id else "black"
+                if mid is not None:
+                    msgs[role] = (tid, mid)
+        if len(msgs) == 2:
+            _private_match_bot_messages[g.id] = msgs
+        return True
+    if t == "join_tournament_waiting":
+        fmt = (data.get("format") or "").strip()
+        tc = (data.get("time_control") or "").strip()
+        conn = manager.get_any_connection(user_id)
+        if fmt in ("swiss", "ko") and tc in get_queue_counts() and conn:
+            from . import tournaments as tournaments_mod
+
+            tournaments_mod.register_waiting(fmt, tc, user_id, conn.telegram_id, conn.username or "")
+            await manager.send_to_user(
+                user_id,
+                {"type": "tournament_waiting_ack", "format": fmt, "time_control": tc},
+            )
+        return True
+    if t == "leave_tournament_waiting":
+        fmt = (data.get("format") or "").strip()
+        tc = (data.get("time_control") or "").strip()
+        if fmt in ("swiss", "ko") and tc in get_queue_counts():
+            from . import tournaments as tournaments_mod
+
+            tournaments_mod.leave_waiting(fmt, tc, user_id)
         return True
     if t == "ping":
         client_ts = data.get("client_ts")
@@ -582,6 +625,7 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                     "black_remaining_ms": new_game.black_remaining_ms,
                     "is_bot_game": False,
                     "no_clock_user_id": None,
+                    "tournament_id": new_game.tournament_id,
                 }
                 await manager.send_to_user(new_game.white_id, {**base, "color": "white"})
                 await manager.send_to_user(new_game.black_id, {**base, "color": "black"})
@@ -741,9 +785,15 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
                 },
             )
         logger.info("WS: auth ok user_id=%s username=%s", user_id, username)
+        from . import tournaments as tournaments_mod
+
         await manager.send_to_user(
             user_id,
-            {"type": "queue_counts", "counts": get_queue_counts()},
+            {
+                "type": "queue_counts",
+                "counts": get_queue_counts(),
+                "tournament_waiting": tournaments_mod.waiting_counts(),
+            },
         )
         logger.info("WS: queue_counts sent to %s", user_id)
         while True:

@@ -96,6 +96,15 @@ def _shutdown_workers():
     shutdown_uci_bot()
 
 
+@app.on_event("startup")
+async def _startup_tournaments():
+    import asyncio
+
+    from . import tournaments
+
+    asyncio.create_task(tournaments.scheduler_loop())
+
+
 LOGIN_RE = re.compile(r"^[A-Za-z0-9_.-]{1,20}$")
 _analysis_rate_window_sec = 5.0
 _analysis_rate_limit = 20
@@ -182,6 +191,14 @@ def get_history(telegram_id: int, limit: int = 30):
                 }
             )
         return {"items": out}
+
+
+@app.get("/api/tournaments/history")
+def get_tournaments_history(telegram_id: int, limit: int = 30):
+    from . import tournaments
+
+    cap = max(1, min(limit, 100))
+    return {"items": tournaments.user_tournament_history(str(telegram_id), cap)}
 
 
 @app.get("/api/analyze")

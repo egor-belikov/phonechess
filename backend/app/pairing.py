@@ -61,6 +61,8 @@ class Game:
     draw_offer_ply: int | None = None
     white_last_draw_offer_ply: int | None = None
     black_last_draw_offer_ply: int | None = None
+    tournament_id: str | None = None
+    tournament_match_id: str | None = None
 
     @property
     def time_control(self) -> TimeControl:
@@ -141,6 +143,8 @@ def _score_from_result(result: str, is_white: bool) -> float:
 
 def _apply_finished_game_ratings(g: Game) -> None:
     if not g.result:
+        return
+    if g.tournament_id:
         return
     if g.time_control_key in BLITZ_KEYS:
         field = "blitz_rating"
@@ -245,6 +249,14 @@ def _persist_game_state(g: Game, from_sq: str | None = None, to_sq: str | None =
         db.commit()
 
 
+def _maybe_tournament_hook(g: Game) -> None:
+    if not g.tournament_id or g.result is None:
+        return
+    from . import tournaments as trn
+
+    trn.schedule_on_game_finished(g)
+
+
 def get_queue_counts() -> dict[str, int]:
     """Количество ожидающих по каждому режиму."""
     return {key: len(_queues[key]) for key in TIME_CONTROL_KEYS}
@@ -337,6 +349,21 @@ def create_bot_game(time_control_key: str, user_id: str, telegram_id: int, usern
 
 def get_game_any(game_id: str) -> Game | None:
     return _games.get(game_id)
+
+
+def create_tournament_game(
+    time_control_key: str,
+    white: QueuedPlayer,
+    black: QueuedPlayer,
+    tournament_id: str,
+    tournament_match_id: str,
+) -> Game:
+    g = _create_game(time_control_key, white, black)
+    g.tournament_id = tournament_id
+    g.tournament_match_id = tournament_match_id
+    _games[g.id] = g
+    _persist_game_created(g)
+    return g
 
 
 def create_private_rematch(game_id: str) -> Game | None:
@@ -568,6 +595,7 @@ def game_state_payload(g: Game) -> dict:
         "server_time_ms": int(time.time() * 1000),
         "is_bot_game": bool(g.is_bot_game),
         "no_clock_user_id": g.no_clock_user_id,
+        "tournament_id": g.tournament_id,
     }
 
 
@@ -601,6 +629,7 @@ def resign_game(game_id: str, user_id: str) -> dict | None:
     _persist_game_state(g)
     mark_invite_finished_by_game(g.id)
     _apply_finished_game_ratings(g)
+    _maybe_tournament_hook(g)
     return {
         "fen": g.fen,
         "white_remaining_ms": g.white_remaining_ms,
@@ -763,6 +792,7 @@ def accept_draw_offer(game_id: str, user_id: str) -> dict | None:
     _persist_game_state(g)
     mark_invite_finished_by_game(g.id)
     _apply_finished_game_ratings(g)
+    _maybe_tournament_hook(g)
     return {
         "fen": g.fen,
         "white_remaining_ms": g.white_remaining_ms,
@@ -792,6 +822,7 @@ def forfeit_disconnected_player(game_id: str, disconnected_user_id: str) -> dict
     _persist_game_state(g)
     mark_invite_finished_by_game(g.id)
     _apply_finished_game_ratings(g)
+    _maybe_tournament_hook(g)
     return {
         "fen": g.fen,
         "white_remaining_ms": g.white_remaining_ms,
@@ -887,6 +918,7 @@ def apply_move(
         mark_invite_finished_by_game(g.id)
         if not g.is_bot_game:
             _apply_finished_game_ratings(g)
+        _maybe_tournament_hook(g)
     uci = move.uci()
     return {
         "fen": g.fen,

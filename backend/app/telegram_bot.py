@@ -3,6 +3,7 @@
 - приветствие на /start
 - кнопка открытия Web App
 """
+import html
 import json
 import logging
 import urllib.error
@@ -98,9 +99,10 @@ def send_private_start_message(chat_id: int, invite_key: str) -> None:
     )
 
 
-def send_webapp_message(chat_id: int, text: str, webapp_url: str | None = None) -> None:
+def send_webapp_message(chat_id: int, text: str, webapp_url: str | None = None) -> int | None:
+    """Отправить сообщение с кнопкой WebApp. Возвращает message_id при успехе."""
     target = webapp_url or _webapp_link_for_start_param(None)
-    _bot_api(
+    res = _bot_api(
         "sendMessage",
         {
             "chat_id": chat_id,
@@ -116,6 +118,37 @@ def send_webapp_message(chat_id: int, text: str, webapp_url: str | None = None) 
                 ]
             },
         },
+    )
+    if not res or not res.get("ok"):
+        return None
+    msg = res.get("result") or {}
+    mid = msg.get("message_id")
+    return int(mid) if mid is not None else None
+
+
+def format_game_finished_html(result: str, reason: str | None, detail: str | None, san_moves: list[str]) -> str:
+    """HTML-текст с блоком <pre> для списка ходов (копирование в Telegram)."""
+    reason_txt = html.escape(reason or "—")
+    detail_txt = html.escape(detail or "—")
+    res_txt = html.escape(result or "?")
+    lines: list[str] = []
+    sans = san_moves or []
+    for i in range(0, len(sans), 2):
+        n = i // 2 + 1
+        w = sans[i]
+        b = sans[i + 1] if i + 1 < len(sans) else ""
+        if b:
+            lines.append(f"{n}. {w} {b}")
+        else:
+            lines.append(f"{n}. {w}")
+    pgn_block = "\n".join(lines) if lines else "—"
+    pre_body = html.escape(pgn_block)
+    return (
+        "Партия завершена.\n\n"
+        f"Результат: <b>{res_txt}</b>\n"
+        f"Причина: {reason_txt}\n"
+        f"Детали: {detail_txt}\n\n"
+        f"Ходы:\n<pre>{pre_body}</pre>"
     )
 
 
@@ -127,6 +160,7 @@ def send_game_result_message(chat_id: int, text: str) -> None:
         {
             "chat_id": chat_id,
             "text": text,
+            "parse_mode": "HTML",
             "reply_markup": {
                 "inline_keyboard": [
                     [
@@ -139,6 +173,31 @@ def send_game_result_message(chat_id: int, text: str) -> None:
             },
         },
     )
+
+
+def edit_webapp_message_html(chat_id: int, message_id: int, html_text: str) -> bool:
+    """Редактировать текст сообщения (HTML). Кнопка WebApp сохраняется через reply_markup."""
+    webapp_url = _webapp_link_for_start_param(None)
+    res = _bot_api(
+        "editMessageText",
+        {
+            "chat_id": chat_id,
+            "message_id": message_id,
+            "text": html_text,
+            "parse_mode": "HTML",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "Открыть PhoneChess",
+                            "web_app": {"url": webapp_url},
+                        }
+                    ]
+                ]
+            },
+        },
+    )
+    return bool(res and res.get("ok"))
 
 
 def process_update(update: dict[str, Any]) -> None:

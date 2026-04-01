@@ -92,7 +92,13 @@ class WSManager:
 
     async def broadcast_queue_counts(self) -> None:
         counts = get_queue_counts()
-        msg = {"type": "queue_counts", "counts": counts}
+        try:
+            from .tournaments import waiting_counts
+
+            tw = waiting_counts()
+        except Exception:
+            tw = {"swiss": {}, "ko": {}}
+        msg = {"type": "queue_counts", "counts": counts, "tournament_waiting": tw}
         await self._broadcast(msg)
 
     async def _broadcast(self, payload: dict[str, Any]) -> None:

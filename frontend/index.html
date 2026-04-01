@@ -7,7 +7,7 @@
   <title>PhoneChess</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  <link rel="stylesheet" href="styles/main.css?v=20260401150658">
+  <link rel="stylesheet" href="styles/main.css?v=20260401164647">
 </head>
 <body>
   <!-- Блокировщик: только мобильный телефон (не планшет, не десктоп) -->
@@ -28,6 +28,24 @@
       </div>
       <button type="button" id="btn-bot-game" class="btn-private-game">Игра с ботом</button>
       <button type="button" id="btn-private-game" class="btn-private-game">Приватная игра</button>
+      <div id="tournament-panel" class="tournament-panel">
+        <div class="tournament-title">Турниры</div>
+        <label class="tournament-tc-label" for="tournament-tc-select">Контроль</label>
+        <select id="tournament-tc-select" class="tournament-tc-select" aria-label="Контроль для турнира"></select>
+        <div class="tournament-row">
+          <span class="tournament-label">Swiss (≥8)</span>
+          <button type="button" id="btn-tour-swiss-join" class="btn-tournament">В очередь</button>
+          <button type="button" id="btn-tour-swiss-leave" class="btn-tournament-secondary">Выйти</button>
+          <span id="tour-swiss-count" class="tournament-count"></span>
+        </div>
+        <div class="tournament-row">
+          <span class="tournament-label">KO (≥16)</span>
+          <button type="button" id="btn-tour-ko-join" class="btn-tournament">В очередь</button>
+          <button type="button" id="btn-tour-ko-leave" class="btn-tournament-secondary">Выйти</button>
+          <span id="tour-ko-count" class="tournament-count"></span>
+        </div>
+        <p class="tournament-hint">Старт по расписанию (по умолчанию каждые 30 мин), если набран порог игроков в очереди.</p>
+      </div>
       <div id="private-waiting-panel" class="private-waiting-panel">
         <div id="private-waiting-title" class="private-waiting-title">Ожидание приватной игры</div>
         <div id="private-waiting-text" class="private-waiting-text">Комната создана. Ждем второго игрока…</div>
@@ -49,6 +67,9 @@
           <input id="login-input" type="text" maxlength="20" placeholder="login_name" />
           <button type="button" id="btn-login-submit" class="btn-private-time-close">Сохранить логин</button>
         </div>
+        <div class="profile-section-title">Турниры</div>
+        <div id="profile-tournaments" class="move-list profile-tournaments"></div>
+        <div class="profile-section-title">Партии</div>
         <div id="profile-history" class="move-list"></div>
         <button type="button" id="btn-profile-close" class="btn-private-time-close">Закрыть</button>
       </div>
@@ -119,7 +140,7 @@
       </div>
     </div>
   </div>
-  <div id="build-info" class="build-info">Версия: 74b3418 · Деплой: 2026-04-01 15:06:58 UTC</div>
-  <script src="app.js?v=20260401150658"></script>
+  <div id="build-info" class="build-info">Версия: df7ac95 · Деплой: 2026-04-01 16:46:47 UTC</div>
+  <script src="app.js?v=20260401164647"></script>
 </body>
 </html>

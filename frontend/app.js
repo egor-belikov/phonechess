@@ -118,6 +118,7 @@
   let pingInterval = null;
   let myTelegramId = 0;
   let profileData = null;
+  let lastTournamentWaiting = { swiss: {}, ko: {} };
 
   const $ = (id) => document.getElementById(id);
   const lobbyButtons = $('lobby-buttons');
@@ -149,6 +150,14 @@
   const profileTitleEl = $('profile-title');
   const profileSummaryEl = $('profile-summary');
   const profileHistoryEl = $('profile-history');
+  const profileTournamentsEl = $('profile-tournaments');
+  const tournamentTcSelectEl = $('tournament-tc-select');
+  const tourSwissCountEl = $('tour-swiss-count');
+  const tourKoCountEl = $('tour-ko-count');
+  const btnTourSwissJoin = $('btn-tour-swiss-join');
+  const btnTourSwissLeave = $('btn-tour-swiss-leave');
+  const btnTourKoJoin = $('btn-tour-ko-join');
+  const btnTourKoLeave = $('btn-tour-ko-leave');
   const loginFormWrapEl = $('login-form-wrap');
   const loginInputEl = $('login-input');
   const btnLoginSubmit = $('btn-login-submit');
@@ -364,6 +373,19 @@
     }
   }
 
+  async function loadTournamentHistory() {
+    const uid = myTelegramId || resolveTelegramId();
+    if (!uid) return [];
+    try {
+      const res = await fetch('/api/tournaments/history?telegram_id=' + encodeURIComponent(uid), { cache: 'no-store' });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.items || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   function closeProfileModal() {
     if (!profileModalEl) return;
     profileModalEl.classList.remove('active');
@@ -379,8 +401,22 @@
     if (profileSummaryEl) profileSummaryEl.textContent = t('profile.summary', { name: name, blitz: blitz, rapid: rapid, games: games });
     if (loginFormWrapEl) loginFormWrapEl.style.display = (profileData && !profileData.is_anonymous) ? 'none' : '';
     if (profileHistoryEl) profileHistoryEl.textContent = '...';
+    if (profileTournamentsEl) profileTournamentsEl.textContent = '...';
     profileModalEl.classList.add('active');
     profileModalEl.setAttribute('aria-hidden', 'false');
+    loadTournamentHistory().then(function (titems) {
+      if (!profileTournamentsEl) return;
+      if (!titems.length) {
+        profileTournamentsEl.textContent = '—';
+        return;
+      }
+      profileTournamentsEl.innerHTML = titems.map(function (it) {
+        const place = it.place != null ? ('место ' + it.place) : '—';
+        const rw = it.reward_rank != null ? (' · награда ' + it.reward_rank) : '';
+        return '<div class="mode-btn" style="cursor:default"><span>' + (it.format || '') + ' · ' + (it.time_control || '') +
+          '</span><span class="queue-count">' + place + rw + '</span></div>';
+      }).join('');
+    });
     loadHistory().then(function (items) {
       if (!profileHistoryEl) return;
       if (!items.length) {
@@ -454,6 +490,17 @@
   function setWsStatus(text, className) {
     wsStatus.textContent = text;
     wsStatus.className = 'ws-status' + (className ? ' ' + className : '');
+  }
+
+  function renderTournamentWaiting(tw) {
+    tw = tw || {};
+    const sw = tw.swiss || {};
+    const ko = tw.ko || {};
+    const tc = (tournamentTcSelectEl && tournamentTcSelectEl.value) ? tournamentTcSelectEl.value : '3+0';
+    const ns = sw[tc] != null ? sw[tc] : 0;
+    const nk = ko[tc] != null ? ko[tc] : 0;
+    if (tourSwissCountEl) tourSwissCountEl.textContent = ns + ' в очереди';
+    if (tourKoCountEl) tourKoCountEl.textContent = nk + ' в очереди';
   }
 
   function renderLobbyButtons(counts) {
@@ -1825,6 +1872,8 @@
             reconnectTimer = null;
           }
           renderLobbyButtons(msg.counts);
+          lastTournamentWaiting = msg.tournament_waiting || { swiss: {}, ko: {} };
+          renderTournamentWaiting(lastTournamentWaiting);
           setWsStatus(t('status.connected'), 'connected');
           loadProfile();
           if (pendingStartInviteKey && ws && ws.readyState === WebSocket.OPEN) {
@@ -1894,6 +1943,10 @@
           if (msg.ready_count === 1) {
             setWsStatus(t('result.rematch_waiting'), 'connected');
           }
+        } else if (msg.type === 'tournament_finished') {
+          setWsStatus('Турнир завершён', 'connected');
+        } else if (msg.type === 'tournament_waiting_ack') {
+          setWsStatus('Вы в очереди турнира', 'connected');
         } else if (msg.type === 'opponent_connection') {
           if (msg.status === 'disconnected') {
             opponentDisconnected = true;
@@ -2118,6 +2171,7 @@
     document.documentElement.lang = currentLang;
     applyStaticTexts();
     renderLobbyButtons({});
+    renderTournamentWaiting(lastTournamentWaiting);
     await loadBuildInfo();
     await loadProfile();
     const sp = getStartParam();

@@ -437,3 +437,21 @@ From repo root:
     - `docker compose build app`
     - `docker compose up -d app`
     - post-deploy checks: `/health` and `/build-meta.json`.
+
+## Release (2026-04-01): tournaments, private bot message edits, tournament API
+
+- **Scope:** ship automatic tournament module (Swiss + KO), Telegram bot message **edit** on private game end with SAN in `<pre>`, profile tournament history REST, frontend tournament queue UI; sync `PROJECT_PLAN.md`.
+- **Key files:**
+  - `backend/app/tournaments.py` (new) — waiting rooms per time control, `asyncio` scheduler (`TOURNAMENT_INTERVAL_SEC`, default 1800), Swiss (min `SWISS_MIN_PLAYERS` default 8), KO (min `KO_MIN_PLAYERS` default 16, bo2 + tie-break, bronze + final), `schedule_on_game_finished` hook.
+  - `backend/app/models.py` — `TournamentRecord`, `TournamentParticipantRecord`, `TournamentMatchRecord`.
+  - `backend/app/pairing.py` — `Game.tournament_id` / `tournament_match_id`, `create_tournament_game`, skip Elo when `tournament_id` set, `_maybe_tournament_hook`.
+  - `backend/app/telegram_bot.py` — `format_game_finished_html`, `edit_webapp_message_html`, `send_game_result_message` with HTML; `send_webapp_message` returns `message_id`.
+  - `backend/app/ws_handlers.py` — `_private_match_bot_messages`, edit-on-finish for private games; WS `join_tournament_waiting` / `leave_tournament_waiting`; `queue_counts` includes `tournament_waiting`; `matched` includes `tournament_id`.
+  - `backend/app/ws_manager.py` — `broadcast_queue_counts` includes `tournament_waiting`.
+  - `backend/app/main.py` — startup `scheduler_loop`, `GET /api/tournaments/history`.
+  - `frontend/index.html`, `frontend/app.js`, `frontend/styles/main.css` — tournament panel + profile tournament list.
+  - `PROJECT_PLAN.md` — roadmap aligned with shipped features.
+- **Behavior notes:**
+  - Private match: two Telegram messages (game start) tracked per player; on end, both edited to same HTML summary (result + `<pre>` SAN block); non-private/bot games still receive a new `send_game_result_message` with HTML.
+  - Tournament games do not update blitz/rapid Elo; completed tournaments persist participants (places, scores, `reward_rank` for top 3 where applicable).
+- **Env (optional):** `SWISS_MIN_PLAYERS`, `KO_MIN_PLAYERS`, `TOURNAMENT_INTERVAL_SEC`, `SWISS_MAX_ROUNDS`.
