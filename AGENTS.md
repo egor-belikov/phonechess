@@ -467,4 +467,5 @@ From repo root:
 - **Scope:** tournament (`Game.tournament_id` set) outcomes must update blitz/rapid Elo and `games_played` like any other rated game for the same time control.
 - **Code change:** removed early return in `_apply_finished_game_ratings` that skipped when `g.tournament_id` was set (`backend/app/pairing.py`).
 - **Docs:** `PROJECT_PLAN.md` §8 and «Что уже сделано» updated; `AGENTS.md` release notes for tournaments corrected to state Elo applies.
-- **Deploy:** follow normal `scripts/update_build_meta.py` + `scripts/deploy.sh` flow; append production hash/`build-meta` line below after push.
+- **Application commit (short):** `681c7c8` — subject `fix: apply Elo updates for tournament games` (see git log for body).
+- **Production deploy (confirmed):** VPS `git pull` to `681c7c8`, server `update_build_meta.py` stamped live `build-meta.json` with `version=681c7c8`, `deployed_at=2026-04-01 17:19:51 UTC`; `docker compose build app` + `docker compose up -d app`; `/health` OK after brief connection reset (retry).
