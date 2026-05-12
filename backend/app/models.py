@@ -23,6 +23,8 @@ class User(Base):
     rapid_rating: Mapped[int] = mapped_column(Integer, default=1500, nullable=False)
     games_played: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     has_started_bot: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # JSON массив int: побеждённые уровни бота (из BOT_CAMPAIGN_ELOS), только для неанонимных.
+    bot_campaign_beaten_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=dt.datetime.utcnow)
     updated_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=dt.datetime.utcnow)
 

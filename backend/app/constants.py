@@ -18,3 +18,6 @@ TIME_CONTROLS: list[TimeControl] = [
 ]
 
 TIME_CONTROL_KEYS = [tc["key"] for tc in TIME_CONTROLS]
+
+# Уровни бота в кампании (рейтинг соперника, шаг 300). Используется UI и сохранение прогресса.
+BOT_CAMPAIGN_ELOS = (1100, 1400, 1700, 2000, 2300, 2600, 2900)

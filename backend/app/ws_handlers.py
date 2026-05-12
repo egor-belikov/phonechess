@@ -13,11 +13,13 @@ from starlette.websockets import WebSocketDisconnect
 
 from .auth import validate_init_data
 from .config import get_config
+from .constants import BOT_CAMPAIGN_ELOS
 from .pairing import (
     apply_move,
     abort_game_and_requeue,
     game_state_payload,
     get_game_for_user,
+    get_game_any,
     get_queue_counts,
     join_queue,
     leave_all_queues,
@@ -38,9 +40,10 @@ from .pairing import (
     activate_private_invite,
     get_history_by_game_id_for_user,
     create_bot_game,
-    get_game_any,
     abort_unstarted_game,
     create_private_rematch,
+    bot_campaign_snapshot_for_user,
+    bot_campaign_push_payload_if_human_won_bot,
 )
 from .ws_manager import manager
 from .telegram_bot import (
@@ -50,7 +53,6 @@ from .telegram_bot import (
     send_game_result_message,
 )
 from .uci_bot import pick_move_weak_uci
-from .config import get_config
 
 logger = logging.getLogger(__name__)
 DISCONNECT_GRACE_SECONDS = 10
@@ -149,7 +151,7 @@ async def _run_bot_move(game_id: str) -> None:
         turn_uid = g.white_id if board.turn else g.black_id
         if turn_uid != g.bot_user_id:
             return
-        uci = await pick_move_weak_uci(g.fen)
+        uci = await pick_move_weak_uci(g.fen, int(g.bot_elo or 1500))
         if not uci:
             return
         mv = chess.Move.from_uci(uci)
@@ -238,8 +240,27 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
         conn = manager.get_any_connection(user_id)
         if not conn:
             return True
-        game = create_bot_game(time_control, user_id, conn.telegram_id, conn.username or "")
+        raw_elo = data.get("bot_elo", data.get("bot_rating"))
+        try:
+            bot_elo = int(raw_elo)
+        except (TypeError, ValueError):
+            bot_elo = None
+        if bot_elo is None or bot_elo not in BOT_CAMPAIGN_ELOS:
+            await manager.send_to_user(
+                user_id,
+                {"type": "bot_start_denied", "reason": "bad_elo", "levels": list(BOT_CAMPAIGN_ELOS)},
+            )
+            return True
+        snap_pre = bot_campaign_snapshot_for_user(user_id)
+        if bot_elo not in snap_pre["allowed_elos"]:
+            await manager.send_to_user(
+                user_id,
+                {"type": "bot_start_denied", "reason": "campaign_locked", "bot_campaign": snap_pre},
+            )
+            return True
+        game = create_bot_game(time_control, user_id, conn.telegram_id, conn.username or "", bot_elo)
         if not game:
+            await manager.send_to_user(user_id, {"type": "bot_start_denied", "reason": "create_failed"})
             return True
         color = "white" if game.white_id == user_id else "black"
         await manager.send_to_user(
@@ -257,6 +278,7 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                 "is_bot_game": True,
                 "no_clock_user_id": None,
                 "tournament_id": None,
+                "bot_elo": game.bot_elo,
             },
         )
         _start_unstarted_abort_timer(game.id)
@@ -524,6 +546,9 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                 }
                 await manager.send_to_user(g.white_id, payload)
                 await manager.send_to_user(g.black_id, payload)
+                bc_payload = bot_campaign_push_payload_if_human_won_bot(g)
+                if bc_payload and g.human_user_id:
+                    await manager.send_to_user(g.human_user_id, bc_payload)
                 if len(g.moves) >= 2:
                     _cancel_start_abort_task(g.id)
                 if g.result is None:
@@ -787,12 +812,14 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
         logger.info("WS: auth ok user_id=%s username=%s", user_id, username)
         from . import tournaments as tournaments_mod
 
+        campaign_snap = bot_campaign_snapshot_for_user(user_id)
         await manager.send_to_user(
             user_id,
             {
                 "type": "queue_counts",
                 "counts": get_queue_counts(),
                 "tournament_waiting": tournaments_mod.waiting_counts(),
+                "bot_campaign": campaign_snap,
             },
         )
         logger.info("WS: queue_counts sent to %s", user_id)

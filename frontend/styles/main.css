@@ -262,6 +262,30 @@ body.mobile-blocked #app {
   font-size: 1rem;
 }
 
+.bot-difficulty-hint {
+  font-size: 0.82rem;
+  color: #9a9893;
+  margin: 0 0 12px;
+  line-height: 1.35;
+}
+
+.mode-btn.bot-level-locked {
+  opacity: 0.42;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.mode-btn.bot-level-ok .bot-level-sub {
+  display: block;
+  font-size: 0.75rem;
+  color: #7a9a6a;
+  margin-top: 4px;
+}
+
+.mode-btn.bot-level-ok .bot-level-sub.muted {
+  color: #7d7c78;
+}
+
 .btn-private-time-close {
   margin-top: 10px;
   width: 100%;

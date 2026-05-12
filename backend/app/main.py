@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
+from .constants import BOT_CAMPAIGN_ELOS
 from .config import get_config
 from .db import Base, SessionLocal, engine
 from . import models  # noqa: F401
@@ -46,6 +47,7 @@ def _ensure_schema_updates() -> None:
         ("users", "blitz_rating", "INTEGER NOT NULL DEFAULT 1500"),
         ("users", "rapid_rating", "INTEGER NOT NULL DEFAULT 1500"),
         ("users", "games_played", "INTEGER NOT NULL DEFAULT 0"),
+        ("users", "bot_campaign_beaten_json", "TEXT"),
     ]
     with engine.begin() as conn:
         for table, col, col_type in alter_map:
@@ -128,6 +130,11 @@ def get_profile(telegram_id: int):
         user = db.get(models.User, user_id)
         if not user:
             raise HTTPException(status_code=404, detail="user_not_found")
+        from .pairing import bot_campaign_snapshot_for_db_user
+
+        snap = bot_campaign_snapshot_for_db_user(user)
+        beaten = tuple(snap.get("beaten") or [])
+        allowed = list(snap.get("allowed_elos") or BOT_CAMPAIGN_ELOS)
         return {
             "user_id": user.id,
             "telegram_id": user.telegram_id,
@@ -137,6 +144,9 @@ def get_profile(telegram_id: int):
             "blitz_rating": int(user.blitz_rating),
             "rapid_rating": int(user.rapid_rating),
             "games_played": int(user.games_played),
+            "bot_campaign_beaten": list(beaten),
+            "bot_campaign_allowed_elos": allowed,
+            "bot_campaign_levels": list(BOT_CAMPAIGN_ELOS),
         }
 
 

@@ -2,6 +2,7 @@
 Очереди пейринга и создание партий (in-memory).
 Этап 2: часы, ходы, валидация через python-chess.
 """
+import json
 import random
 import time
 import uuid
@@ -13,7 +14,7 @@ from dataclasses import dataclass, field
 import chess
 from chess import Board
 
-from .constants import TIME_CONTROL_KEYS, TIME_CONTROLS, TimeControl
+from .constants import BOT_CAMPAIGN_ELOS, TIME_CONTROL_KEYS, TIME_CONTROLS, TimeControl
 from .db import SessionLocal
 from .models import GameMoveRecord, GameRecord, PrivateInviteRecord, User
 from .config import get_config
@@ -63,6 +64,7 @@ class Game:
     black_last_draw_offer_ply: int | None = None
     tournament_id: str | None = None
     tournament_match_id: str | None = None
+    bot_elo: int | None = None
 
     @property
     def time_control(self) -> TimeControl:
@@ -83,6 +85,107 @@ _queues: dict[str, list[QueuedPlayer]] = defaultdict(list)
 _games: dict[str, Game] = {}
 _private_invites_mem: dict[str, str] = {}
 BOT_USER_ID = "__bot_weak__"
+
+
+def _parse_campaign_beaten(raw: str | None) -> list[int]:
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+        if not isinstance(data, list):
+            return []
+        out: list[int] = []
+        for x in data:
+            try:
+                v = int(x)
+            except (TypeError, ValueError):
+                continue
+            if v in BOT_CAMPAIGN_ELOS:
+                out.append(v)
+        return sorted(set(out))
+    except json.JSONDecodeError:
+        return []
+
+
+def bot_campaign_snapshot_for_db_user(user: User) -> dict:
+    """Снимок прогресса бота для объекта User (уже загружен из БД)."""
+    beaten = _parse_campaign_beaten(getattr(user, "bot_campaign_beaten_json", None))
+    is_anonymous = bool(user.is_anonymous)
+    if is_anonymous:
+        allowed = list(BOT_CAMPAIGN_ELOS)
+    else:
+        beaten_set = set(beaten)
+        next_gate: int | None = None
+        for elo in BOT_CAMPAIGN_ELOS:
+            if elo not in beaten_set:
+                next_gate = elo
+                break
+        if next_gate is None:
+            allowed = list(BOT_CAMPAIGN_ELOS)
+        else:
+            allowed = sorted(beaten_set | {next_gate})
+    return {
+        "beaten": beaten,
+        "allowed_elos": allowed,
+        "levels": list(BOT_CAMPAIGN_ELOS),
+        "is_anonymous": is_anonymous,
+    }
+
+
+def bot_campaign_snapshot_for_user(user_id: str) -> dict:
+    with SessionLocal() as db:
+        user = db.get(User, user_id)
+        if not user:
+            return {
+                "beaten": [],
+                "allowed_elos": list(BOT_CAMPAIGN_ELOS),
+                "levels": list(BOT_CAMPAIGN_ELOS),
+                "is_anonymous": True,
+            }
+        return bot_campaign_snapshot_for_db_user(user)
+
+
+def _human_won_bot_game(g: Game) -> bool:
+    if not g.is_bot_game or not g.result or not g.human_user_id or g.bot_elo is None:
+        return False
+    if g.result == "1/2-1/2":
+        return False
+    if g.result == "1-0":
+        return g.human_user_id == g.white_id
+    if g.result == "0-1":
+        return g.human_user_id == g.black_id
+    return False
+
+
+def bot_campaign_push_payload_if_human_won_bot(g: Game) -> dict | None:
+    if not _human_won_bot_game(g):
+        return None
+    uid = g.human_user_id
+    if not uid:
+        return None
+    snap = bot_campaign_snapshot_for_user(uid)
+    return {"type": "bot_campaign", **snap}
+
+
+def _maybe_record_bot_campaign_win(g: Game) -> None:
+    if not _human_won_bot_game(g):
+        return
+    elo = g.bot_elo
+    uid = g.human_user_id
+    if elo is None or not uid:
+        return
+    with SessionLocal() as db:
+        user = db.get(User, uid)
+        if not user or user.is_anonymous:
+            return
+        beaten = _parse_campaign_beaten(user.bot_campaign_beaten_json)
+        if elo not in beaten:
+            beaten.append(elo)
+            beaten.sort()
+        user.bot_campaign_beaten_json = json.dumps(beaten)
+        user.updated_at = dt.datetime.utcnow()
+        db.commit()
+
 
 BLITZ_KEYS = {"3+0", "3+2", "5+0", "5+3"}
 
@@ -325,12 +428,23 @@ def _create_game(time_control_key: str, white: QueuedPlayer, black: QueuedPlayer
     return g
 
 
-def create_bot_game(time_control_key: str, user_id: str, telegram_id: int, username: str) -> Game | None:
+def create_bot_game(
+    time_control_key: str,
+    user_id: str,
+    telegram_id: int,
+    username: str,
+    bot_elo: int,
+) -> Game | None:
     if time_control_key not in TIME_CONTROL_KEYS:
+        return None
+    if bot_elo not in BOT_CAMPAIGN_ELOS:
+        return None
+    snap = bot_campaign_snapshot_for_user(user_id)
+    if bot_elo not in snap["allowed_elos"]:
         return None
     _upsert_user(user_id, telegram_id, username)
     human = QueuedPlayer(user_id=user_id, telegram_id=telegram_id, username=username or f"user_{user_id[:8]}")
-    bot = QueuedPlayer(user_id=BOT_USER_ID, telegram_id=0, username="Weak Bot")
+    bot = QueuedPlayer(user_id=BOT_USER_ID, telegram_id=0, username=f"Bot ~{bot_elo}")
     if random.random() < 0.5:
         g = _create_game(time_control_key, human, bot)
         g.human_user_id = human.user_id
@@ -340,6 +454,7 @@ def create_bot_game(time_control_key: str, user_id: str, telegram_id: int, usern
         g.human_user_id = human.user_id
         g.bot_user_id = bot.user_id
     g.is_bot_game = True
+    g.bot_elo = bot_elo
     g.no_clock_user_id = None
     _games[g.id] = g
     return g
@@ -916,6 +1031,8 @@ def apply_move(
         mark_invite_finished_by_game(g.id)
         if not g.is_bot_game:
             _apply_finished_game_ratings(g)
+        else:
+            _maybe_record_bot_campaign_win(g)
         _maybe_tournament_hook(g)
     uci = move.uci()
     return {

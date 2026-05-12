@@ -1,5 +1,6 @@
 """
-Weak UCI bot worker (Stockfish Skill 0).
+UCI bot (Stockfish) с ограничением силы: UCI_LimitStrength + UCI_Elo.
+Уровень «кампании» задаётся с клиента (1100…2900); применяется с учётом min/max опции движка.
 """
 from __future__ import annotations
 
@@ -22,6 +23,16 @@ _analysis_cache: dict[str, tuple[float, dict[str, object]]] = {}
 _ANALYSIS_TTL_SEC = 120.0
 
 
+def _uci_elo_clamped(engine: chess.engine.SimpleEngine, requested: int) -> int:
+    opt = engine.options.get("UCI_Elo")
+    if opt is not None:
+        mn = getattr(opt, "min", None)
+        mx = getattr(opt, "max", None)
+        if mn is not None and mx is not None:
+            return max(int(mn), min(int(mx), int(requested)))
+    return max(1320, min(3190, int(requested)))
+
+
 def _ensure_engine() -> chess.engine.SimpleEngine:
     global _engine
     with _engine_lock:
@@ -31,7 +42,7 @@ def _ensure_engine() -> chess.engine.SimpleEngine:
         path = (getattr(cfg, "stockfish_path", "") or "/usr/games/stockfish").strip()
         logger.info("UCI bot: starting engine path=%s", path)
         _engine = chess.engine.SimpleEngine.popen_uci(path)
-        opts: dict[str, object] = {"Skill Level": 0, "UCI_LimitStrength": True, "UCI_Elo": 1320, "Threads": 1, "Hash": 16}
+        opts: dict[str, object] = {"UCI_LimitStrength": True, "Threads": 1, "Hash": 16}
         for key, val in opts.items():
             try:
                 if key in _engine.options:
@@ -41,7 +52,13 @@ def _ensure_engine() -> chess.engine.SimpleEngine:
         return _engine
 
 
-def _pick_move_blocking(fen: str) -> str | None:
+def _think_time_sec_for_campaign_elo(campaign_elo: int) -> float:
+    """Чуть больше времени на более сильный уровень (в пределах разумного для онлайна)."""
+    e = float(max(1100, min(2900, campaign_elo)))
+    return 0.02 + (e - 1100) / 2900.0 * 0.18
+
+
+def _pick_move_blocking_at_elo(fen: str, campaign_elo: int) -> str | None:
     board = chess.Board(fen)
     if board.is_game_over():
         return None
@@ -50,7 +67,13 @@ def _pick_move_blocking(fen: str) -> str | None:
         return None
     try:
         engine = _ensure_engine()
-        result = engine.play(board, chess.engine.Limit(time=0.01))
+        eff_elo = _uci_elo_clamped(engine, campaign_elo)
+        try:
+            engine.configure({"UCI_LimitStrength": True, "UCI_Elo": eff_elo})
+        except Exception as e:
+            logger.warning("UCI bot: configure UCI_Elo failed: %s", e)
+        t = _think_time_sec_for_campaign_elo(campaign_elo)
+        result = engine.play(board, chess.engine.Limit(time=t))
         if result and result.move:
             return result.move.uci()
     except Exception as e:
@@ -58,9 +81,9 @@ def _pick_move_blocking(fen: str) -> str | None:
     return legal[0].uci()
 
 
-async def pick_move_weak_uci(fen: str) -> str | None:
+async def pick_move_weak_uci(fen: str, campaign_elo: int = 1500) -> str | None:
     async with _play_lock:
-        return await asyncio.to_thread(_pick_move_blocking, fen)
+        return await asyncio.to_thread(_pick_move_blocking_at_elo, fen, campaign_elo)
 
 
 def _analyze_fen_blocking(fen: str) -> dict[str, object]:

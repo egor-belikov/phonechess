@@ -33,6 +33,13 @@
   }
 
   const TIME_CONTROLS = ['3+0', '3+2', '5+0', '5+3', '10+0', '15+10'];
+  const BOT_CAMPAIGN_LEVELS_FALLBACK = [1100, 1400, 1700, 2000, 2300, 2600, 2900];
+  let botCampaign = {
+    beaten: [],
+    allowed_elos: BOT_CAMPAIGN_LEVELS_FALLBACK.slice(),
+    levels: BOT_CAMPAIGN_LEVELS_FALLBACK.slice(),
+    is_anonymous: true,
+  };
   const SUPPORTED_LANGS = [
     'en', 'ru', 'hi', 'id', 'pt', 'es', 'ar', 'fa', 'uz', 'uk',
     'fr', 'vi', 'tr', 'it', 'de', 'ms', 'bn', 'kk', 'zh', 'th',
@@ -186,6 +193,11 @@
   const analysisLineEl = $('analysis-line');
   const btnAnalysisToggle = $('btn-analysis-toggle');
   const pingIndicatorEl = $('ping-indicator');
+  const botDifficultyModalEl = $('bot-difficulty-modal');
+  const botDifficultyTitleEl = $('bot-difficulty-title');
+  const botDifficultyHintEl = $('bot-difficulty-hint');
+  const botDifficultyGridEl = $('bot-difficulty-grid');
+  const btnBotDifficultyClose = $('btn-bot-difficulty-close');
 
   function deepGet(obj, path) {
     const parts = path.split('.');
@@ -298,6 +310,8 @@
     if (btnProfileClose) btnProfileClose.textContent = t('common.close');
     if (privateWaitingTitleEl) privateWaitingTitleEl.textContent = t('lobby.private_room_title');
     if (btnPrivateTimeClose) btnPrivateTimeClose.textContent = t('common.cancel');
+    if (btnBotDifficultyClose) btnBotDifficultyClose.textContent = t('common.cancel');
+    if (botDifficultyTitleEl) botDifficultyTitleEl.textContent = t('lobby.bot_difficulty_title');
     if (btnResign && !resignConfirming) btnResign.textContent = t('game.resign');
     if (resultModalTitleEl) resultModalTitleEl.textContent = t('result.title');
     if (btnResultLobby) btnResultLobby.textContent = t('result.back_to_lobby');
@@ -346,6 +360,119 @@
     return 0;
   }
 
+  function mergeBotCampaign(src) {
+    if (!src || typeof src !== 'object') return;
+    var lv = src.levels;
+    if (lv && lv.length) {
+      botCampaign.levels = lv.map(function (x) {
+        var n = Number(x);
+        return isNaN(n) ? null : n;
+      }).filter(function (n) {
+        return n != null;
+      });
+    }
+    if (src.beaten) {
+      botCampaign.beaten = src.beaten.map(function (x) {
+        var n = Number(x);
+        return isNaN(n) ? null : n;
+      }).filter(function (n) {
+        return n != null;
+      });
+    }
+    var allowed = src.allowed_elos;
+    if (allowed && allowed.length) {
+      botCampaign.allowed_elos = allowed.map(function (x) {
+        var n = Number(x);
+        return isNaN(n) ? null : n;
+      }).filter(function (n) {
+        return n != null;
+      });
+    }
+    if (src.is_anonymous !== undefined && src.is_anonymous !== null) {
+      botCampaign.is_anonymous = !!src.is_anonymous;
+    }
+    if (botDifficultyModalEl && botDifficultyModalEl.classList.contains('active')) {
+      updateBotDifficultyHint();
+      renderBotDifficultyGrid();
+    }
+  }
+
+  function updateBotDifficultyHint() {
+    if (!botDifficultyHintEl) return;
+    botDifficultyHintEl.textContent =
+      botCampaign.is_anonymous ?
+        t('lobby.bot_difficulty_hint_anon') :
+        t('lobby.bot_difficulty_hint_campaign');
+  }
+
+  function renderBotDifficultyGrid() {
+    if (!botDifficultyGridEl) return;
+    var levels =
+      botCampaign.levels && botCampaign.levels.length ?
+        botCampaign.levels.slice() :
+        BOT_CAMPAIGN_LEVELS_FALLBACK.slice();
+    var allowedSet = {};
+    (botCampaign.allowed_elos || []).forEach(function (e) {
+      allowedSet[e] = true;
+    });
+    var beatenSet = {};
+    (botCampaign.beaten || []).forEach(function (e) {
+      beatenSet[e] = true;
+    });
+    botDifficultyGridEl.innerHTML = levels.map(function (elo) {
+      var ok = !!allowedSet[elo];
+      var beat = !!beatenSet[elo];
+      var cls = 'mode-btn bot-level-choice';
+      if (!ok) cls += ' bot-level-locked';
+      else cls += ' bot-level-ok';
+      var sub =
+        ok && beat ?
+          '<span class="bot-level-sub muted">' + t('lobby.bot_level_beaten') + '</span>' :
+          '';
+      var labelMain = t('lobby.bot_rating_label', { rating: elo });
+      return (
+        '<button type="button" class="' +
+        cls +
+        '" data-bot-elo="' +
+        elo +
+        '"' +
+        (ok ? '' : ' disabled') +
+        '><span>' +
+        labelMain +
+        '</span>' +
+        sub +
+        '</button>'
+      );
+    }).join('');
+    botDifficultyGridEl.querySelectorAll('.bot-level-choice').forEach(function (btn) {
+      if (btn.disabled || btn.classList.contains('bot-level-locked')) return;
+      btn.addEventListener('click', function () {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        var eloAttr = btn.getAttribute('data-bot-elo');
+        var elo = eloAttr ? parseInt(eloAttr, 10) : NaN;
+        if (!elo) return;
+        ws.send(
+          JSON.stringify({ type: 'start_bot_game', time_control: '3+0', bot_elo: elo })
+        );
+        closeBotDifficultyModal();
+      });
+    });
+  }
+
+  function openBotDifficultyModal() {
+    if (!botDifficultyModalEl) return;
+    updateBotDifficultyHint();
+    renderBotDifficultyGrid();
+    botDifficultyModalEl.classList.add('active');
+    botDifficultyModalEl.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeBotDifficultyModal() {
+    if (!botDifficultyModalEl) return;
+    botDifficultyModalEl.classList.remove('active');
+    botDifficultyModalEl.setAttribute('aria-hidden', 'true');
+  }
+
   async function loadProfile() {
     const uid = myTelegramId || resolveTelegramId();
     if (!uid) return null;
@@ -354,6 +481,12 @@
       if (!res.ok) return null;
       profileData = await res.json();
       if (btnLogin) btnLogin.style.display = profileData.is_anonymous ? '' : 'none';
+      var bc = {};
+      if (profileData.bot_campaign_levels) bc.levels = profileData.bot_campaign_levels;
+      if (profileData.bot_campaign_beaten) bc.beaten = profileData.bot_campaign_beaten;
+      if (profileData.bot_campaign_allowed_elos) bc.allowed_elos = profileData.bot_campaign_allowed_elos;
+      bc.is_anonymous = profileData.is_anonymous;
+      mergeBotCampaign(bc);
       return profileData;
     } catch (e) {
       return null;
@@ -1874,6 +2007,7 @@
           renderLobbyButtons(msg.counts);
           lastTournamentWaiting = msg.tournament_waiting || { swiss: {}, ko: {} };
           renderTournamentWaiting(lastTournamentWaiting);
+          if (msg.bot_campaign) mergeBotCampaign(msg.bot_campaign);
           setWsStatus(t('status.connected'), 'connected');
           loadProfile();
           if (pendingStartInviteKey && ws && ws.readyState === WebSocket.OPEN) {
@@ -1886,6 +2020,17 @@
         } else if (msg.type === 'matched') {
           currentQueue = null;
           enterGame(msg);
+        } else if (msg.type === 'bot_campaign') {
+          mergeBotCampaign(msg);
+        } else if (msg.type === 'bot_start_denied') {
+          var denial =
+            msg.reason === 'bad_elo' ?
+              t('lobby.bot_start_bad_elo') :
+              msg.reason === 'campaign_locked' ?
+                t('lobby.bot_start_locked') :
+                t('lobby.bot_start_denied');
+          setWsStatus(denial, 'error');
+          if (msg.bot_campaign) mergeBotCampaign(msg.bot_campaign);
         } else if (msg.type === 'game_state') {
           console.log('[PhoneChess] WS game_state received');
           applyGameState(msg);
@@ -2071,7 +2216,15 @@
   if (btnBotGame) {
     btnBotGame.addEventListener('click', function () {
       if (!ws || ws.readyState !== WebSocket.OPEN) return;
-      ws.send(JSON.stringify({ type: 'start_bot_game', time_control: '3+0' }));
+      openBotDifficultyModal();
+    });
+  }
+  if (btnBotDifficultyClose) {
+    btnBotDifficultyClose.addEventListener('click', closeBotDifficultyModal);
+  }
+  if (botDifficultyModalEl) {
+    botDifficultyModalEl.addEventListener('click', function (e) {
+      if (e.target === botDifficultyModalEl) closeBotDifficultyModal();
     });
   }
   if (btnPrivateTimeClose) {
