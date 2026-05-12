@@ -141,6 +141,17 @@ def _schedule_bot_move(game_id: str) -> None:
     _bot_move_tasks[game_id] = asyncio.create_task(_run_bot_move(game_id))
 
 
+def _attach_bot_campaign_human_win_snap(payload: dict[str, Any], game: Any | None) -> dict[str, Any]:
+    """Добавить снимок лестницы ботов к game_update только при победе человека над ботом."""
+    if not game:
+        return payload
+    bc = bot_campaign_push_payload_if_human_won_bot(game)
+    if not bc:
+        return payload
+    snap = {k: v for k, v in bc.items() if k != "type"}
+    return {**payload, "bot_campaign": snap}
+
+
 async def _run_bot_move(game_id: str) -> None:
     try:
         await asyncio.sleep(1)
@@ -158,6 +169,9 @@ async def _run_bot_move(game_id: str) -> None:
         update = apply_move(game_id, g.bot_user_id, mv.uci()[:2], mv.uci()[2:4], mv.uci()[4:] if len(mv.uci()) > 4 else None, is_premove=False)
         if not update:
             return
+        gf = get_game_any(game_id)
+        if not gf:
+            return
         payload = {
             "type": "game_update",
             "fen": update["fen"],
@@ -172,13 +186,16 @@ async def _run_bot_move(game_id: str) -> None:
             "draw_offer_color": update.get("draw_offer_color"),
             "from": update.get("from"),
             "to": update.get("to"),
+            "is_bot_game": True,
+            "bot_elo": gf.bot_elo,
         }
-        await manager.send_to_user(g.white_id, payload)
-        await manager.send_to_user(g.black_id, payload)
-        if g.result is not None:
-            _notify_game_finished_once(g, update.get("result_reason"), update.get("result_detail"))
+        payload = _attach_bot_campaign_human_win_snap(payload, gf)
+        await manager.send_to_user(gf.white_id, payload)
+        await manager.send_to_user(gf.black_id, payload)
+        if gf.result is not None:
+            _notify_game_finished_once(gf, update.get("result_reason"), update.get("result_detail"))
             return
-        if len(g.moves) >= 2:
+        if len(gf.moves) >= 2:
             _cancel_start_abort_task(game_id)
     finally:
         _bot_move_tasks.pop(game_id, None)
@@ -544,11 +561,12 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                     "from": update.get("from"),
                     "to": update.get("to"),
                 }
+                if g.is_bot_game:
+                    payload["is_bot_game"] = True
+                    payload["bot_elo"] = g.bot_elo
+                payload = _attach_bot_campaign_human_win_snap(payload, g)
                 await manager.send_to_user(g.white_id, payload)
                 await manager.send_to_user(g.black_id, payload)
-                bc_payload = bot_campaign_push_payload_if_human_won_bot(g)
-                if bc_payload and g.human_user_id:
-                    await manager.send_to_user(g.human_user_id, bc_payload)
                 if len(g.moves) >= 2:
                     _cancel_start_abort_task(g.id)
                 if g.result is None:

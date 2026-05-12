@@ -89,6 +89,8 @@
     "back_to_lobby": "Back to lobby",
     "analysis": "Analysis",
     "rematch": "Play again",
+    "bot_play_again": "Play again (~{elo})",
+    "bot_play_next": "Next bot (~{elo})",
     "rematch_waiting": "Waiting for opponent to confirm rematch",
     "you_win": "You won.",
     "you_lose": "You lost.",

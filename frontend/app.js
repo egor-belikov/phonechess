@@ -99,6 +99,8 @@
   let resultReason = null;
   let resultDetail = null;
   let isBotGame = false;
+  let lastBotElo = null;
+  let botRematchTargetElo = null;
   let noClockUserId = null;
   let rematchAvailableGameId = null;
   let drawOfferBy = null;
@@ -775,6 +777,7 @@
     if (!resultModalEl) return;
     resultModalEl.classList.remove('active');
     resultModalEl.setAttribute('aria-hidden', 'true');
+    botRematchTargetElo = null;
     const card = resultModalEl.querySelector('.result-modal-card');
     if (card) card.classList.remove('result-white', 'result-black', 'result-draw');
   }
@@ -784,6 +787,8 @@
     clockInterval = null;
     currentGameId = null;
     isBotGame = false;
+    lastBotElo = null;
+    botRematchTargetElo = null;
     noClockUserId = null;
     rematchAvailableGameId = null;
     drawOfferBy = null;
@@ -816,6 +821,21 @@
     if (gameResult === '1-0') return 'white';
     if (gameResult === '0-1') return 'black';
     return null;
+  }
+
+  function nextBotCampaignEloFrom(currentElo) {
+    var arr = BOT_CAMPAIGN_LEVELS_FALLBACK;
+    var idx = arr.indexOf(currentElo);
+    if (idx < 0 || idx >= arr.length - 1) return null;
+    return arr[idx + 1];
+  }
+
+  function didHumanWinCurrentGame() {
+    if (!gameResult || gameResult === '1/2-1/2') return false;
+    if (!myColor) return false;
+    if (gameResult === '1-0') return myColor === 'white';
+    if (gameResult === '0-1') return myColor === 'black';
+    return false;
   }
 
   function resultTitleText() {
@@ -868,7 +888,42 @@
     resultModalEl.classList.add('active');
     resultModalEl.setAttribute('aria-hidden', 'false');
     if (btnResultRematch) {
-      btnResultRematch.style.display = (resultReason === 'aborted_unstarted' && currentGameId) ? '' : 'none';
+      botRematchTargetElo = null;
+      var showRm = false;
+      var wsOpen = !!(ws && ws.readyState === WebSocket.OPEN);
+      if (
+        wsOpen &&
+        isBotGame &&
+        lastBotElo != null &&
+        gameResult &&
+        currentGameId
+      ) {
+        showRm = true;
+        var won = didHumanWinCurrentGame();
+        if (resultReason === 'aborted_unstarted') {
+          botRematchTargetElo = lastBotElo;
+          btnResultRematch.textContent = t('result.bot_play_again', { elo: lastBotElo });
+        } else if (won) {
+          var nex = nextBotCampaignEloFrom(lastBotElo);
+          var allowedList = botCampaign.allowed_elos || [];
+          var anon = botCampaign.is_anonymous;
+          var okNext = nex != null && (anon || allowedList.indexOf(nex) !== -1);
+          if (okNext) {
+            botRematchTargetElo = nex;
+            btnResultRematch.textContent = t('result.bot_play_next', { elo: nex });
+          } else {
+            botRematchTargetElo = lastBotElo;
+            btnResultRematch.textContent = t('result.bot_play_again', { elo: lastBotElo });
+          }
+        } else {
+          botRematchTargetElo = lastBotElo;
+          btnResultRematch.textContent = t('result.bot_play_again', { elo: lastBotElo });
+        }
+      } else if (wsOpen && resultReason === 'aborted_unstarted' && currentGameId) {
+        showRm = true;
+        btnResultRematch.textContent = t('result.rematch');
+      }
+      btnResultRematch.style.display = showRm ? '' : 'none';
     }
     if (btnResultAnalysis) {
       btnResultAnalysis.style.display = replayFens && replayFens.length > 1 ? '' : 'none';
@@ -1923,6 +1978,10 @@
     const hadResultBefore = !!gameResult;
     gameFen = data.fen || gameFen;
     if (data.is_bot_game !== undefined) isBotGame = !!data.is_bot_game;
+    if (isBotGame && data.bot_elo != null) {
+      var belo = Number(data.bot_elo);
+      if (!isNaN(belo)) lastBotElo = belo;
+    }
     whiteRemainingMs = data.white_remaining_ms != null ? data.white_remaining_ms : whiteRemainingMs;
     blackRemainingMs = data.black_remaining_ms != null ? data.black_remaining_ms : blackRemainingMs;
     if (data.server_time_ms != null && gameFen && !gameResult && !isBotGame) {
@@ -1945,6 +2004,7 @@
     if (data.draw_offer_by !== undefined) drawOfferBy = data.draw_offer_by;
     if (data.draw_offer_color !== undefined) drawOfferColor = data.draw_offer_color;
     if (data.from && data.to) lastMove = { from: data.from, to: data.to };
+    if (data.bot_campaign) mergeBotCampaign(data.bot_campaign);
     if (!hadResultBefore && gameResult) {
       rebuildReplayFensFromGameMoves();
       replayMode = true;
@@ -1982,6 +2042,7 @@
     hidePrivateWaitingPanel();
     myColor = msg.color;
     isBotGame = !!msg.is_bot_game;
+    lastBotElo = isBotGame && msg.bot_elo != null ? Number(msg.bot_elo) : null;
     noClockUserId = msg.no_clock_user_id || null;
     gameFen = msg.fen;
     whiteRemainingMs = msg.white_remaining_ms != null ? msg.white_remaining_ms : 0;
@@ -2327,6 +2388,15 @@
   if (btnResultRematch) {
     btnResultRematch.addEventListener('click', function () {
       if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      if (botRematchTargetElo != null) {
+        ws.send(JSON.stringify({
+          type: 'start_bot_game',
+          time_control: '3+0',
+          bot_elo: botRematchTargetElo,
+        }));
+        hideResultModal();
+        return;
+      }
       const gid = rematchAvailableGameId || currentGameId;
       if (!gid) return;
       ws.send(JSON.stringify({ type: 'rematch_request', game_id: gid }));

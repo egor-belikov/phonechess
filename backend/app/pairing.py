@@ -709,6 +709,7 @@ def game_state_payload(g: Game) -> dict:
         "is_bot_game": bool(g.is_bot_game),
         "no_clock_user_id": g.no_clock_user_id,
         "tournament_id": g.tournament_id,
+        **({"bot_elo": g.bot_elo} if g.is_bot_game else {}),
     }
 
 
