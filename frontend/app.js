@@ -116,7 +116,6 @@
   let replayFens = [];
   let replayMoves = [];
   let replayIndex = -1;
-  let stockfishWorker = null;
   let analysisEnabled = false;
   let analysisRequestId = 0;
   let analysisDebounceTimer = null;
@@ -189,8 +188,7 @@
   const btnReplayNext = $('btn-replay-next');
   const btnReplayLast = $('btn-replay-last');
   const analysisPanelEl = $('analysis-panel');
-  const analysisScoreEl = $('analysis-score');
-  const analysisLineEl = $('analysis-line');
+  const analysisLinesEl = $('analysis-lines');
   const btnAnalysisToggle = $('btn-analysis-toggle');
   const pingIndicatorEl = $('ping-indicator');
   const botDifficultyModalEl = $('bot-difficulty-modal');
@@ -971,6 +969,7 @@
       updateClocksDisplay();
       updateReplayControls();
       if (analysisEnabled) scheduleAnalysis();
+      renderMoveList();
     }
   }
 
@@ -1002,28 +1001,61 @@
     updateClocksDisplay();
   }
 
-  function ensureStockfish() {
-    if (stockfishWorker) return stockfishWorker;
-    try {
-      stockfishWorker = new Worker('https://cdn.jsdelivr.net/npm/stockfish/stockfish.js');
-      stockfishWorker.onmessage = function (ev) {
-        const line = String(ev.data || '');
-        if (line.indexOf('score cp ') !== -1) {
-          const m = /score cp (-?\d+)/.exec(line);
-          if (m && analysisScoreEl) analysisScoreEl.textContent = (parseInt(m[1], 10) / 100).toFixed(2);
-        } else if (line.indexOf('score mate ') !== -1) {
-          const m2 = /score mate (-?\d+)/.exec(line);
-          if (m2 && analysisScoreEl) analysisScoreEl.textContent = '#'+m2[1];
-        }
-        if (line.indexOf(' pv ') !== -1 && analysisLineEl) {
-          const pv = line.split(' pv ')[1] || '';
-          analysisLineEl.textContent = pv || '—';
-        }
-      };
-    } catch (e) {
-      stockfishWorker = null;
+  function bindMoveListNavigationOnce() {
+    if (!moveListEl || moveListEl.dataset.moveNavBound) return;
+    moveListEl.dataset.moveNavBound = '1';
+    moveListEl.addEventListener('click', function (e) {
+      const btn = e.target && e.target.closest ? e.target.closest('.move-entry') : null;
+      if (!btn || !replayMode) return;
+      const v = btn.getAttribute('data-move-to-index');
+      const idx = v != null ? parseInt(v, 10) : NaN;
+      if (!Number.isFinite(idx) || idx < 0) return;
+      e.preventDefault();
+      setReplayIndex(idx);
+    });
+  }
+
+  function formatAnalysisEval(scoreType, scoreVal) {
+    if (scoreType === 'mate') {
+      const m = Number(scoreVal || 0);
+      if (!m) return '#0';
+      return m > 0 ? '+M' + Math.abs(m) : '-M' + Math.abs(m);
     }
-    return stockfishWorker;
+    const v = Number(scoreVal || 0) / 100;
+    if (Math.abs(v) < 0.005) return '0.00';
+    return (v > 0 ? '+' : '') + v.toFixed(2);
+  }
+
+  function renderAnalysisLinesFromPayload(data) {
+    if (!analysisLinesEl) return;
+    var lines = data && data.lines;
+    if (!lines || !lines.length) {
+      analysisLinesEl.innerHTML =
+        '<div class="analysis-row analysis-row-empty">\u2014</div>';
+      return;
+    }
+    var html = '';
+    for (var li = 0; li < lines.length; li++) {
+      var L = lines[li];
+      var ev = formatAnalysisEval(L.score_type || 'cp', L.score);
+      var san = String(L.san || '').trim();
+      var plies = Number(L.plies);
+      var metaSpan = '';
+      if (Number.isFinite(plies) && plies > 0) {
+        metaSpan =
+          '<span class="anal-plies-note">' +
+          String(t('analysis.plies_halfmoves', { n: plies })) +
+          '</span>';
+      }
+      var ln = Number(L.line) || li + 1;
+      html += '<div class="analysis-row">';
+      html += '<div class="analysis-row-head"><span class="anal-n">' + ln + '</span>';
+      html += '<span class="anal-eval">' + ev + '</span>';
+      html += metaSpan;
+      html += '</div>';
+      html += '<div class="analysis-row-line">' + (san || '\u2014') + '</div></div>';
+    }
+    analysisLinesEl.innerHTML = html || '<div class="analysis-row analysis-row-empty">\u2014</div>';
   }
 
   function analyzeCurrentPosition() {
@@ -1031,24 +1063,17 @@
     if (!analysisEnabled || !fen) return;
     const reqId = ++analysisRequestId;
     fetch('/api/analyze?fen=' + encodeURIComponent(fen), { cache: 'no-store' })
-      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (res) {
+        return res.ok ? res.json() : null;
+      })
       .then(function (data) {
         if (!analysisEnabled || reqId !== analysisRequestId || !data) return;
-        if (analysisScoreEl) {
-          if (data.score_type === 'mate') analysisScoreEl.textContent = '#' + String(data.score || 0);
-          else analysisScoreEl.textContent = (Number(data.score || 0) / 100).toFixed(2);
-        }
-        if (analysisLineEl) analysisLineEl.textContent = (data.pv || []).join(' ') || '—';
+        renderAnalysisLinesFromPayload(data);
       })
       .catch(function () {
-        const sf = ensureStockfish();
-        if (!sf) {
-          if (analysisLineEl) analysisLineEl.textContent = t('analysis.unavailable');
-          return;
-        }
-        sf.postMessage('stop');
-        sf.postMessage('position fen ' + fen);
-        sf.postMessage('go depth 14');
+        if (!analysisLinesEl) return;
+        analysisLinesEl.innerHTML =
+          '<div class="analysis-row analysis-row-empty">' + t('analysis.unavailable') + '</div>';
       });
   }
 
@@ -1071,9 +1096,9 @@
       clearTimeout(analysisDebounceTimer);
       analysisDebounceTimer = null;
     }
-    if (stockfishWorker) {
-      try { stockfishWorker.postMessage('stop'); } catch (e) {}
-    }
+    if (analysisLinesEl)
+      analysisLinesEl.innerHTML = '<div class="analysis-row analysis-row-empty">\u2014</div>';
+    renderMoveList();
   }
 
   function tickClocks() {
@@ -1280,6 +1305,20 @@
     return orientation === 'black' ? 7 - displayCol : displayCol;
   }
 
+  function clearTouchDragHoverClass() {
+    if (!boardEl) return;
+    boardEl.querySelectorAll('.square.drag-hover').forEach(function (el) {
+      el.classList.remove('drag-hover');
+    });
+  }
+
+  function setTouchDragHoverSquare(square) {
+    clearTouchDragHoverClass();
+    if (!square || !boardEl) return;
+    const cell = boardEl.querySelector('.square[data-square="' + square + '"]');
+    if (cell) cell.classList.add('drag-hover');
+  }
+
   function renderBoard() {
     if (!boardEl || !gameFen) {
       console.log('[PhoneChess] renderBoard skip', { boardEl: !!boardEl, gameFen: !!gameFen });
@@ -1375,7 +1414,6 @@
           div.dataset.premoveStep = String(premoveToIndex + 1);
         }
         if (selectedSquare === sq) div.classList.add('selected');
-        if (touchDragTargetSquare === sq) div.classList.add('drag-hover');
         if (legalTargets.indexOf(sq) !== -1) {
           div.classList.add('legal');
           div.classList.add(legalTargetsMode === 'tap' ? 'legal-tap' : 'legal-drag');
@@ -1421,11 +1459,12 @@
         touchDragMoved = true;
         if (touchDragTargetSquare !== target.dataset.square) {
           touchDragTargetSquare = target.dataset.square;
-          renderBoard();
+          setTouchDragHoverSquare(touchDragTargetSquare);
         }
       }, { passive: false });
       cell.addEventListener('touchend', function (e) {
         e.preventDefault();
+        clearTouchDragHoverClass();
         const touchFromSquare = touchDragFromSquare;
         if (touchDragFromSquare) {
           const fromSq = touchDragFromSquare;
@@ -1847,6 +1886,9 @@
       }
       return milli + t('time.ms_short');
     }
+    const navigableReplay = !!(replayMode && gameMoves.length > 0);
+    const showPlyHighlight = !!(analysisEnabled && replayMode && replayIndex >= 1);
+    const activePly = showPlyHighlight ? replayIndex - 1 : -1;
     let html = '';
     let num = 1;
     for (let i = 0; i < gameMoves.length; i++) {
@@ -1857,7 +1899,20 @@
         sanDisp = sanDisp + '#';
       }
       if (i % 2 === 0) html += '<span class="move-num">' + num++ + '.</span> ';
-      html += sanDisp + ' <span class="move-time">(' + timeStr + ')</span> ';
+      let hi = '';
+      if (activePly === i) hi = ' move-ply-active';
+      if (navigableReplay) {
+        html +=
+          '<button type="button" class="move-entry' +
+          hi +
+          '" data-move-to-index="' +
+          (i + 1) +
+          '">';
+        html += sanDisp + '</button> ';
+      } else {
+        html += '<span class="move-span' + hi + '">' + sanDisp + '</span> ';
+      }
+      html += '<span class="move-time">(' + timeStr + ')</span> ';
     }
     moveListEl.innerHTML = html || '—';
   }
@@ -2290,6 +2345,7 @@
       } else {
         scheduleAnalysis();
       }
+      renderMoveList();
     });
   }
   if (promotionPickerEl) {
@@ -2317,6 +2373,8 @@
   window.addEventListener('focus', function () {
     requestGameStateSync(0);
   });
+
+  bindMoveListNavigationOnce();
 
   async function initApp() {
     myTelegramId = resolveTelegramId();

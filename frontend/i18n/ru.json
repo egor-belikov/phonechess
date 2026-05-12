@@ -122,7 +122,8 @@
   "analysis": {
     "start": "Старт анализа",
     "stop": "Стоп анализа",
-    "unavailable": "Stockfish недоступен в этом браузере."
+    "unavailable": "Анализ на сервере недоступен.",
+    "plies_halfmoves": "{n} полуходов"
   },
   "common": {
     "cancel": "Отмена",

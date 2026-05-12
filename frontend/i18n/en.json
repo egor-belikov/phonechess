@@ -122,7 +122,8 @@
   "analysis": {
     "start": "Start analysis",
     "stop": "Stop analysis",
-    "unavailable": "Stockfish unavailable in this browser."
+    "unavailable": "Analysis server unavailable.",
+    "plies_halfmoves": "{n} plies"
   },
   "common": {
     "cancel": "Cancel",
