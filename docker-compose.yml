@@ -20,6 +20,7 @@ services:
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
       - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME:-}
+      - TELEGRAM_WEBHOOK_SECRET=${TELEGRAM_WEBHOOK_SECRET:-}
       - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://phonechess:phonechess@db:5432/phonechess}
       - DEBUG=${DEBUG:-0}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}

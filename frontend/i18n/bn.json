@@ -19,7 +19,8 @@
     "connected": "সংযুক্ত",
     "reconnecting": "পুনরায় সংযোগ করা হচ্ছে...",
     "disconnected_code": "সংযোগ বিচ্ছিন্ন: কোড {code}PH_1__",
-    "ws_error": "সংযোগ ত্রুটি (ওয়েবসকেট)"
+    "ws_error": "সংযোগ ত্রুটি (ওয়েবসকেট)",
+    "session_replaced": "The game is open on another device. Return to this window to continue here."
   },
   "game": {
     "header": "খেলা",

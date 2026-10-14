@@ -28,8 +28,9 @@ ssh "$REMOTE_HOST" "set -euo pipefail; \
   if [ -f scripts/update_build_meta.py ]; then python3 scripts/update_build_meta.py; fi; \
   docker compose build app; \
   docker compose up -d app; \
-  sleep 2; \
-  echo 'HEALTH:'; curl -sS http://127.0.0.1:8000/health; echo; \
+  echo 'HEALTH:'; ok=0; \
+  for i in 1 2 3 4 5 6 7 8 9 10; do if curl -fsS http://127.0.0.1:8000/health; then ok=1; break; fi; sleep 2; done; echo; \
+  if [ \"\$ok\" != 1 ]; then echo 'HEALTH CHECK FAILED'; exit 1; fi; \
   echo 'BUILD_META:'; curl -sS http://127.0.0.1:8000/build-meta.json; echo"
 
 echo "==> Done"

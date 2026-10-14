@@ -6,8 +6,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import random
 import threading
 import time
+from collections import OrderedDict
 
 import chess
 import chess.engine
@@ -16,11 +18,16 @@ from .config import get_config
 
 logger = logging.getLogger(__name__)
 
-_engine: chess.engine.SimpleEngine | None = None
+# Separate Stockfish processes: replay analysis must never delay bot moves.
+_PLAY = "play"
+_ANALYSIS = "analysis"
+_engines: dict[str, chess.engine.SimpleEngine] = {}
 _engine_lock = threading.Lock()
 _play_lock = asyncio.Lock()
-_analysis_cache: dict[str, tuple[float, dict[str, object]]] = {}
+_analysis_lock = asyncio.Lock()
+_analysis_cache: "OrderedDict[str, tuple[float, dict[str, object]]]" = OrderedDict()
 _ANALYSIS_TTL_SEC = 120.0
+_ANALYSIS_CACHE_MAX = 5000
 
 
 def _uci_elo_clamped(engine: chess.engine.SimpleEngine, requested: int) -> int:
@@ -33,23 +40,40 @@ def _uci_elo_clamped(engine: chess.engine.SimpleEngine, requested: int) -> int:
     return max(1320, min(3190, int(requested)))
 
 
-def _ensure_engine() -> chess.engine.SimpleEngine:
-    global _engine
+def _ensure_engine(kind: str = _PLAY) -> chess.engine.SimpleEngine:
     with _engine_lock:
-        if _engine is not None:
-            return _engine
+        eng = _engines.get(kind)
+        if eng is not None:
+            return eng
         cfg = get_config()
         path = (getattr(cfg, "stockfish_path", "") or "/usr/games/stockfish").strip()
-        logger.info("UCI bot: starting engine path=%s", path)
-        _engine = chess.engine.SimpleEngine.popen_uci(path)
-        opts: dict[str, object] = {"UCI_LimitStrength": True, "Threads": 1, "Hash": 16}
+        logger.info("UCI %s: starting engine path=%s", kind, path)
+        eng = chess.engine.SimpleEngine.popen_uci(path)
+        opts: dict[str, object] = {"Threads": 1, "Hash": 16}
+        if kind == _PLAY:
+            opts["UCI_LimitStrength"] = True
         for key, val in opts.items():
             try:
-                if key in _engine.options:
-                    _engine.configure({key: val})
+                if key in eng.options:
+                    eng.configure({key: val})
             except Exception as e:
-                logger.warning("UCI bot: option set failed %s=%s: %s", key, val, e)
-        return _engine
+                logger.warning("UCI %s: option set failed %s=%s: %s", kind, key, val, e)
+        _engines[kind] = eng
+        return eng
+
+
+def _drop_engine(kind: str) -> None:
+    """Forget a (possibly dead) engine so the next call starts a fresh process."""
+    with _engine_lock:
+        eng = _engines.pop(kind, None)
+    if eng is not None:
+        try:
+            eng.quit()
+        except Exception:
+            try:
+                eng.close()
+            except Exception:
+                pass
 
 
 def _think_time_sec_for_campaign_elo(campaign_elo: int) -> float:
@@ -65,20 +89,26 @@ def _pick_move_blocking_at_elo(fen: str, campaign_elo: int) -> str | None:
     legal = list(board.legal_moves)
     if not legal:
         return None
-    try:
-        engine = _ensure_engine()
-        eff_elo = _uci_elo_clamped(engine, campaign_elo)
+    for attempt in range(2):
         try:
-            engine.configure({"UCI_LimitStrength": True, "UCI_Elo": eff_elo})
+            engine = _ensure_engine(_PLAY)
+            eff_elo = _uci_elo_clamped(engine, campaign_elo)
+            try:
+                engine.configure({"UCI_LimitStrength": True, "UCI_Elo": eff_elo})
+            except chess.engine.EngineTerminatedError:
+                raise
+            except Exception as e:
+                logger.warning("UCI bot: configure UCI_Elo failed: %s", e)
+            t = _think_time_sec_for_campaign_elo(campaign_elo)
+            result = engine.play(board, chess.engine.Limit(time=t))
+            if result and result.move:
+                return result.move.uci()
+            break
         except Exception as e:
-            logger.warning("UCI bot: configure UCI_Elo failed: %s", e)
-        t = _think_time_sec_for_campaign_elo(campaign_elo)
-        result = engine.play(board, chess.engine.Limit(time=t))
-        if result and result.move:
-            return result.move.uci()
-    except Exception as e:
-        logger.warning("UCI bot: play failed, using fallback move: %s", e)
-    return legal[0].uci()
+            # Dead/broken process: restart it once instead of playing fallback moves forever.
+            logger.warning("UCI bot: play failed (attempt %d), restarting engine: %s", attempt + 1, e)
+            _drop_engine(_PLAY)
+    return random.choice(legal).uci()
 
 
 async def pick_move_weak_uci(fen: str, campaign_elo: int = 1500) -> str | None:
@@ -187,20 +217,39 @@ def _analyze_multipv_blocking(board: chess.Board, engine: chess.engine.SimpleEng
     return ordered
 
 
+def _cache_put(fen: str, now: float, payload: dict[str, object]) -> None:
+    _analysis_cache[fen] = (now, payload)
+    _analysis_cache.move_to_end(fen)
+    while len(_analysis_cache) > _ANALYSIS_CACHE_MAX:
+        _analysis_cache.popitem(last=False)
+
+
 def _analyze_fen_blocking(fen: str) -> dict[str, object]:
+    try:
+        return _analyze_fen_once(fen)
+    except (chess.engine.EngineTerminatedError, chess.engine.EngineError, BrokenPipeError, OSError) as e:
+        logger.warning("UCI analysis: engine failure, restarting: %s", e)
+        _drop_engine(_ANALYSIS)
+        return _analyze_fen_once(fen)
+
+
+def _analyze_fen_once(fen: str) -> dict[str, object]:
     now = time.monotonic()
     cached = _analysis_cache.get(fen)
     if cached and (now - cached[0]) < _ANALYSIS_TTL_SEC:
+        _analysis_cache.move_to_end(fen)
         return cached[1]
     board = chess.Board(fen)
     if board.is_game_over():
         payload = {"lines": [], "fen": fen, "score_type": "cp", "score": 0, "pv": []}
-        _analysis_cache[fen] = (now, payload)
+        _cache_put(fen, now, payload)
         return payload
-    engine = _ensure_engine()
+    engine = _ensure_engine(_ANALYSIS)
     lines_payload: list[dict[str, object]] = []
     try:
         lines_payload = _analyze_multipv_blocking(board, engine, 3)
+    except chess.engine.EngineTerminatedError:
+        raise
     except Exception as e:
         logger.warning("UCI analyse multipv failed, fallback single: %s", e)
 
@@ -225,23 +274,16 @@ def _analyze_fen_blocking(fen: str) -> dict[str, object]:
         "score": sc,
         "pv": [],
     }
-    _analysis_cache[fen] = (now, payload)
+    _cache_put(fen, now, payload)
     return payload
 
 
 async def analyze_fen_light(fen: str) -> dict[str, object]:
-    async with _play_lock:
+    async with _analysis_lock:
         return await asyncio.to_thread(_analyze_fen_blocking, fen)
 
 
 def shutdown_uci_bot() -> None:
-    global _engine
-    with _engine_lock:
-        if _engine is None:
-            return
-        try:
-            _engine.quit()
-        except Exception:
-            pass
-        _engine = None
+    for kind in (_PLAY, _ANALYSIS):
+        _drop_engine(kind)
     _analysis_cache.clear()

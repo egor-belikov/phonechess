@@ -19,7 +19,8 @@
     "connected": "متصل شد",
     "reconnecting": "در حال اتصال مجدد…",
     "disconnected_code": "قطع شده: کد {code}{reasonPart}",
-    "ws_error": "خطای اتصال (WebSocket)"
+    "ws_error": "خطای اتصال (WebSocket)",
+    "session_replaced": "The game is open on another device. Return to this window to continue here."
   },
   "game": {
     "header": "بازی",

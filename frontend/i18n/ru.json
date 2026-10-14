@@ -34,7 +34,8 @@
     "connected": "Подключено",
     "reconnecting": "Повторное подключение…",
     "disconnected_code": "Отключено: код {code}{reasonPart}",
-    "ws_error": "Ошибка подключения (WebSocket)"
+    "ws_error": "Ошибка подключения (WebSocket)",
+    "session_replaced": "Игра открыта на другом устройстве. Вернитесь в это окно, чтобы продолжить здесь."
   },
   "login": {
     "open": "Войти",

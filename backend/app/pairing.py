@@ -20,6 +20,11 @@ from .models import GameMoveRecord, GameRecord, PrivateInviteRecord, User
 from .config import get_config
 
 
+# Premove refund cap: the client "premove" flag is not trusted, so at most this much of the
+# thinking time is given back (covers the network round trip of a real premove).
+PREMOVE_FREE_MS = 300
+
+
 @dataclass
 class QueuedPlayer:
     user_id: str
@@ -65,6 +70,7 @@ class Game:
     tournament_id: str | None = None
     tournament_match_id: str | None = None
     bot_elo: int | None = None
+    rematch_game_id: str | None = None
 
     @property
     def time_control(self) -> TimeControl:
@@ -390,6 +396,8 @@ def join_queue(time_control_key: str, user_id: str, telegram_id: int, username: 
             game = _create_game(time_control_key, opponent, player)
         _games[game.id] = game
         _persist_game_created(game)
+        leave_all_queues(game.white_id)
+        leave_all_queues(game.black_id)
         return game
     queue.append(player)
     return None
@@ -460,6 +468,67 @@ def create_bot_game(
     return g
 
 
+FINISHED_GAME_TTL_SEC = 15 * 60
+_finished_at: dict[str, float] = {}
+_cleanup_listeners: list = []
+
+
+def on_games_evicted(fn) -> None:
+    """Register fn(game_ids) called after finished games are dropped from memory."""
+    _cleanup_listeners.append(fn)
+
+
+def evict_finished_games(now: float | None = None, ttl: float = FINISHED_GAME_TTL_SEC) -> list[str]:
+    """Drop finished games from memory after ttl (history stays in DB). Returns evicted ids."""
+    now = time.monotonic() if now is None else now
+    evicted: list[str] = []
+    for gid, g in list(_games.items()):
+        if g.result is None:
+            continue
+        t0 = _finished_at.setdefault(gid, now)
+        if now - t0 >= ttl:
+            _games.pop(gid, None)
+            _finished_at.pop(gid, None)
+            evicted.append(gid)
+    for gid in [k for k in _finished_at if k not in _games]:
+        _finished_at.pop(gid, None)
+    if evicted:
+        for fn in _cleanup_listeners:
+            try:
+                fn(evicted)
+            except Exception:
+                pass
+    return evicted
+
+
+async def cleanup_loop(interval: float = 60.0) -> None:
+    import asyncio
+
+    while True:
+        await asyncio.sleep(interval)
+        try:
+            evict_finished_games()
+        except Exception:
+            pass
+
+
+def close_orphaned_games() -> int:
+    """Mark DB games with no result as aborted (no rating change). Called once at startup."""
+    with SessionLocal() as db:
+        rows = db.query(GameRecord).filter(GameRecord.result.is_(None)).all()
+        now = dt.datetime.utcnow()
+        for rec in rows:
+            rec.result = "*"  # PGN "unfinished"; no rating change
+            rec.result_reason = "aborted_server_restart"
+            rec.result_detail = "Партия прервана: перезапуск сервера."
+            rec.finished_at = now
+        inv = db.query(PrivateInviteRecord).filter(PrivateInviteRecord.status == "active").all()
+        for i in inv:
+            i.status = "finished"
+        db.commit()
+        return len(rows)
+
+
 def get_game_any(game_id: str) -> Game | None:
     return _games.get(game_id)
 
@@ -481,7 +550,7 @@ def create_tournament_game(
 
 def create_private_rematch(game_id: str) -> Game | None:
     prev = _games.get(game_id)
-    if not prev:
+    if not prev or prev.result is None or prev.rematch_game_id:
         return None
     white = QueuedPlayer(prev.black_id, prev.black_telegram_id, prev.black_username)
     black = QueuedPlayer(prev.white_id, prev.white_telegram_id, prev.white_username)
@@ -489,6 +558,7 @@ def create_private_rematch(game_id: str) -> Game | None:
     g.is_private = True
     _games[g.id] = g
     _persist_game_created(g)
+    prev.rematch_game_id = g.id
     return g
 
 
@@ -740,10 +810,7 @@ def resign_game(game_id: str, user_id: str) -> dict | None:
     g.result_reason = "resign"
     g.result_detail = None
     g.draw_offer_by = None
-    _persist_game_state(g)
-    mark_invite_finished_by_game(g.id)
-    _apply_finished_game_ratings(g)
-    _maybe_tournament_hook(g)
+    finish_game_side_effects(g)
     return {
         "fen": g.fen,
         "white_remaining_ms": g.white_remaining_ms,
@@ -771,6 +838,57 @@ def _insufficient_material_detail(board: Board) -> str:
         return "король и фигуры"
 
     return f"Недостаточно материала: {label(white)} против {label(black)}."
+
+
+def _set_timeout_result(g: Game, white_flagged: bool) -> None:
+    """Flag fall. FIDE: if the winner cannot mate by any legal sequence, it is a draw."""
+    winner = chess.BLACK if white_flagged else chess.WHITE
+    if Board(g.fen).has_insufficient_material(winner):
+        g.result = "1/2-1/2"
+        g.result_reason = "timeout_vs_insufficient"
+        g.result_detail = "Ничья: время истекло, но у соперника недостаточно материала для мата."
+        return
+    g.result = "0-1" if white_flagged else "1-0"
+    g.result_reason = "timeout"
+    g.result_detail = None
+
+
+def finish_game_side_effects(g: Game) -> None:
+    """Persist/rate a finished game exactly once per finishing path (not for bot games' DB rows)."""
+    if g.result is None:
+        return
+    if not g.is_bot_game:
+        _persist_game_state(g)
+        mark_invite_finished_by_game(g.id)
+        _apply_finished_game_ratings(g)
+    else:
+        _maybe_record_bot_campaign_win(g)
+    _maybe_tournament_hook(g)
+
+
+def check_flag(game_id: str) -> bool:
+    """Server-side flag check. Returns True if the game has just ended on time."""
+    g = _games.get(game_id)
+    if not g or g.result is not None:
+        return False
+    materialize_live_clocks(g)
+    if g.result is None:
+        return False
+    finish_game_side_effects(g)
+    return True
+
+
+def flag_delay_seconds(g: Game) -> float | None:
+    """Seconds until the side to move flags, or None if its clock is not running."""
+    if g.result is not None:
+        return None
+    white_turn = Board(g.fen).turn == chess.WHITE
+    uid = g.white_id if white_turn else g.black_id
+    started = g.white_clock_started if white_turn else g.black_clock_started
+    if not started or not _side_clock_runs(g, uid):
+        return None
+    white_ms, black_ms = _live_remaining_ms(g)
+    return (white_ms if white_turn else black_ms) / 1000.0
 
 
 def _apply_result(g: Game, board: Board) -> None:
@@ -806,9 +924,7 @@ def _apply_result(g: Game, board: Board) -> None:
         (_side_clock_runs(g, g.white_id) and g.white_remaining_ms <= 0)
         or (_side_clock_runs(g, g.black_id) and g.black_remaining_ms <= 0)
     ):
-        g.result = "0-1" if g.white_remaining_ms <= 0 else "1-0"
-        g.result_reason = "timeout"
-        g.result_detail = None
+        _set_timeout_result(g, g.white_remaining_ms <= 0)
 
 
 def _live_remaining_ms(g: Game) -> tuple[int, int]:
@@ -842,9 +958,7 @@ def materialize_live_clocks(g: Game) -> None:
         (_side_clock_runs(g, g.white_id) and white <= 0)
         or (_side_clock_runs(g, g.black_id) and black <= 0)
     ):
-        g.result = "0-1" if white <= 0 else "1-0"
-        g.result_reason = "timeout"
-        g.result_detail = None
+        _set_timeout_result(g, white <= 0)
 
 
 def turn_user_id(g: Game) -> str:
@@ -903,10 +1017,7 @@ def accept_draw_offer(game_id: str, user_id: str) -> dict | None:
     g.result_detail = "Ничья по соглашению сторон."
     g.draw_offer_by = None
     g.draw_offer_ply = None
-    _persist_game_state(g)
-    mark_invite_finished_by_game(g.id)
-    _apply_finished_game_ratings(g)
-    _maybe_tournament_hook(g)
+    finish_game_side_effects(g)
     return {
         "fen": g.fen,
         "white_remaining_ms": g.white_remaining_ms,
@@ -924,19 +1035,21 @@ def claim_draw(game_id: str, user_id: str, claim_type: str) -> dict | None:
     return None
 
 
-def forfeit_disconnected_player(game_id: str, disconnected_user_id: str) -> dict | None:
+def forfeit_disconnected_player(
+    game_id: str,
+    disconnected_user_id: str,
+    reason: str = "disconnect_forfeit",
+    detail: str = "Соперник отключился и не вернулся вовремя.",
+) -> dict | None:
     g = get_game_for_user(game_id, disconnected_user_id)
     if not g or g.result is not None:
         return None
     g.result = "0-1" if disconnected_user_id == g.white_id else "1-0"
-    g.result_reason = "disconnect_forfeit"
-    g.result_detail = "Соперник отключился и не вернулся вовремя."
+    g.result_reason = reason
+    g.result_detail = detail
     g.draw_offer_by = None
     g.draw_offer_ply = None
-    _persist_game_state(g)
-    mark_invite_finished_by_game(g.id)
-    _apply_finished_game_ratings(g)
-    _maybe_tournament_hook(g)
+    finish_game_side_effects(g)
     return {
         "fen": g.fen,
         "white_remaining_ms": g.white_remaining_ms,
@@ -963,8 +1076,11 @@ def apply_move(
     g = get_game_for_user(game_id, user_id)
     if not g or g.result is not None:
         return None
+    # Start of this turn: materialize_live_clocks() moves last_clock_at, so remember it first.
+    turn_started_at = g.last_clock_at
     materialize_live_clocks(g)
     if g.result is not None:
+        finish_game_side_effects(g)
         return {
             "fen": g.fen,
             "white_remaining_ms": g.white_remaining_ms,
@@ -994,27 +1110,33 @@ def apply_move(
         g.draw_offer_by = None
         g.draw_offer_ply = None
     now = time.monotonic()
-    elapsed_ms = 0 if is_premove else int((now - g.last_clock_at) * 1000)
+    # Whole thinking time of this turn (for the move list) and the part not yet charged
+    # by materialize_live_clocks() above.
+    think_ms = max(0, int((now - turn_started_at) * 1000))
+    elapsed_ms = max(0, int((now - g.last_clock_at) * 1000))
+    premove_refund_ms = min(think_ms, PREMOVE_FREE_MS) if is_premove else 0
     tc = g.time_control
     inc_ms = tc["increment_seconds"] * 1000
     move_no = (len(g.moves) // 2) + 1
     if board.turn == chess.WHITE:
         if g.white_clock_started and _side_clock_runs(g, g.white_id):
-            white_used = min(g.white_remaining_ms, elapsed_ms)
+            white_used = min(g.white_remaining_ms, elapsed_ms) - premove_refund_ms
+            move_time_ms = think_ms - premove_refund_ms
         else:
             white_used = 0
+            move_time_ms = 0
         white_inc = 0 if move_no == 1 else inc_ms
         g.white_remaining_ms = max(0, g.white_remaining_ms - white_used + white_inc)
-        move_time_ms = white_used
         if not g.black_clock_started:
             g.black_clock_started = True
     else:
         if g.black_clock_started and _side_clock_runs(g, g.black_id):
-            black_used = min(g.black_remaining_ms, elapsed_ms)
+            black_used = min(g.black_remaining_ms, elapsed_ms) - premove_refund_ms
+            move_time_ms = think_ms - premove_refund_ms
         else:
             black_used = 0
+            move_time_ms = 0
         g.black_remaining_ms = max(0, g.black_remaining_ms - black_used + inc_ms)
-        move_time_ms = black_used
         if not g.white_clock_started:
             g.white_clock_started = True
     g.last_clock_at = now
@@ -1023,7 +1145,7 @@ def apply_move(
     g.fen = board.fen()
     if g.is_bot_game and not is_premove:
         # Untimed game: still record wall time since previous move for move list / UX.
-        move_time_ms = min(max(0, elapsed_ms), 600_000)
+        move_time_ms = min(think_ms, 600_000)
     g.moves.append(MoveRecord(san=san, time_ms=move_time_ms))
     _apply_result(g, board)
     if not g.is_bot_game:

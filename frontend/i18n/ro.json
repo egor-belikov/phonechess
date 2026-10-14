@@ -19,7 +19,8 @@
     "connected": "Conectat",
     "reconnecting": "Se reconecta...",
     "disconnected_code": "Deconectat: cod {code}{reasonPart}",
-    "ws_error": "Eroare de conectare (WebSocket)"
+    "ws_error": "Eroare de conectare (WebSocket)",
+    "session_replaced": "The game is open on another device. Return to this window to continue here."
   },
   "game": {
     "header": "Joc",

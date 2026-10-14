@@ -66,6 +66,9 @@ class WSManager:
         logger.info("WS: disconnect user_id=%s removed=%d remaining_user=%d total=%d", user_id, len(removed), remaining, len(self._all))
         return remaining == 0
 
+    def connections_of(self, user_id: str) -> list[Connection]:
+        return list(self._by_user.get(user_id, []))
+
     def has_user(self, user_id: str) -> bool:
         conns = self._by_user.get(user_id)
         return bool(conns)

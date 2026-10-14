@@ -72,6 +72,8 @@
   let ws = null;
   let currentQueue = null;
   let reconnectTimer = null;
+  // Set when the server replaced this connection with a newer one (close 4010).
+  let sessionReplaced = false;
   let currentGameId = null;
   let myColor = null;
   let gameFen = null;
@@ -477,7 +479,7 @@
     const uid = myTelegramId || resolveTelegramId();
     if (!uid) return null;
     try {
-      const res = await fetch('/api/profile?telegram_id=' + encodeURIComponent(uid), { cache: 'no-store' });
+      const res = await fetch('/api/profile', { cache: 'no-store', headers: apiHeaders() });
       if (!res.ok) return null;
       profileData = await res.json();
       if (btnLogin) btnLogin.style.display = profileData.is_anonymous ? '' : 'none';
@@ -497,7 +499,7 @@
     const uid = myTelegramId || resolveTelegramId();
     if (!uid) return [];
     try {
-      const res = await fetch('/api/history?telegram_id=' + encodeURIComponent(uid), { cache: 'no-store' });
+      const res = await fetch('/api/history', { cache: 'no-store', headers: apiHeaders() });
       if (!res.ok) return [];
       const data = await res.json();
       return data.items || [];
@@ -510,7 +512,7 @@
     const uid = myTelegramId || resolveTelegramId();
     if (!uid) return [];
     try {
-      const res = await fetch('/api/tournaments/history?telegram_id=' + encodeURIComponent(uid), { cache: 'no-store' });
+      const res = await fetch('/api/tournaments/history', { cache: 'no-store', headers: apiHeaders() });
       if (!res.ok) return [];
       const data = await res.json();
       return data.items || [];
@@ -546,8 +548,8 @@
       profileTournamentsEl.innerHTML = titems.map(function (it) {
         const place = it.place != null ? ('место ' + it.place) : '—';
         const rw = it.reward_rank != null ? (' · награда ' + it.reward_rank) : '';
-        return '<div class="mode-btn" style="cursor:default"><span>' + (it.format || '') + ' · ' + (it.time_control || '') +
-          '</span><span class="queue-count">' + place + rw + '</span></div>';
+        return '<div class="mode-btn" style="cursor:default"><span>' + escapeHtml(it.format || '') + ' · ' + escapeHtml(it.time_control || '') +
+          '</span><span class="queue-count">' + escapeHtml(place + rw) + '</span></div>';
       }).join('');
     });
     loadHistory().then(function (items) {
@@ -558,9 +560,9 @@
       }
       profileHistoryEl.innerHTML = items.map(function (it) {
         const when = (it.created_at || '').slice(0, 19).replace('T', ' ');
-        return '<button type="button" class="mode-btn" data-history-game="' + it.game_id + '"><span>' +
-          (it.time_control || '') + ' · ' + (it.opponent || '') + '</span><span class="queue-count">' +
-          when + ' · ' + (it.result || '-') + '</span></button>';
+        return '<button type="button" class="mode-btn" data-history-game="' + escapeHtml(it.game_id || '') + '"><span>' +
+          escapeHtml(it.time_control || '') + ' · ' + escapeHtml(it.opponent || '') + '</span><span class="queue-count">' +
+          escapeHtml(when + ' · ' + (it.result || '-')) + '</span></button>';
       }).join('');
       profileHistoryEl.querySelectorAll('[data-history-game]').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -581,8 +583,8 @@
     if (!uid) return;
     const res = await fetch('/api/login/register', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telegram_id: uid, login_name: loginName }),
+      headers: apiHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ login_name: loginName }),
     });
     if (!res.ok) {
       setWsStatus(t('login.error'), 'error');
@@ -597,6 +599,28 @@
       return window.Telegram.WebApp.initData;
     }
     return '';
+  }
+
+  // REST auth: signed Telegram initData; outside Telegram (local debug) — debug uid.
+  function apiHeaders(extra) {
+    const headers = Object.assign({}, extra || {});
+    const initData = getInitData();
+    if (initData) {
+      headers['Authorization'] = 'tma ' + initData;
+    } else {
+      const debugUid = getDebugUid();
+      if (debugUid != null) headers['X-Debug-Uid'] = String(debugUid);
+    }
+    return headers;
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   function getDebugUid() {
@@ -1117,7 +1141,7 @@
     const fen = replayMode ? getReplayFenAt(replayIndex) : gameFen;
     if (!analysisEnabled || !fen) return;
     const reqId = ++analysisRequestId;
-    fetch('/api/analyze?fen=' + encodeURIComponent(fen), { cache: 'no-store' })
+    fetch('/api/analyze?fen=' + encodeURIComponent(fen), { cache: 'no-store', headers: apiHeaders() })
       .then(function (res) {
         return res.ok ? res.json() : null;
       })
@@ -1176,10 +1200,12 @@
     updateClocksDisplay();
   }
 
+  // nowMs === 0 forces an immediate sync (reconnect, app returned to foreground).
   function requestGameStateSync(nowMs) {
-    const now = nowMs != null ? nowMs : Date.now();
+    const force = nowMs === 0;
+    const now = force || nowMs == null ? Date.now() : nowMs;
     if (!currentGameId || !ws || ws.readyState !== WebSocket.OPEN) return;
-    if (now - lastStateSyncAt < STATE_RESYNC_MS) return;
+    if (!force && now - lastStateSyncAt < STATE_RESYNC_MS) return;
     ws.send(JSON.stringify({ type: 'subscribe_game', game_id: currentGameId }));
     lastStateSyncAt = now;
   }
@@ -2135,7 +2161,24 @@
           }
         } else if (msg.type === 'matched') {
           currentQueue = null;
-          enterGame(msg);
+          if (msg.resumed && currentGameId === msg.game_id && !gameResult) {
+            // Already on this game screen (reconnect): just pull the live state.
+            requestGameStateSync(0);
+          } else {
+            enterGame(msg);
+            // Resumed snapshot carries stored clocks/FEN only; fetch moves and live clocks.
+            if (msg.resumed) requestGameStateSync(0);
+          }
+        } else if (msg.type === 'move_rejected') {
+          if (msg.game_id === currentGameId) {
+            // Server refused the move: our chained premoves were built on it, drop them and resync.
+            premoveQueue = [];
+            clearSelection();
+            requestGameStateSync(0);
+            renderBoard();
+          }
+        } else if (msg.type === 'action_denied') {
+          console.log('[PhoneChess] action denied', msg.reason);
         } else if (msg.type === 'bot_campaign') {
           mergeBotCampaign(msg);
         } else if (msg.type === 'bot_start_denied') {
@@ -2262,6 +2305,13 @@
       }
       if (ev.code === 4009) {
         setWsStatus(t('login.second_session_denied'), 'error');
+        return;
+      }
+      if (ev.code === 4010) {
+        // Opened on another device/tab. Do not auto-reconnect (would kick it back);
+        // reconnect only when the user returns to this window.
+        sessionReplaced = true;
+        setWsStatus(t('status.session_replaced'), 'error');
         return;
       }
       var closeMsg = t('status.disconnected_code', { code: ev.code, reasonPart: ev.reason ? ' — ' + ev.reason : '' });
@@ -2437,10 +2487,18 @@
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
   }
+  function resumeAfterReplaced() {
+    if (!sessionReplaced || ws) return;
+    sessionReplaced = false;
+    connect();
+  }
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) requestGameStateSync(0);
+    if (document.hidden) return;
+    resumeAfterReplaced();
+    requestGameStateSync(0);
   });
   window.addEventListener('focus', function () {
+    resumeAfterReplaced();
     requestGameStateSync(0);
   });
 

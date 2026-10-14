@@ -4,6 +4,7 @@ https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
 """
 import hashlib
 import hmac
+import time
 from urllib.parse import parse_qsl
 
 from .config import get_config
@@ -48,6 +49,15 @@ def validate_init_data(init_data: str) -> dict | None:
     ).hexdigest()
 
     if not hmac.compare_digest(calculated, hash_from_tg):
+        return None
+
+    # Signed data never expires by itself: reject stale initData (replay of a leaked string).
+    try:
+        auth_date = int(parsed.get("auth_date", "0"))
+    except ValueError:
+        return None
+    max_age = int(getattr(config, "init_data_max_age_sec", 86400) or 0)
+    if max_age > 0 and time.time() - auth_date > max_age:
         return None
 
     return _parse_user_from_parsed(parsed)

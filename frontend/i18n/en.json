@@ -34,7 +34,8 @@
     "connected": "Connected",
     "reconnecting": "Reconnecting…",
     "disconnected_code": "Disconnected: code {code}{reasonPart}",
-    "ws_error": "Connection error (WebSocket)"
+    "ws_error": "Connection error (WebSocket)",
+    "session_replaced": "The game is open on another device. Return to this window to continue here."
   },
   "login": {
     "open": "Login",

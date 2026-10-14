@@ -19,7 +19,8 @@
     "connected": "Bersambung",
     "reconnecting": "Menyambung semula…",
     "disconnected_code": "Diputuskan sambungan: kod {code}{reasonPart}",
-    "ws_error": "Ralat sambungan (WebSocket)"
+    "ws_error": "Ralat sambungan (WebSocket)",
+    "session_replaced": "The game is open on another device. Return to this window to continue here."
   },
   "game": {
     "header": "Permainan",

@@ -1,18 +1,21 @@
 """
 PhoneChess API и WebSocket.
 """
+import asyncio
+import hmac
 import logging
 import re
 import time
 from pathlib import Path
 from collections import deque
 
-from fastapi import FastAPI, HTTPException, Request, WebSocket
+from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 from .constants import BOT_CAMPAIGN_ELOS
+from .auth import validate_init_data
 from .config import get_config
 from .db import Base, SessionLocal, engine
 from . import models  # noqa: F401
@@ -87,9 +90,17 @@ async def websocket_endpoint(ws: WebSocket):
 
 @app.post("/telegram/webhook")
 async def telegram_webhook(request: Request):
+    # process_update() does blocking HTTP calls to Telegram: keep them off the event loop.
+    secret = config.telegram_webhook_secret
+    if secret:
+        got = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+        if not hmac.compare_digest(got, secret):
+            raise HTTPException(status_code=403, detail="bad_webhook_secret")
+    else:
+        logger.warning("Telegram webhook: TELEGRAM_WEBHOOK_SECRET is not set, request is not verified")
     data = await request.json()
     if isinstance(data, dict):
-        process_update(data)
+        await asyncio.to_thread(process_update, data)
     return {"ok": True}
 
 
@@ -100,11 +111,36 @@ def _shutdown_workers():
 
 @app.on_event("startup")
 async def _startup_tournaments():
-    import asyncio
-
     from . import tournaments
+    from .pairing import close_orphaned_games, cleanup_loop
 
+    # Live games exist only in memory: anything unfinished in the DB died with the previous process.
+    n = close_orphaned_games()
+    if n:
+        logger.warning("startup: closed %d games left unfinished by previous process", n)
     asyncio.create_task(tournaments.scheduler_loop())
+    asyncio.create_task(cleanup_loop())
+
+
+def current_user_id(request: Request) -> str:
+    """
+    REST auth: `Authorization: tma <Telegram.WebApp.initData>`.
+    Local debug only (DEBUG=1 and no bot token): `X-Debug-Uid` header or `telegram_id` query param.
+    """
+    header = request.headers.get("Authorization", "")
+    if header.startswith("tma "):
+        user = validate_init_data(header[4:].strip())
+        if user and user.get("id") is not None:
+            return str(int(user["id"]))
+        raise HTTPException(status_code=401, detail="bad_init_data")
+    if config.debug and not config.telegram_bot_token:
+        raw = request.headers.get("X-Debug-Uid") or request.query_params.get("telegram_id")
+        try:
+            if raw:
+                return str(int(raw))
+        except ValueError:
+            pass
+    raise HTTPException(status_code=401, detail="auth_required")
 
 
 LOGIN_RE = re.compile(r"^[A-Za-z0-9_.-]{1,20}$")
@@ -115,6 +151,10 @@ _analysis_rate_by_client: dict[str, deque[float]] = {}
 
 def _check_analyze_rate_limit(client_key: str) -> None:
     now = time.monotonic()
+    if len(_analysis_rate_by_client) > 10000:
+        # Drop idle keys so the limiter itself cannot grow without bound.
+        for k in [k for k, v in _analysis_rate_by_client.items() if not v or now - v[-1] > _analysis_rate_window_sec]:
+            _analysis_rate_by_client.pop(k, None)
     q = _analysis_rate_by_client.setdefault(client_key, deque())
     while q and (now - q[0]) > _analysis_rate_window_sec:
         q.popleft()
@@ -124,8 +164,7 @@ def _check_analyze_rate_limit(client_key: str) -> None:
 
 
 @app.get("/api/profile")
-def get_profile(telegram_id: int):
-    user_id = str(telegram_id)
+def get_profile(user_id: str = Depends(current_user_id)):
     with SessionLocal() as db:
         user = db.get(models.User, user_id)
         if not user:
@@ -151,15 +190,11 @@ def get_profile(telegram_id: int):
 
 
 @app.post("/api/login/register")
-async def register_login(request: Request):
+async def register_login(request: Request, user_id: str = Depends(current_user_id)):
     payload = await request.json()
-    telegram_id = int(payload.get("telegram_id", 0))
     login_name = str(payload.get("login_name", "")).strip()
-    if not telegram_id:
-        raise HTTPException(status_code=400, detail="telegram_id_required")
     if not LOGIN_RE.match(login_name):
         raise HTTPException(status_code=400, detail="invalid_format")
-    user_id = str(telegram_id)
     with SessionLocal() as db:
         user = db.get(models.User, user_id)
         if not user:
@@ -174,8 +209,7 @@ async def register_login(request: Request):
 
 
 @app.get("/api/history")
-def get_history(telegram_id: int, limit: int = 30):
-    user_id = str(telegram_id)
+def get_history(limit: int = 30, user_id: str = Depends(current_user_id)):
     cap = max(1, min(limit, 100))
     with SessionLocal() as db:
         rows = (
@@ -204,20 +238,25 @@ def get_history(telegram_id: int, limit: int = 30):
 
 
 @app.get("/api/tournaments/history")
-def get_tournaments_history(telegram_id: int, limit: int = 30):
+def get_tournaments_history(limit: int = 30, user_id: str = Depends(current_user_id)):
     from . import tournaments
 
     cap = max(1, min(limit, 100))
-    return {"items": tournaments.user_tournament_history(str(telegram_id), cap)}
+    return {"items": tournaments.user_tournament_history(user_id, cap)}
 
 
 @app.get("/api/analyze")
-async def analyze_position(request: Request, fen: str):
+async def analyze_position(fen: str, user_id: str = Depends(current_user_id)):
     fen = (fen or "").strip()
     if not fen:
         raise HTTPException(status_code=400, detail="fen_required")
-    client_host = request.client.host if request.client and request.client.host else "unknown"
-    _check_analyze_rate_limit(client_host)
+    from .pairing import get_active_game_for_user
+
+    active = get_active_game_for_user(user_id)
+    if active and not active.is_bot_game:
+        # No engine help during a live game against a human.
+        raise HTTPException(status_code=403, detail="game_in_progress")
+    _check_analyze_rate_limit(user_id)
     try:
         return await analyze_fen_light(fen)
     except Exception as e:

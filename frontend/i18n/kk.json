@@ -19,7 +19,8 @@
     "connected": "Қосылды",
     "reconnecting": "Қайта қосылуда…",
     "disconnected_code": "Ажыратылды: код {code}{reasonPart}",
-    "ws_error": "Қосылым қатесі (WebSocket)"
+    "ws_error": "Қосылым қатесі (WebSocket)",
+    "session_replaced": "The game is open on another device. Return to this window to continue here."
   },
   "game": {
     "header": "Ойын",

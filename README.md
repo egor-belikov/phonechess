@@ -13,7 +13,7 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Для проверки **без Telegram** (браузер с любого URL) задайте `DEBUG=1` и не указывайте токен — будет принят тестовый пользователь:
+Для проверки **без Telegram** (браузер с любого URL) задайте `DEBUG=1` и не указывайте токен — будет принят тестовый пользователь (вход по `debug_uid` работает **только** без `TELEGRAM_BOT_TOKEN`, поэтому на проде он невозможен):
 
 ```bash
 DEBUG=1 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -34,15 +34,30 @@ export TELEGRAM_WEBAPP_URL=https://chess.apichatpong.online/
 
 Фронт отдаётся с того же порта (папка `frontend/` монтируется как статика).
 
+### Тесты
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+python -m pytest -q
+# с настоящим движком: STOCKFISH_TEST_PATH=/path/to/stockfish python -m pytest -q
+```
+
+CI (`.github/workflows/ci.yml`) гоняет их на каждый push/PR в `main`.
+
 ### Webhook для Telegram-бота
 
 В приложении есть endpoint `POST /telegram/webhook`, который обрабатывает `/start` и отправляет приветствие с кнопкой открытия Web App.
 
 Установить webhook (подставь токен и свой домен):
 
+Сначала задай в `.env` случайный секрет `TELEGRAM_WEBHOOK_SECRET` (символы `A-Z a-z 0-9 _ -`, до 256), например `openssl rand -hex 32`, перезапусти контейнер и передай тот же секрет в `setWebhook`:
+
 ```bash
-curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook?url=https://chess.apichatpong.online/telegram/webhook"
+curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook?url=https://chess.apichatpong.online/telegram/webhook&secret_token=$TELEGRAM_WEBHOOK_SECRET"
 ```
+
+Если `TELEGRAM_WEBHOOK_SECRET` задан, запросы без заголовка `X-Telegram-Bot-Api-Secret-Token` с этим значением получают `403`. Если не задан — webhook работает без проверки (в лог пишется предупреждение).
 
 ### Деплой на сервер (Docker)
 

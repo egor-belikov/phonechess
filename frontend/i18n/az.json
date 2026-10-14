@@ -19,7 +19,8 @@
     "connected": "Qoşuldu",
     "reconnecting": "Yenidən qoşulur...",
     "disconnected_code": "Bağlantı kəsildi: kod {code}{reasonPart}",
-    "ws_error": "Bağlantı xətası (WebSocket)"
+    "ws_error": "Bağlantı xətası (WebSocket)",
+    "session_replaced": "The game is open on another device. Return to this window to continue here."
   },
   "game": {
     "header": "Oyun",

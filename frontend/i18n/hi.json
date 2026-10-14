@@ -19,7 +19,8 @@
     "connected": "जुड़ा हुआ",
     "reconnecting": "पुनः कनेक्ट हो रहा है...",
     "disconnected_code": "डिस्कनेक्ट किया गया: कोड {code}{reasonPart}",
-    "ws_error": "कनेक्शन त्रुटि (वेबसॉकेट)"
+    "ws_error": "कनेक्शन त्रुटि (वेबसॉकेट)",
+    "session_replaced": "The game is open on another device. Return to this window to continue here."
   },
   "game": {
     "header": "खेल",

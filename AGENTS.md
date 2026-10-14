@@ -43,7 +43,7 @@ This file is the operational guide for AI agents working in `phonechess`.
   - can be queued while waiting for opponent move;
   - executes only if legal in resulting position;
   - if first queued premove becomes illegal, whole premove chain is cleared;
-  - premove execution is sent with `premove: true` (0ms move cost on backend).
+  - premove execution is sent with `premove: true`; backend refunds at most `PREMOVE_FREE_MS` (300ms) of thinking time for it, so a real premove costs `0:00` and the flag cannot be abused to stop the clock.
 - Premove visualization:
   - colored markers with per-step numbering;
   - preview board position reflects chained premoves.
@@ -106,7 +106,23 @@ This file is the operational guide for AI agents working in `phonechess`.
 - Auth is based on Telegram WebApp `initData` (with debug fallback modes).
 - Matchmaking and game updates should be resilient to reconnects.
 - Do not silently alter time-control semantics.
-- `apply_move(..., is_premove=True)` must keep `elapsed_ms = 0`.
+- `apply_move(..., is_premove=True)` refunds `min(think_ms, PREMOVE_FREE_MS)`; never trust the client flag beyond that cap.
+- Server-side flag: every move re-arms `schedule_flag_check(g)` (`ws_handlers.py`); flag fall ends the game via `check_flag()` without waiting for a move. Flag vs. lone king/insufficient material = draw (`timeout_vs_insufficient`).
+- All finishing paths go through `pairing.finish_game_side_effects(g)` (persist, invite, Elo, tournament hook; bot games are never persisted).
+- WS sessions: newest connection of a `user_id` wins, older ones are closed with `4010` (client does not auto-reconnect, it reconnects when its window regains focus). `4009` is no longer sent.
+- After `auth`, if the user has an unfinished game, server sends `matched` with `resumed: true`; client enters/resyncs that game.
+- One activity per user: `join_queue` / `start_bot_game` / `create_private_invite` / `join_tournament_waiting` during an unfinished game → `action_denied` (`already_in_game`) + `matched` (`resumed: true`).
+- REST `/api/*` (except `/health`) is authenticated by `Authorization: tma <initData>` (`main.current_user_id`); the `telegram_id` param/body field is ignored. Local debug (DEBUG=1, no token): `X-Debug-Uid` header. Frontend: always use `apiHeaders()`.
+- `initData` older than `INIT_DATA_MAX_AGE_SEC` (default 86400) is rejected for both REST and WS.
+- `/api/analyze` returns `403 game_in_progress` while the user has an unfinished non-bot game; rate limit is per user.
+- Stockfish: separate processes for bot moves and analysis (`uci_bot._PLAY` / `_ANALYSIS`); a failed engine is dropped and restarted on next use.
+- Illegal/refused `make_move` → server replies `move_rejected` (with server `fen`); client clears premoves and resyncs.
+- Telegram Bot API calls (blocking urllib, 10 s timeout) must not run on the event loop: use `_in_background(...)` / `asyncio.to_thread(...)` in `ws_handlers.py`; webhook runs `process_update` in a thread.
+- Finished games are evicted from memory 15 min after finish (`pairing.cleanup_loop`); history lives in DB. Per-game dicts in `ws_handlers` are cleaned via `on_games_evicted`.
+- On startup, DB games with `result IS NULL` are closed as `result="*"`, `result_reason="aborted_server_restart"` (no rating change) — live games do not survive a restart.
+- Stockfish in Docker: official `sf_19` linux x86-64 *universal* release (sha256-pinned in `Dockerfile`), `STOCKFISH_PATH=/usr/local/bin/stockfish`. To upgrade: change `STOCKFISH_VERSION` and `STOCKFISH_SHA256`.
+- Tests: `cd backend && pip install -r requirements-dev.txt && python -m pytest -q` (optional real engine: `STOCKFISH_TEST_PATH=...`). CI: `.github/workflows/ci.yml`.
+- `apply_move` measures move time from the turn start captured **before** `materialize_live_clocks()` (which moves `last_clock_at`).
 
 ## Local Development
 
@@ -143,7 +159,8 @@ From repo root:
 - Production entrypoint domain is expected to be `https://chess.apichatpong.online/`.
 - For reverse proxy, WebSocket upgrade headers are mandatory.
 - Server used in active workflow: SSH alias `egorvps`, path `/root/my_projects/phonechess`.
-- For browser-based testing without Telegram, server `.env` should keep `DEBUG=1`.
+- Browser testing without Telegram (`debug_uid`) works only with `DEBUG=1` and empty `TELEGRAM_BOT_TOKEN` — use a separate test stand, never production.
+- `TELEGRAM_WEBHOOK_SECRET` must match `secret_token` passed to `setWebhook` (see `README.md`).
 
 ## Agent Working Rules
 

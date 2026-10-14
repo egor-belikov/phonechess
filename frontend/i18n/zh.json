@@ -19,7 +19,8 @@
     "connected": "已连接",
     "reconnecting": "正在重新连接...",
     "disconnected_code": "已断开连接：代码 {code}{reasonPart}",
-    "ws_error": "连接错误（WebSocket）"
+    "ws_error": "连接错误（WebSocket）",
+    "session_replaced": "The game is open on another device. Return to this window to continue here."
   },
   "game": {
     "header": "游戏",

@@ -19,7 +19,8 @@
     "connected": "Połączono",
     "reconnecting": "Ponowne łączenie…",
     "disconnected_code": "Rozłączono: kod {code}{reasonPart}",
-    "ws_error": "Błąd połączenia (WebSocket)"
+    "ws_error": "Błąd połączenia (WebSocket)",
+    "session_replaced": "The game is open on another device. Return to this window to continue here."
   },
   "game": {
     "header": "Gra",

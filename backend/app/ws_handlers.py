@@ -44,6 +44,9 @@ from .pairing import (
     create_private_rematch,
     bot_campaign_snapshot_for_user,
     bot_campaign_push_payload_if_human_won_bot,
+    check_flag,
+    flag_delay_seconds,
+    on_games_evicted,
 )
 from .ws_manager import manager
 from .telegram_bot import (
@@ -62,8 +65,21 @@ _start_abort_tasks: dict[str, asyncio.Task] = {}
 _rematch_votes: dict[str, set[str]] = {}
 _bot_move_tasks: dict[str, asyncio.Task] = {}
 _result_notified_games: set[str] = set()
+_flag_tasks: dict[str, asyncio.Task] = {}
+# Close code for a connection replaced by a newer one of the same user (client must not auto-reconnect).
+WS_CLOSE_REPLACED = 4010
 # private match: Telegram message ids to edit on game end (both players)
 _private_match_bot_messages: dict[str, dict[str, tuple[int, int]]] = {}
+
+
+def _forget_games(game_ids: list[str]) -> None:
+    for gid in game_ids:
+        _rematch_votes.pop(gid, None)
+        _result_notified_games.discard(gid)
+        _private_match_bot_messages.pop(gid, None)
+
+
+on_games_evicted(_forget_games)
 
 
 def _user_id(telegram_id: int) -> str:
@@ -112,6 +128,17 @@ def _start_unstarted_abort_timer(game_id: str) -> None:
     _start_abort_tasks[game_id] = asyncio.create_task(_schedule_unstarted_abort(game_id))
 
 
+def _in_background(fn, *args) -> None:
+    """Run a blocking call (Telegram HTTP, up to 10 s timeout) in a worker thread, fire-and-forget."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        fn(*args)
+        return
+    fut = loop.run_in_executor(None, fn, *args)
+    fut.add_done_callback(lambda f: f.exception() and logger.warning("background call %s failed: %s", fn.__name__, f.exception()))
+
+
 def _notify_game_finished_once(g, reason: str | None, detail: str | None) -> None:
     if not g or not g.id or g.id in _result_notified_games:
         return
@@ -126,12 +153,91 @@ def _notify_game_finished_once(g, reason: str | None, detail: str | None) -> Non
                 if pair:
                     cid, mid = pair
                     if mid is not None:
-                        edit_webapp_message_html(int(cid), int(mid), html_body)
+                        _in_background(edit_webapp_message_html, int(cid), int(mid), html_body)
         return
     for uid in (g.white_id, g.black_id):
         tid, started = get_user_notification_target(uid)
         if started and tid:
-            send_game_result_message(tid, html_body)
+            _in_background(send_game_result_message, tid, html_body)
+
+
+def _final_state_payload(g) -> dict[str, Any]:
+    return {
+        "type": "game_update",
+        "fen": g.fen,
+        "white_remaining_ms": g.white_remaining_ms,
+        "black_remaining_ms": g.black_remaining_ms,
+        "result": g.result,
+        "result_reason": g.result_reason,
+        "result_detail": g.result_detail,
+        "draw_offer_by": g.draw_offer_by,
+        "draw_offer_color": None,
+    }
+
+
+def _matched_payload(g, user_id: str) -> dict[str, Any]:
+    payload = {
+        "type": "matched",
+        "game_id": g.id,
+        "time_control": g.time_control_key,
+        "fen": g.fen,
+        "white_username": g.white_username,
+        "black_username": g.black_username,
+        "white_remaining_ms": g.white_remaining_ms,
+        "black_remaining_ms": g.black_remaining_ms,
+        "color": "white" if g.white_id == user_id else "black",
+        "is_bot_game": bool(g.is_bot_game),
+        "no_clock_user_id": g.no_clock_user_id,
+        "tournament_id": g.tournament_id,
+    }
+    if g.is_bot_game:
+        payload["bot_elo"] = g.bot_elo
+    return payload
+
+
+async def _deny_if_in_game(user_id: str) -> bool:
+    """One activity per user: refuse new queue/bot/invite while a game is running, and point back to it."""
+    active = get_active_game_for_user(user_id)
+    if not active:
+        return False
+    await manager.send_to_user(user_id, {"type": "action_denied", "reason": "already_in_game", "game_id": active.id})
+    await manager.send_to_user(user_id, {**_matched_payload(active, user_id), "resumed": True})
+    return True
+
+
+def _cancel_flag_task(game_id: str) -> None:
+    t = _flag_tasks.pop(game_id, None)
+    if t and t is not asyncio.current_task():
+        t.cancel()
+
+
+def schedule_flag_check(g) -> None:
+    """(Re)arm the server-side flag timer for the side to move."""
+    _cancel_flag_task(g.id)
+    delay = flag_delay_seconds(g)
+    if delay is None:
+        return
+    _flag_tasks[g.id] = asyncio.create_task(_run_flag_check(g.id, delay))
+
+
+async def _run_flag_check(game_id: str, delay: float) -> None:
+    try:
+        await asyncio.sleep(max(0.0, delay) + 0.05)
+        g = get_game_any(game_id)
+        if not g or g.result is not None:
+            return
+        if not check_flag(game_id):
+            _flag_tasks.pop(game_id, None)
+            schedule_flag_check(g)
+            return
+        payload = _final_state_payload(g)
+        await manager.send_to_user(g.white_id, payload)
+        await manager.send_to_user(g.black_id, payload)
+        _cancel_start_abort_task(game_id)
+        _notify_game_finished_once(g, g.result_reason, g.result_detail)
+    finally:
+        if _flag_tasks.get(game_id) is asyncio.current_task():
+            _flag_tasks.pop(game_id, None)
 
 
 def _schedule_bot_move(game_id: str) -> None:
@@ -217,6 +323,8 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
         time_control = data.get("time_control")
         if time_control not in get_queue_counts():
             return True
+        if await _deny_if_in_game(user_id):
+            return True
         conn = manager.get_any_connection(user_id)
         if not conn:
             return True
@@ -253,6 +361,9 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
         await manager.broadcast_queue_counts()
         return True
     if t == "start_bot_game":
+        if await _deny_if_in_game(user_id):
+            return True
+        leave_all_queues(user_id)
         time_control = data.get("time_control") or "3+0"
         conn = manager.get_any_connection(user_id)
         if not conn:
@@ -303,6 +414,8 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
             _schedule_bot_move(game.id)
         return True
     if t == "create_private_invite":
+        if await _deny_if_in_game(user_id):
+            return True
         time_control = data.get("time_control")
         conn = manager.get_any_connection(user_id)
         if not conn:
@@ -325,7 +438,8 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
             cfg = get_config()
             sep = "&" if "?" in cfg.telegram_webapp_url else "?"
             launch_url = f"{cfg.telegram_webapp_url}{sep}startapp=private_{created['invite_key']}"
-            send_webapp_message(
+            _in_background(
+                send_webapp_message,
                 tid,
                 f"Вы создали приватную игру ({created['time_control']}). Ссылка:\n{created['invite_link']}",
                 launch_url,
@@ -415,7 +529,7 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                         for uid in (g.white_id, g.black_id):
                             tid, started = get_user_notification_target(uid)
                             if started and tid:
-                                mid = send_webapp_message(tid, f"Приватная игра создана. Ссылка:\n{link}", link)
+                                mid = await asyncio.to_thread(send_webapp_message, tid, f"Приватная игра создана. Ссылка:\n{link}", link)
                                 role = "white" if uid == g.white_id else "black"
                                 if mid is not None:
                                     msgs[role] = (tid, mid)
@@ -479,7 +593,7 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
         for uid in (g.white_id, g.black_id):
             tid, started = get_user_notification_target(uid)
             if started and tid:
-                mid = send_webapp_message(tid, f"Приватная игра создана. Ссылка:\n{link}", link)
+                mid = await asyncio.to_thread(send_webapp_message, tid, f"Приватная игра создана. Ссылка:\n{link}", link)
                 role = "white" if uid == g.white_id else "black"
                 if mid is not None:
                     msgs[role] = (tid, mid)
@@ -491,6 +605,8 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
         tc = (data.get("time_control") or "").strip()
         conn = manager.get_any_connection(user_id)
         if fmt in ("swiss", "ko") and tc in get_queue_counts() and conn:
+            if await _deny_if_in_game(user_id):
+                return True
             from . import tournaments as tournaments_mod
 
             tournaments_mod.register_waiting(fmt, tc, user_id, conn.telegram_id, conn.username or "")
@@ -545,6 +661,20 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
         g = get_game_for_user(game_id, user_id) if game_id else None
         if g and from_sq and to_sq:
             update = apply_move(game_id, user_id, from_sq, to_sq, promotion, is_premove=is_premove)
+            if not update:
+                # Tell the client so it can drop its optimistic state and resync instead of hanging.
+                await manager.send_to_user(
+                    user_id,
+                    {
+                        "type": "move_rejected",
+                        "game_id": game_id,
+                        "from": from_sq,
+                        "to": to_sq,
+                        "premove": is_premove,
+                        "fen": g.fen,
+                        "result": g.result,
+                    },
+                )
             if update:
                 payload = {
                     "type": "game_update",
@@ -570,10 +700,13 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                 if len(g.moves) >= 2:
                     _cancel_start_abort_task(g.id)
                 if g.result is None:
+                    schedule_flag_check(g)
                     _maybe_start_disconnect_task(g, turn_user_id(g))
                     if g.is_bot_game and g.bot_user_id and turn_user_id(g) == g.bot_user_id:
                         _schedule_bot_move(g.id)
                 else:
+                    _cancel_flag_task(g.id)
+                    _cancel_start_abort_task(g.id)
                     _notify_game_finished_once(g, update.get("result_reason"), update.get("result_detail"))
         return True
     if t == "resign":
@@ -595,6 +728,8 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
                 }
                 await manager.send_to_user(g.white_id, payload)
                 await manager.send_to_user(g.black_id, payload)
+                _cancel_flag_task(g.id)
+                _cancel_start_abort_task(g.id)
                 _notify_game_finished_once(g, update.get("result_reason"), update.get("result_detail"))
         return True
     if t == "offer_draw":
@@ -622,6 +757,8 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
         if action == "accept":
             update = accept_draw_offer(game_id, user_id)
             if update:
+                _cancel_flag_task(g.id)
+                _notify_game_finished_once(g, update.get("result_reason"), update.get("result_detail"))
                 payload = {
                     "type": "game_update",
                     "fen": update["fen"],
@@ -639,7 +776,7 @@ async def handle_ws_message(ws: WebSocket, raw: str, user_id: str) -> bool:
     if t == "rematch_request":
         game_id = data.get("game_id")
         g = get_game_for_user(game_id, user_id) if game_id else None
-        if not g or not g.is_private:
+        if not g or not g.is_private or g.result is None or g.rematch_game_id:
             return True
         votes = _rematch_votes.setdefault(game_id, set())
         votes.add(user_id)
@@ -707,8 +844,8 @@ async def _schedule_disconnect_forfeit(game_id: str, disconnected_user_id: str) 
         # Bot has no WebSocket; never treat it as a disconnected human.
         if g.is_bot_game and g.bot_user_id and disconnected_user_id == g.bot_user_id:
             return
-        materialize_live_clocks(g)
-        if g.result is not None:
+        if check_flag(game_id):
+            _cancel_flag_task(game_id)
             payload = {
                 "type": "game_update",
                 "fen": g.fen,
@@ -729,11 +866,15 @@ async def _schedule_disconnect_forfeit(game_id: str, disconnected_user_id: str) 
             return
         if turn_user_id(g) != disconnected_user_id:
             return
-        update = forfeit_disconnected_player(game_id, disconnected_user_id)
+        update = forfeit_disconnected_player(
+            game_id,
+            disconnected_user_id,
+            reason="disconnect_turn_timeout",
+            detail="Игрок не вернулся в течение 10 секунд после начала своего хода.",
+        )
         if not update:
             return
-        update["result_reason"] = "disconnect_turn_timeout"
-        update["result_detail"] = "Игрок не вернулся в течение 10 секунд после начала своего хода."
+        _cancel_flag_task(game_id)
         payload = {
             "type": "game_update",
             "fen": update["fen"],
@@ -794,7 +935,9 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
             await ws.close(code=4001)
             return
         init_data = data.get("init_data", "")
-        if config.debug and not init_data:
+        # debug_uid login is never allowed when a real bot token is configured (production):
+        # otherwise anyone could connect as an arbitrary telegram_id.
+        if config.debug and not config.telegram_bot_token and not init_data:
             uid = data.get("debug_uid", 0)
             user = {"id": uid, "first_name": "Dev", "username": f"dev{uid}"}
             logger.info("WS: debug auth, uid=%s", uid)
@@ -808,11 +951,17 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
         user_id = _user_id(telegram_id)
         username = user.get("username") or user.get("first_name") or ""
         ensure_user_registered(user_id, telegram_id, username)
-        if manager.has_user(user_id):
-            logger.info("WS: reject second active client user_id=%s", user_id)
-            await ws.close(code=4009, reason="another session is active; close previous tab")
-            return
+        # Newest connection wins: a half-open socket left after a mobile network drop
+        # must not lock the player out of their own game.
+        old_conns = manager.connections_of(user_id)
         await manager.connect(ws, user_id, telegram_id, username)
+        for old in old_conns:
+            logger.info("WS: replacing previous connection user_id=%s", user_id)
+            manager.disconnect(user_id, old.ws)
+            try:
+                await old.ws.close(code=WS_CLOSE_REPLACED, reason="session opened elsewhere")
+            except Exception:
+                pass
         # Reconnect inside active game: cancel forfeit timer and notify opponent.
         active = get_active_game_for_user(user_id)
         _cancel_disconnect_task(user_id)
@@ -841,6 +990,8 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
             },
         )
         logger.info("WS: queue_counts sent to %s", user_id)
+        if active and active.result is None:
+            await manager.send_to_user(user_id, {**_matched_payload(active, user_id), "resumed": True})
         while True:
             msg = await ws.receive_text()
             if not await handle_ws_message(ws, msg, user_id):
@@ -851,16 +1002,16 @@ async def ws_auth_and_loop(ws: WebSocket) -> None:
         logger.exception("WS: error user_id=%s: %s", user_id, e)
     finally:
         if user_id:
+            is_last = manager.disconnect(user_id, ws)
+            if not is_last:
+                logger.info("WS: user_id=%s still has active tabs", user_id)
+                return
             for key in list(_private_room_presence.keys()):
                 users = _private_room_presence.get(key) or set()
                 if user_id in users:
                     users.discard(user_id)
                 if not users:
                     _private_room_presence.pop(key, None)
-            is_last = manager.disconnect(user_id, ws)
-            if not is_last:
-                logger.info("WS: user_id=%s still has active tabs", user_id)
-                return
             active = get_active_game_for_user(user_id)
             if active and active.result is None:
                 opp_id = active.black_id if active.white_id == user_id else active.white_id

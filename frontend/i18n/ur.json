@@ -19,7 +19,8 @@
     "connected": "جڑا ہوا",
     "reconnecting": "دوبارہ منسلک ہو رہا ہے…",
     "disconnected_code": "منقطع: کوڈ {code}PH_1__",
-    "ws_error": "کنکشن کی خرابی (ویب ساکٹ)"
+    "ws_error": "کنکشن کی خرابی (ویب ساکٹ)",
+    "session_replaced": "The game is open on another device. Return to this window to continue here."
   },
   "game": {
     "header": "کھیل",

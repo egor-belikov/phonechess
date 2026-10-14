@@ -19,7 +19,8 @@
     "connected": "ተገናኝቷል።",
     "reconnecting": "እንደገና በማገናኘት ላይ…",
     "disconnected_code": "ግንኙነቱ ተቋርጧል፡ ኮድ _PH_0__{reasonPart}",
-    "ws_error": "የግንኙነት ስህተት (WebSocket)"
+    "ws_error": "የግንኙነት ስህተት (WebSocket)",
+    "session_replaced": "The game is open on another device. Return to this window to continue here."
   },
   "game": {
     "header": "ጨዋታ",
