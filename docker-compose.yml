@@ -14,7 +14,9 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      # Production sets APP_BIND_ADDR to the docker bridge gateway (nginx proxies to it),
+      # so the app is not reachable from the internet directly, only via nginx/TLS.
+      - "${APP_BIND_ADDR:-0.0.0.0}:8000:8000"
     depends_on:
       - db
     environment:
@@ -25,6 +27,18 @@ services:
       - DEBUG=${DEBUG:-0}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
     restart: unless-stopped
+
+  # Cloudflare Tunnel connector: public hostname -> http://app:8000, no inbound ports needed.
+  # Started only with `docker compose --profile tunnel up -d` (needs CLOUDFLARE_TUNNEL_TOKEN in .env).
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - app
+    restart: unless-stopped
+    profiles: ["tunnel"]
 
 volumes:
   phonechess_pgdata:

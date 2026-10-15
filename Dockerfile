@@ -17,10 +17,13 @@ RUN tar -xzf /tmp/stockfish.tar.gz -C /tmp stockfish/stockfish-linux-x86-64-univ
     && echo quit | /usr/local/bin/stockfish | head -n 1
 ENV STOCKFISH_PATH=/usr/local/bin/stockfish
 
+# Dependencies first: this layer stays cached until requirements.txt changes,
+# so a code-only deploy does not reinstall packages.
+COPY backend/requirements.txt /app/backend/requirements.txt
+RUN pip install --no-cache-dir -r /app/backend/requirements.txt
+
 COPY backend/ /app/backend/
 COPY frontend/ /app/frontend/
-
-RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 
 WORKDIR /app/backend
 EXPOSE 8000

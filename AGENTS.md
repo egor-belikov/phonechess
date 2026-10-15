@@ -160,6 +160,8 @@ From repo root:
 - For reverse proxy, WebSocket upgrade headers are mandatory.
 - Server used in active workflow: SSH alias `egorvps`, path `/root/my_projects/phonechess`.
 - Browser testing without Telegram (`debug_uid`) works only with `DEBUG=1` and empty `TELEGRAM_BOT_TOKEN` — use a separate test stand, never production.
+- Production `.env` sets `APP_BIND_ADDR=172.19.0.1` (gateway of `phonechess_default`, the address nginx proxies to): port 8000 is not exposed to the internet. Local dev keeps the default `0.0.0.0`.
+- Production server has **no outbound route to `api.telegram.org`** (Network unreachable): bot messages from the app fail there; `setWebhook` / `getWebhookInfo` must be called from another machine.
 - `TELEGRAM_WEBHOOK_SECRET` must match `secret_token` passed to `setWebhook` (see `README.md`).
 
 ## Agent Working Rules

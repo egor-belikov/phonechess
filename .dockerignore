@@ -11,3 +11,4 @@ __pycache__
 .env.*
 *.log
 .DS_Store
+backend/tests
