@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-REMOTE_HOST="${DEPLOY_HOST:-egorvps}"
+REMOTE_HOST="${DEPLOY_HOST:-fantasyvps}"
 REMOTE_DIR="${DEPLOY_DIR:-/root/my_projects/phonechess}"
 BRANCH="${DEPLOY_BRANCH:-main}"
 COMMIT_MSG="${1:-Deploy: update build and release latest changes}"

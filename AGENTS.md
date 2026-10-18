@@ -157,11 +157,14 @@ From repo root:
 - Canonical GitHub repo: `https://github.com/egor-belikov/phonechess`.
 - Standard server deploy uses Docker Compose (`docker compose build && docker compose up -d`).
 - Production entrypoint domain is expected to be `https://chess.apichatpong.online/`.
+- **Production host (since 2026-10-18): `fantasyvps` (195.133.9.109)**, path `/root/my_projects/phonechess`; `scripts/deploy.sh` targets it by default. Moved from `egorvps` (no outbound route to Telegram there); old containers on egorvps are stopped with restart policy `no`, not deleted.
+- Request path: DNS A record (Cloudflare DNS only, no proxy/tunnel) → `fantasy-web` nginx on 80/443 (TLS, Let's Encrypt cert `apichatpong.online` covering apex/chess/quiz; config `/root/fantasy/deploy/nginx/apichatpong.conf`, renewed by the fantasy weekly certbot cron) → `apichatpong-gw` (`/root/my_projects/apichatpong-stack`, also serves `apichatpong.online` and `quiz.`) → `phonechess-app-1:8000` over the `phonechess_default` network.
+- `fantasyvps` is memory-tight (shared with fantasy and zagruziplease): app and db run with `oom_score_adj: -800`.
 - For reverse proxy, WebSocket upgrade headers are mandatory.
-- Server used in active workflow: SSH alias `egorvps`, path `/root/my_projects/phonechess`.
+- Server used in active workflow: SSH alias `fantasyvps`, path `/root/my_projects/phonechess` (was `egorvps` until 2026-10-18).
 - Browser testing without Telegram (`debug_uid`) works only with `DEBUG=1` and empty `TELEGRAM_BOT_TOKEN` — use a separate test stand, never production.
-- Production `.env` sets `APP_BIND_ADDR=172.19.0.1` (gateway of `phonechess_default`, the address nginx proxies to): port 8000 is not exposed to the internet. Local dev keeps the default `0.0.0.0`.
-- Production server has **no outbound route to `api.telegram.org`** (Network unreachable): bot messages from the app fail there; `setWebhook` / `getWebhookInfo` must be called from another machine.
+- Production `.env` sets `APP_BIND_ADDR=127.0.0.1`: port 8000 is not exposed to the internet (nginx reaches the app over the docker network; deploy health check uses 127.0.0.1). Local dev keeps the default `0.0.0.0`.
+- Telegram webhook is pinned with `ip_address=195.133.9.109` in `setWebhook`; re-run `setWebhook` (with `secret_token` and `ip_address`) if the host IP changes.
 - `TELEGRAM_WEBHOOK_SECRET` must match `secret_token` passed to `setWebhook` (see `README.md`).
 
 ## Agent Working Rules
