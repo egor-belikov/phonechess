@@ -8,6 +8,8 @@ services:
     volumes:
       - phonechess_pgdata:/var/lib/postgresql/data
     restart: unless-stopped
+    # Shared VPS: if the host runs out of memory, the kernel should kill anything but the game.
+    oom_score_adj: -800
 
   app:
     build:
@@ -27,18 +29,7 @@ services:
       - DEBUG=${DEBUG:-0}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
     restart: unless-stopped
-
-  # Cloudflare Tunnel connector: public hostname -> http://app:8000, no inbound ports needed.
-  # Started only with `docker compose --profile tunnel up -d` (needs CLOUDFLARE_TUNNEL_TOKEN in .env).
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate run
-    environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN:-}
-    depends_on:
-      - app
-    restart: unless-stopped
-    profiles: ["tunnel"]
+    oom_score_adj: -800
 
 volumes:
   phonechess_pgdata:
